@@ -115,7 +115,7 @@ func defaultAdminUIConfig() *systemconfigs.AdminUIConfig {
 		AdminSystemName:    langs.DefaultMessage(codes.AdminUI_DefaultSystemName),
 		ShowOpenSourceInfo: true,
 		ShowVersion:        true,
-		ShowFinance:        true,
+		ShowFinance:        false, // FreeCDN: 默认隐藏财务模块
 		DefaultPageSize:    10,
 		TimeZone:           nodeconfigs.DefaultTimeZoneLocation,
 	}

@@ -5,7 +5,7 @@ const (
 
 	APINodeVersion = "1.4.1"
 
-	ProductName = "Edge Admin"
+	ProductName = "FreeCDN Admin"
 	ProcessName = "edge-admin"
 
 	Role = "admin"
@@ -16,5 +16,5 @@ const (
 	SessionAdminId = "adminId"
 
 	SystemdServiceName = "edge-admin"
-	UpdatesURL         = "https://goedge.cloud/api/boot/versions?os=${os}&arch=${arch}&version=${version}"
+	UpdatesURL = ""
 )

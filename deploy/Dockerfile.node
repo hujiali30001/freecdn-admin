@@ -1,0 +1,41 @@
+# ==============================================================
+# FreeCDN Node 镜像（边缘节点）
+#
+# 构建命令：
+#   docker build -f deploy/Dockerfile.node -t freecdn/node:latest .
+#
+# 注意：edge-node 需要先在管理后台创建节点，
+#       获取 NODE_ID 和 NODE_SECRET 后才能启动。
+# ==============================================================
+
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    tzdata \
+    iptables \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app/edge-node
+
+# 复制 edge-node 二进制
+COPY goedge/edge-node/bin/edge-node ./bin/edge-node
+RUN chmod +x ./bin/edge-node
+
+# 创建必要目录
+RUN mkdir -p \
+    ./configs \
+    ./logs \
+    ./caches \
+    ./data
+
+# 复制 entrypoint
+COPY deploy/docker-entrypoint-node.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENV TZ=Asia/Shanghai
+
+# 暴露 HTTP/HTTPS 端口（CDN 流量）
+EXPOSE 80 443
+
+ENTRYPOINT ["/entrypoint.sh"]

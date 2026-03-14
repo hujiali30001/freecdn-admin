@@ -1,6 +1,1 @@
-docs: rewrite README and add PLAN.md
-
-- README: replace GoEdge content with FreeCDN branding
-  quickstart, features, system requirements, zero-cost Oracle Cloud setup
-- PLAN.md: roadmap with P0-P5 priorities based on actual project state
-  P0 = install script real-world test (highest priority)
+fix: use sudo mysql for auth_socket on Ubuntu

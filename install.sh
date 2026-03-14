@@ -214,8 +214,8 @@ if [ "$MODE" = "admin" ] && [ "$SKIP_MYSQL" = "false" ]; then
 
   # 创建数据库和用户
   info "创建数据库: ${MYSQL_DATABASE}"
-  MYSQL_EXEC="mysql -u root"
-  # Ubuntu MySQL 默认用 auth_socket，直接用 sudo 调用
+  # Ubuntu MySQL 默认用 auth_socket，必须通过 sudo 调用
+  MYSQL_EXEC="sudo mysql -u root"
   $MYSQL_EXEC 2>/dev/null <<SQL || warn "数据库/用户可能已存在，跳过创建"
 CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

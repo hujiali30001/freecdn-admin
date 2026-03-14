@@ -1,0 +1,75 @@
+# ==============================================================
+# FreeCDN 生产单机部署 Docker Compose
+# 用途：在一台服务器上运行管理节点（EdgeAdmin + EdgeAPI + MySQL）
+#       边缘节点单独部署，参考 deploy/node-install.sh
+# 使用：
+#   1. cp deploy/.env.example deploy/.env  # 修改为强密码
+#   2. docker compose -f deploy/docker-compose.prod.yml up -d
+# ==============================================================
+
+version: '3.8'
+
+networks:
+  freecdn:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  admin_configs:
+  api_configs:
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: freecdn-mysql
+    restart: always
+    networks:
+      - freecdn
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-freecdn}
+      MYSQL_USER: ${MYSQL_USER:-freecdn}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
+      --max_connections=500
+      --innodb_buffer_pool_size=512M
+      --slow_query_log=1
+      --slow_query_log_file=/var/lib/mysql/slow.log
+      --long_query_time=2
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  edge-admin:
+    image: goedge/edge-admin:latest
+    container_name: freecdn-admin
+    restart: always
+    networks:
+      - freecdn
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      # 建议套一层 Nginx 反向代理，并限制 7788 只对内网开放
+      - "127.0.0.1:7788:7788"
+      # 8001 端口需要对边缘节点 IP 开放，如果有固定 IP 可以在防火墙层限制
+      - "8001:8001"
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - admin_configs:/usr/local/goedge/edge-admin/configs
+      - api_configs:/usr/local/goedge/edge-admin/edge-api/configs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"

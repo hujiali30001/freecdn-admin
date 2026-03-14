@@ -1,0 +1,140 @@
+# ==============================================================
+# FreeCDN 本地开发 / 单机部署 Docker Compose
+#
+# 快速开始：
+#   1. cp deploy/.env.example deploy/.env   # 按需修改密码
+#   2. cd deploy && docker compose build    # 构建本地镜像
+#   3. docker compose up -d                 # 启动
+#   4. 浏览器访问 http://localhost:7788
+#   5. 按向导填写数据库信息（host: mysql, port: 3306）
+#
+# 停止：
+#   docker compose down
+#
+# 查看日志：
+#   docker compose logs -f freecdn-admin
+# ==============================================================
+
+networks:
+  freecdn:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  admin_configs:    # edge-admin configs（含安装后生成的 nodeId/secret）
+  admin_logs:
+  api_logs:
+  api_data:
+  node_configs:
+  node_caches:
+  node_logs:
+
+services:
+  # ============================================================
+  # MySQL 数据库
+  # ============================================================
+  mysql:
+    image: mysql:8.0
+    container_name: freecdn-mysql
+    restart: unless-stopped
+    networks:
+      - freecdn
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-freecdn_root_2026}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-freecdn}
+      MYSQL_USER: ${MYSQL_USER:-freecdn}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-freecdn_pass_2026}
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
+      --max_connections=500
+      --innodb_buffer_pool_size=256M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root",
+             "-p${MYSQL_ROOT_PASSWORD:-freecdn_root_2026}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ============================================================
+  # FreeCDN Admin（管理后台 + 内嵌 EdgeAPI）
+  # ============================================================
+  freecdn-admin:
+    # 先运行 deploy/docker-build.sh 构建本地镜像
+    image: freecdn/admin:latest
+    container_name: freecdn-admin
+    restart: unless-stopped
+    networks:
+      - freecdn
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${ADMIN_PORT:-7788}:7788"   # 管理后台 Web
+      - "${API_PORT:-8003}:8003"     # EdgeAPI RPC（边缘节点连接用，需对外开放）
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER:-freecdn}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-freecdn_pass_2026}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-freecdn}
+      ADMIN_HTTP_PORT: 7788
+      API_RPC_PORT: 8003
+    volumes:
+      # 持久化配置（含安装向导生成的 nodeId/secret，重启后保留）
+      - admin_configs:/app/edge-admin/configs
+      - admin_logs:/app/edge-admin/logs
+      - api_logs:/app/edge-admin/edge-api/logs
+      - api_data:/app/edge-admin/edge-api/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # ============================================================
+  # FreeCDN Node（边缘节点，可选）
+  #
+  # 首次使用步骤：
+  #   1. 先启动 freecdn-admin，完成安装向导
+  #   2. 登录管理后台 -> 节点管理 -> 新建节点 -> 复制安装命令
+  #   3. 从安装命令中获取 NODE_ID 和 NODE_SECRET
+  #   4. 填入下方 environment，取消注释此服务，重启
+  # ============================================================
+  freecdn-node:
+    # 先运行 deploy/docker-build.sh 构建本地镜像
+    image: freecdn/node:latest
+    container_name: freecdn-node
+    restart: unless-stopped
+    # 使用 host 网络模式直接监听宿主机端口 80/443，获得最佳性能
+    # 如果宿主机 80/443 已占用，改为 bridge 模式并配置 ports
+    network_mode: host
+    depends_on:
+      - freecdn-admin
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      # 必填：在管理后台"节点 -> 安装"页面获取
+      # 注意：使用 host 网络时填宿主机实际 IP，不能用 freecdn-admin
+      API_ENDPOINTS: ${API_ENDPOINTS:-http://127.0.0.1:8003}
+      NODE_ID: ${NODE_ID:-}
+      NODE_SECRET: ${NODE_SECRET:-}
+    volumes:
+      - node_configs:/app/edge-node/configs
+      - node_caches:/app/edge-node/caches
+      - node_logs:/app/edge-node/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+    profiles:
+      - node   # 默认不启动节点，用 --profile node 或配置好后去掉此行

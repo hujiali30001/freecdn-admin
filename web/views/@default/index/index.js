@@ -1,3 +1,19 @@
+// FreeCDN: 替换登录页面中的 GoEdge 品牌字样
+;(function patchLoginBrand() {
+	function replaceTextNodes(node) {
+		if (node.nodeType === 3) {
+			node.textContent = node.textContent.replace(/GoEdge/g, 'FreeCDN')
+		} else if (node.childNodes) {
+			node.childNodes.forEach(replaceTextNodes)
+		}
+	}
+	document.addEventListener('DOMContentLoaded', function() {
+		document.title = document.title.replace(/GoEdge/g, 'FreeCDN')
+		var header = document.querySelector('.ui.header')
+		if (header) replaceTextNodes(header)
+	})
+})();
+
 Tea.context(function () {
 	this.username = ""
 	this.password = ""

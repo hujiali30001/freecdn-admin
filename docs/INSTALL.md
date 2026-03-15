@@ -69,6 +69,40 @@ firewall-cmd --reload
 
 适合：Linux 服务器，无 Docker 环境。
 
+### 前置：开启 SSH 密码登录 & 放行端口
+
+刚重装的云服务器（腾讯云 / 阿里云 / AWS 等）有时默认禁用密码登录，或防火墙仅开放 22 端口，需要先执行以下命令：
+
+```bash
+# 1. 开启 SSH 密码登录（如果只用密钥登录可跳过）
+sudo sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sudo sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+sudo systemctl restart sshd
+
+# 2. 放行防火墙端口（Ubuntu/Debian ufw）
+# 腾讯云默认未启用 ufw，如果 `ufw status` 显示 inactive 可跳过
+sudo ufw allow 22/tcp    # SSH，务必先放行，否则会断连
+sudo ufw allow 7788/tcp  # 管理台
+sudo ufw allow 8001/tcp  # API 节点（边缘节点连接用）
+sudo ufw allow 8003/tcp  # gRPC（内部通信）
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw --force enable
+
+# CentOS/Rocky（firewalld）
+sudo firewall-cmd --permanent --add-port=22/tcp
+sudo firewall-cmd --permanent --add-port=7788/tcp
+sudo firewall-cmd --permanent --add-port=8001/tcp
+sudo firewall-cmd --permanent --add-port=8003/tcp
+sudo firewall-cmd --permanent --add-port=80/tcp
+sudo firewall-cmd --permanent --add-port=443/tcp
+sudo firewall-cmd --reload
+```
+
+> **腾讯云 / 阿里云用户**：服务器本身的防火墙之外，还需要在云控制台的**安全组**里同步放行以上端口，否则外网仍无法访问。
+
+---
+
 **国内服务器（推荐，镜像加速）：**
 ```bash
 curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash

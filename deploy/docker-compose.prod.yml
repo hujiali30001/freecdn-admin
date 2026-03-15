@@ -79,6 +79,11 @@ services:
   # FreeCDN Admin（管理后台 + 内嵌 EdgeAPI）
   # ============================================================
   freecdn-admin:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        FREECDN_VERSION: ${FREECDN_VERSION:-v0.1.6}
     image: freecdn/admin:latest
     container_name: freecdn-admin
     restart: always

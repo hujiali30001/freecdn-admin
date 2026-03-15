@@ -105,12 +105,12 @@ sudo firewall-cmd --reload
 
 **国内服务器（推荐，镜像加速）：**
 ```bash
-curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash
+curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
 ```
 
 **GitHub 直连（境外服务器或镜像不可用时）：**
 ```bash
-curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
 ```
 
 安装脚本会自动探测最快的下载镜像，国内服务器下载速度通常在 5-20 MB/s，安装全程约 2-5 分钟。安装完成后按提示访问管理台完成向导。

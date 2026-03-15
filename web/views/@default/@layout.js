@@ -1,9 +1,52 @@
+// ── FreeCDN brand override ──────────────────────────────────────────────────
+// 在 Vue 上下文挂载前，把后端注入的 GoEdge 品牌信息替换为 FreeCDN
+;(function patchBrand() {
+	// 替换 document.title 中的 GoEdge 字样
+	var _titleDesc = Object.getOwnPropertyDescriptor(Document.prototype, 'title');
+	if (_titleDesc) {
+		var _origTitleSet = _titleDesc.set;
+		Object.defineProperty(document, 'title', {
+			set: function(v) {
+				_origTitleSet.call(this, typeof v === 'string' ? v.replace(/GoEdge/g, 'FreeCDN') : v);
+			},
+			get: _titleDesc.get,
+			configurable: true
+		});
+	}
+	document.title = document.title.replace(/GoEdge/g, 'FreeCDN');
+})();
+
 Tea.context(function () {
 	this.moreOptionsVisible = false
 	this.globalMessageBadge = 0
 
 	if (typeof this.leftMenuItemIsDisabled == "undefined") {
 		this.leftMenuItemIsDisabled = false
+	}
+
+	// ── 过滤商业版菜单 & 替换品牌名 ──────────────────────────────────────────
+	var COMMERCIAL_CODES = ['authority', 'ns', 'ad', 'business']
+	if (Array.isArray(this.teaModules)) {
+		this.teaModules = this.teaModules.filter(function(m) {
+			return COMMERCIAL_CODES.indexOf(m.code) === -1
+		})
+	}
+	// teaTitle / teaName 由后端注入，替换 GoEdge 字样
+	if (typeof this.teaTitle === 'string') {
+		this.teaTitle = this.teaTitle.replace(/GoEdge/gi, 'FreeCDN')
+	}
+	if (typeof this.teaName === 'string') {
+		this.teaName = this.teaName.replace(/GoEdge/gi, 'FreeCDN')
+	}
+
+	// ── 屏蔽商业授权页面内容 ──────────────────────────────────────────────────
+	if (window.location.pathname.indexOf('/settings/authority') === 0) {
+		window.addEventListener('DOMContentLoaded', function() {
+			var mainBox = document.querySelector('.main-box')
+			if (mainBox) {
+				mainBox.innerHTML = '<div class="ui message info" style="margin:2em"><i class="icon info circle"></i>此功能在 FreeCDN 中不可用。</div>'
+			}
+		})
 	}
 
 	this.$delay(function () {

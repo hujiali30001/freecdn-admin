@@ -66,4 +66,11 @@ body.swal2-shown {
 .fields button {
   min-width: 5em;
 }
+
+/* ── FreeCDN: 隐藏商业版/授权相关页面内容 ─────────────────────────── */
+/* authority 申请/激活页面：隐藏整个主内容区（保留正常框架） */
+body[data-page*="authority"] .main-box,
+body[data-route*="authority"] .main-box {
+  display: none !important;
+}
 /*# sourceMappingURL=@layout_override.css.map */

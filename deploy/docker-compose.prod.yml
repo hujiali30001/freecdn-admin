@@ -1,13 +1,25 @@
 # ==============================================================
-# FreeCDN 生产单机部署 Docker Compose
-# 用途：在一台服务器上运行管理节点（EdgeAdmin + EdgeAPI + MySQL）
-#       边缘节点单独部署，参考 deploy/node-install.sh
-# 使用：
-#   1. cp deploy/.env.example deploy/.env  # 修改为强密码
-#   2. docker compose -f deploy/docker-compose.prod.yml up -d
+# FreeCDN 生产部署 Docker Compose
+#
+# 与 docker-compose.yml（开发版）的区别：
+#   - MySQL 端口不对外暴露（安全）
+#   - restart: always（自动重启）
+#   - MySQL 开启慢查询日志
+#   - 日志轮转更保守
+#
+# 使用方法：
+#   1. cp deploy/.env.example deploy/.env
+#   2. 修改 .env 中的密码（必须！不要用默认值上生产）
+#   3. docker compose -f deploy/docker-compose.yml build
+#   4. docker compose -f deploy/docker-compose.prod.yml up -d
+#   5. docker compose -f deploy/docker-compose.prod.yml logs -f freecdn-admin
+#
+# 停止：
+#   docker compose -f deploy/docker-compose.prod.yml down
+#
+# 完全重置（删除所有数据）：
+#   docker compose -f deploy/docker-compose.prod.yml down -v
 # ==============================================================
-
-version: '3.8'
 
 networks:
   freecdn:
@@ -15,10 +27,15 @@ networks:
 
 volumes:
   mysql_data:
-  admin_configs:
-  api_configs:
+  admin_configs:    # edge-admin configs（含自动生成的 nodeId/secret）
+  admin_logs:
+  api_logs:
+  api_data:
 
 services:
+  # ============================================================
+  # MySQL 数据库（生产版：不暴露端口，开启慢查询日志）
+  # ============================================================
   mysql:
     image: mysql:8.0
     container_name: freecdn-mysql
@@ -26,13 +43,16 @@ services:
     networks:
       - freecdn
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请在 .env 中设置 MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-freecdn}
       MYSQL_USER: ${MYSQL_USER:-freecdn}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?请在 .env 中设置 MYSQL_PASSWORD}
       TZ: ${TZ:-Asia/Shanghai}
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    # 生产版：不暴露 MySQL 端口，只在 freecdn 内网可访问
+    # ports:    # 不暴露给外部
     command: >
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
@@ -43,14 +63,23 @@ services:
       --slow_query_log_file=/var/lib/mysql/slow.log
       --long_query_time=2
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root",
+             "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 15s
       timeout: 5s
       retries: 5
       start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
-  edge-admin:
-    image: goedge/edge-admin:latest
+  # ============================================================
+  # FreeCDN Admin（管理后台 + 内嵌 EdgeAPI）
+  # ============================================================
+  freecdn-admin:
+    image: freecdn/admin:latest
     container_name: freecdn-admin
     restart: always
     networks:
@@ -59,15 +88,26 @@ services:
       mysql:
         condition: service_healthy
     ports:
-      # 建议套一层 Nginx 反向代理，并限制 7788 只对内网开放
-      - "127.0.0.1:7788:7788"
-      # 8001 端口需要对边缘节点 IP 开放，如果有固定 IP 可以在防火墙层限制
-      - "8001:8001"
+      # 生产建议：7788 只对内网开放，前面套 Nginx 反代 + HTTPS
+      - "${ADMIN_HOST:-127.0.0.1}:${ADMIN_PORT:-7788}:7788"
+      # 8003 需要对边缘节点 IP 开放（边缘节点通过此端口连接）
+      - "${API_PORT:-8003}:8003"
     environment:
       TZ: ${TZ:-Asia/Shanghai}
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER:-freecdn}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?请在 .env 中设置 MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-freecdn}
+      ADMIN_HTTP_PORT: 7788
+      API_RPC_PORT: 8003
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?请在 .env 中设置 ADMIN_PASSWORD}
     volumes:
-      - admin_configs:/usr/local/goedge/edge-admin/configs
-      - api_configs:/usr/local/goedge/edge-admin/edge-api/configs
+      - admin_configs:/app/edge-admin/configs
+      - admin_logs:/app/edge-admin/logs
+      - api_logs:/app/edge-admin/edge-api/logs
+      - api_data:/app/edge-admin/edge-api/data
     logging:
       driver: "json-file"
       options:

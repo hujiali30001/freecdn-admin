@@ -150,6 +150,7 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 - `edgeAPINodes.uniqueId` ≠ `adminNodeId`（旧文档错误，真实字段是 `uniqueId`）
 - `edgeAPINodes.http` 的 `listen[0].protocol` 必须是 `"http"`（空字符串 → edge-api 无法启动）
 - `edgeAPINodes.accessAddrs` 必须含真实 IP（空数组 `[]` → SyncAPINodesTask nil pointer panic）
+- `api_admin.yaml` 必须用嵌套 YAML 格式（`rpc:` / `  endpoints:` / `    - "..."``），点号格式 `rpc.endpoints: [...]` 会导致 edge-admin 解析失败，报 "wrong token role"
 - `edgeAPITokens.role=admin` 的 nodeId 必须与 `api_admin.yaml` 中一致
 - 管理员密码 MD5 存储，不是 bcrypt
 - curl 访问管理后台返回 403（正常），需要浏览器访问

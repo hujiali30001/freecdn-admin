@@ -590,19 +590,35 @@ if [ "$MODE" = "admin" ]; then
 
   # 运行 edge-api upgrade 创建所有表
   # 注意：不能用 `cmd 2>&1 | tail -5`，因为管道会让 || 无法捕获 cmd 的退出码
-  # 改用临时文件捕获输出
+  # 运行数据库迁移（edge-api upgrade）
+  # upgrade 可能因 db 连接竞争在首次启动时 panic，最多重试 3 次
   info "运行数据库迁移（edge-api upgrade）..."
   UPGRADE_OUT="/tmp/freecdn_upgrade_$$.log"
   cd "${API_DIR}"
-  if ! ./bin/edge-api upgrade > "$UPGRADE_OUT" 2>&1; then
-    # upgrade 失败：打印完整输出，但不中断安装（表可能已存在）
-    warn "edge-api upgrade 返回非零，输出如下（可能是表已存在，继续）："
-    cat "$UPGRADE_OUT" >&2 || true
-  else
-    tail -3 "$UPGRADE_OUT" || true
-  fi
+  UPGRADE_OK=false
+  for _retry in 1 2 3; do
+    if ./bin/edge-api upgrade > "$UPGRADE_OUT" 2>&1; then
+      UPGRADE_OK=true
+      tail -3 "$UPGRADE_OUT" || true
+      break
+    fi
+    # 如果输出包含 "panic" 说明是 crash，等待后重试；否则可能是"表已存在"的非致命错误
+    if grep -q "panic" "$UPGRADE_OUT" 2>/dev/null; then
+      warn "edge-api upgrade panic（第 ${_retry} 次），1秒后重试..."
+      sleep 1
+    else
+      # 非 panic 失败，打印输出但视为可继续（表已存在场景）
+      UPGRADE_OK=true
+      warn "edge-api upgrade 返回非零（可能是表已存在，继续）："
+      cat "$UPGRADE_OUT" >&2 || true
+      break
+    fi
+  done
   rm -f "$UPGRADE_OUT"
   cd - > /dev/null
+  if [ "$UPGRADE_OK" = "false" ]; then
+    error "edge-api upgrade 连续 3 次 panic，数据库迁移失败，请检查 MySQL 连接配置"
+  fi
   info "数据库迁移完成"
 
   # 生成 nodeId 和 secret，写入 edge-api 的 api.yaml（API 节点自身认证）
@@ -626,11 +642,12 @@ YAML
 
   # 插入 API 节点记录（仅当表为空时）
   # 关键字段说明：
-  #   uniqueId  = api.yaml 里的 nodeId（edge-api 启动时校验）
-  #   http      = HTTPProtocolConfig JSON，protocol 必须是 "http"（非空字符串）
+  #   uniqueId    = api.yaml 里的 nodeId（edge-api 启动时校验）
+  #   http        = HTTPProtocolConfig JSON，protocol 必须是 "http"（非空字符串）
   #   accessAddrs = 外部访问地址数组（至少一个，不能为空 []）
+  #   isPrimary   = 1（标记为主节点，edge-admin 依赖此字段）
   INSERT_ERR=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<SQL
-INSERT IGNORE INTO edgeAPINodes (id, isOn, uniqueId, name, description, secret, clusterId, http, https, accessAddrs, state, createdAt, updatedAt)
+INSERT IGNORE INTO edgeAPINodes (id, isOn, uniqueId, name, description, secret, clusterId, http, https, accessAddrs, state, createdAt, isPrimary)
 VALUES (
   1,
   1,
@@ -644,7 +661,7 @@ VALUES (
   '[{"protocol":"http","host":"${SERVER_IP}","portRange":"${API_RPC_PORT}","description":""}]',
   1,
   UNIX_TIMESTAMP(),
-  UNIX_TIMESTAMP()
+  1
 );
 SQL
 ) || INSERT_ERR="[INSERT FAILED: exit $?]"
@@ -698,24 +715,41 @@ fi
 step "注册系统服务"
 
 if [ "$MODE" = "admin" ]; then
-  # 注意：edge-admin 内嵌启动 edge-api（进程树关系），
-  # 只需要一个 freecdn-admin.service，不需要独立的 freecdn-api.service。
-  # 安装独立的 freecdn-api.service 会与内嵌启动冲突，导致端口占用。
+  # edge-api 和 edge-admin 是两个独立进程，需要分别注册 service。
+  # edge-admin 通过 api_admin.yaml 中的 rpc.endpoints 连接 edge-api（8003 端口）。
+  # 启动顺序：freecdn-api 先于 freecdn-admin。
 
-  # 清理可能残留的旧版服务文件
-  if [ -f /etc/systemd/system/freecdn-api.service ]; then
-    systemctl stop freecdn-api 2>/dev/null || true
-    systemctl disable freecdn-api 2>/dev/null || true
-    rm -f /etc/systemd/system/freecdn-api.service
-    warn "已清理旧版 freecdn-api.service（edge-admin 内嵌管理 edge-api，不需要独立服务）"
-  fi
+  # 注册 freecdn-api.service
+  cat > /etc/systemd/system/freecdn-api.service <<SERVICE
+[Unit]
+Description=FreeCDN API Service
+Documentation=https://github.com/hujiali30001/freecdn-admin
+After=network.target mysql.service mysqld.service
+Wants=mysql.service mysqld.service
 
+[Service]
+Type=simple
+WorkingDirectory=${API_DIR}
+ExecStart=${API_DIR}/bin/edge-api
+Restart=always
+RestartSec=5
+LimitNOFILE=65535
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=freecdn-api
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+
+  # 注册 freecdn-admin.service（依赖 freecdn-api 先就绪）
   cat > /etc/systemd/system/freecdn-admin.service <<SERVICE
 [Unit]
 Description=FreeCDN Admin Service
 Documentation=https://github.com/hujiali30001/freecdn-admin
-After=network.target mysql.service mysqld.service
+After=network.target mysql.service mysqld.service freecdn-api.service
 Wants=mysql.service mysqld.service
+Requires=freecdn-api.service
 
 [Service]
 Type=simple
@@ -733,8 +767,8 @@ WantedBy=multi-user.target
 SERVICE
 
   systemctl daemon-reload
-  systemctl enable freecdn-admin
-  info "服务注册完成: freecdn-admin"
+  systemctl enable freecdn-api freecdn-admin
+  info "服务注册完成: freecdn-api + freecdn-admin"
 
 else
   cat > /etc/systemd/system/freecdn-node.service <<SERVICE
@@ -768,22 +802,32 @@ fi
 step "启动服务"
 
 if [ "$MODE" = "admin" ]; then
-  systemctl start freecdn-admin
-  info "服务启动中，等待就绪..."
-  sleep 5
-
-  # 等待 HTTP 端口就绪（最多 30 秒）
-  # 注意：不能用 curl -sf，GoEdge 对无浏览器 UA 的请求返回 403，
-  # -f 会把 403 视为失败导致误报"等待超时"。
-  # 改为只检测端口是否可连接（nc 或 /dev/tcp），不看 HTTP 状态码。
+  # 先启 edge-api，等 8003 就绪后再启 edge-admin
+  systemctl start freecdn-api
+  info "等待 edge-api 就绪 (8003 端口)..."
   _port_open() {
     if command -v nc &>/dev/null; then
       nc -z -w2 127.0.0.1 "$1" &>/dev/null
     else
-      # bash 内置 /dev/tcp 作为后备
       (echo >/dev/tcp/127.0.0.1/"$1") &>/dev/null
     fi
   }
+  for i in $(seq 1 15); do
+    if _port_open "${API_RPC_PORT}"; then
+      info "edge-api 已就绪 (${API_RPC_PORT} 端口)"
+      break
+    fi
+    if [ "$i" -eq 15 ]; then
+      warn "edge-api 等待超时，请检查: journalctl -u freecdn-api -n 30"
+    fi
+    sleep 2
+  done
+
+  systemctl start freecdn-admin
+  info "服务启动中，等待就绪..."
+  sleep 3
+
+  # 等待管理后台 HTTP 端口就绪
   for i in $(seq 1 10); do
     if _port_open "${ADMIN_HTTP_PORT}"; then
       info "管理后台已就绪 (${ADMIN_HTTP_PORT} 端口)"
@@ -791,7 +835,7 @@ if [ "$MODE" = "admin" ]; then
     fi
     if [ "$i" -eq 10 ]; then
       warn "等待超时，服务可能仍在启动。请稍后用以下命令检查："
-      warn "  systemctl status freecdn-admin"
+      warn "  systemctl status freecdn-admin freecdn-api"
       warn "  journalctl -u freecdn-admin -n 30"
     fi
     sleep 3

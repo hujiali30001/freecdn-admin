@@ -32,10 +32,9 @@ fi
 
 # ---- 生成 api_node.yaml ----
 cat > ${WORKDIR}/configs/api_node.yaml << EOF
-rpc.endpoints: ['${API_ENDPOINTS}']
-rpc.disableUpdate: false
-nodeId: ${NODE_ID}
-secret: ${NODE_SECRET}
+rpc.endpoints: [ "${API_ENDPOINTS}" ]
+nodeId: "${NODE_ID}"
+secret: "${NODE_SECRET}"
 EOF
 echo "[entrypoint] Generated configs/api_node.yaml"
 echo "[entrypoint] API: ${API_ENDPOINTS}"

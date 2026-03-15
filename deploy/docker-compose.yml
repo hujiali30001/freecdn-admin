@@ -3,16 +3,19 @@
 #
 # 快速开始：
 #   1. cp deploy/.env.example deploy/.env   # 按需修改密码
-#   2. cd deploy && docker compose build    # 构建本地镜像
-#   3. docker compose up -d                 # 启动
-#   4. 浏览器访问 http://localhost:7788
-#   5. 按向导填写数据库信息（host: mysql, port: 3306）
+#   2. docker compose -f deploy/docker-compose.yml build    # 构建本地镜像
+#   3. docker compose -f deploy/docker-compose.yml up -d    # 启动
+#   4. 浏览器访问 http://localhost:7788，用 admin/FreeCDN2026! 登录
+#      （首次启动会自动初始化数据库，约需 60 秒）
 #
 # 停止：
-#   docker compose down
+#   docker compose -f deploy/docker-compose.yml down
 #
 # 查看日志：
-#   docker compose logs -f freecdn-admin
+#   docker compose -f deploy/docker-compose.yml logs -f freecdn-admin
+#
+# 重置（清除所有数据重新初始化）：
+#   docker compose -f deploy/docker-compose.yml down -v
 # ==============================================================
 
 networks:
@@ -89,6 +92,8 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-freecdn}
       ADMIN_HTTP_PORT: 7788
       API_RPC_PORT: 8003
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-FreeCDN2026!}
     volumes:
       # 持久化配置（含安装向导生成的 nodeId/secret，重启后保留）
       - admin_configs:/app/edge-admin/configs

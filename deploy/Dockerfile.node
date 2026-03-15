@@ -1,16 +1,53 @@
 # ==============================================================
 # FreeCDN Node 镜像（边缘节点）
 #
-# 构建命令：
+# 构建命令（在项目根目录）：
 #   docker build -f deploy/Dockerfile.node -t freecdn/node:latest .
 #
 # 注意：edge-node 需要先在管理后台创建节点，
 #       获取 NODE_ID 和 NODE_SECRET 后才能启动。
+#
+# 说明：
+#   构建时直接从 goedge.rip 下载 GoEdge v1.3.9（安全基线版本），
+#   从 edge-admin 全家桶中提取 edge-node 二进制。
 # ==============================================================
 
+# ---- 构建阶段：提取 edge-node 二进制 ----
+FROM debian:bookworm-slim AS downloader
+
+ARG TARGETARCH=amd64
+ARG GOEDGE_VERSION=v1.3.9
+
+RUN apt-get update -qq && apt-get install -y -qq wget unzip ca-certificates && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /tmp
+RUN set -e; \
+    ARCH="$(echo $TARGETARCH | sed 's/arm64/arm64/;s/amd64/amd64/')"; \
+    URL="https://goedge.rip/dl/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH}-plus-${GOEDGE_VERSION}.zip"; \
+    echo "Downloading: ${URL}"; \
+    wget -q --timeout=300 "${URL}" -O goedge.zip \
+      || wget -q --timeout=300 \
+           "https://dl.goedge.cloud/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH}-plus-${GOEDGE_VERSION}.zip" \
+           -O goedge.zip; \
+    unzip -q goedge.zip -d /tmp/goedge-src; \
+    rm goedge.zip; \
+    # edge-node zip 在 edge-api/deploy/ 目录下
+    if [ -d /tmp/goedge-src/edge-admin ]; then \
+      NODE_ZIP=$(find /tmp/goedge-src/edge-admin/edge-api/deploy -name "edge-node-linux-${ARCH}-*.zip" | head -1); \
+    else \
+      NODE_ZIP=$(find /tmp/goedge-src/edge-api/deploy -name "edge-node-linux-${ARCH}-*.zip" | head -1); \
+    fi; \
+    echo "Extracting node zip: ${NODE_ZIP}"; \
+    unzip -q "${NODE_ZIP}" -d /tmp/node-extract; \
+    NODE_BIN=$(find /tmp/node-extract -name "edge-node" -type f | head -1); \
+    echo "Found edge-node binary: ${NODE_BIN}"; \
+    cp "${NODE_BIN}" /tmp/edge-node; \
+    chmod +x /tmp/edge-node
+
+# ---- 最终镜像 ----
 FROM debian:bookworm-slim
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update -qq && apt-get install -y -qq \
     ca-certificates \
     tzdata \
     iptables \
@@ -18,24 +55,20 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app/edge-node
 
-# 复制 edge-node 二进制
-COPY goedge/edge-node/bin/edge-node ./bin/edge-node
-RUN chmod +x ./bin/edge-node
+COPY --from=downloader /tmp/edge-node ./bin/edge-node
 
-# 创建必要目录
 RUN mkdir -p \
     ./configs \
     ./logs \
     ./caches \
     ./data
 
-# 复制 entrypoint
 COPY deploy/docker-entrypoint-node.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENV TZ=Asia/Shanghai
 
-# 暴露 HTTP/HTTPS 端口（CDN 流量）
+# edge-node 使用 host 网络监听 80/443，EXPOSE 仅做文档说明
 EXPOSE 80 443
 
 ENTRYPOINT ["/entrypoint.sh"]

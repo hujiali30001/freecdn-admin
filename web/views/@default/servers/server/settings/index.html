@@ -34,21 +34,8 @@
 					<input type="text" name="name" maxlength="60" ref="focus" v-model="server.name"/>
 				</td>
 			</tr>
-            <tr v-if="plans.length > 0">
-                <td>选择套餐</td>
-                <td>
-                    <select class="ui dropdown auto-width" name="userPlanId" v-model="userPlanId">
-                        <option value="0">[选择套餐]</option>
-                        <option v-for="plan in plans" :value="plan.id">{{plan.name}}（{{plan.dayTo}}）</option>
-                    </select>
-                </td>
-            </tr>
-            <tr v-if="plans.length == 0 && teaIsPlus">
-                <td>选择套餐</td>
-                <td>当前网站所属用户没有可用套餐。</td>
-            </tr>
-			<tr>
-				<td :class="{'color-border':server.clusterId != oldClusterId}">部署的集群 *</td>
+		<tr>
+			<td :class="{'color-border':server.clusterId != oldClusterId}">部署的集群 *</td>
 				<td>
 					<select class="ui dropdown auto-width" name="clusterId" v-model="server.clusterId" >
 						<option v-for="cluster in clusters" :value="cluster.id">{{cluster.name}}</option>

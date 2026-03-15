@@ -65,13 +65,9 @@ func UpdateAdminUIConfig(uiConfig *systemconfigs.AdminUIConfig) error {
 	return nil
 }
 
-// ShowFinance 是否显示财务信息
+// ShowFinance 是否显示财务信息 — FreeCDN: 永久关闭，不可配置
 func ShowFinance() bool {
-	config, _ := LoadAdminUIConfig()
-	if config != nil && !config.ShowFinance {
-		return false
-	}
-	return true
+	return false
 }
 
 func loadAdminUIConfig() (*systemconfigs.AdminUIConfig, error) {

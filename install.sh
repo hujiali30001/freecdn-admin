@@ -61,7 +61,7 @@ NODE_ID=""                      # node 模式必填
 NODE_SECRET=""                  # node 模式必填
 
 GOEDGE_VERSION="v1.3.9"
-FREECDN_VERSION="v0.1.0"        # FreeCDN 自己的 Release 版本
+FREECDN_VERSION="v0.1.1"        # FreeCDN 自己的 Release 版本
 FORCE_REINSTALL="false"
 
 # ── 参数解析 ───────────────────────────────────────────────────────────────────

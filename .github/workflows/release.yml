@@ -77,12 +77,21 @@ jobs:
           cp "${GOEDGE_ROOT}/bin/edge-admin" "${PKG_DIR}/edge-admin"
           chmod +x "${PKG_DIR}/edge-admin"
 
-          # web 目录
+          # web 目录：先复制 GoEdge 原版，再用仓库里修改过的文件覆盖
+          # 仓库里的 web/ 已经过品牌替换 + 收费模块清理，必须覆盖原版
           if [ -d "${GOEDGE_ROOT}/web" ]; then
             cp -r "${GOEDGE_ROOT}/web" "${PKG_DIR}/web"
           else
             echo "WARNING: web/ not found in GoEdge zip, creating empty dir"
             mkdir -p "${PKG_DIR}/web"
+          fi
+          # 用仓库里改过的 web/ 覆盖（品牌替换 + 去收费模块）
+          if [ -d "$GITHUB_WORKSPACE/web" ]; then
+            echo "Overlaying repo web/ onto GoEdge web/..."
+            cp -r "$GITHUB_WORKSPACE/web/." "${PKG_DIR}/web/"
+            echo "Overlay done."
+          else
+            echo "WARNING: repo web/ not found, using GoEdge original web/"
           fi
 
           # configs 目录（server.template.yaml 等）

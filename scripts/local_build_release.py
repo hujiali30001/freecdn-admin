@@ -28,9 +28,9 @@ import urllib.request
 # ── 仓库配置 ──────────────────────────────────────────────────────────────────
 RELEASE_REPO   = "hujiali30001/freecdn-admin"   # Release 发布到这里
 REPOS = {
-    "admin": "https://github.com/hujiali30001/freecdn-admin.git",
-    "api":   "https://github.com/hujiali30001/freecdn-api.git",
-    "node":  "https://github.com/hujiali30001/freecdn-node.git",
+    "admin": ("https://github.com/hujiali30001/freecdn-admin.git", "main"),
+    "api":   ("https://github.com/hujiali30001/freecdn-api.git",   "master"),
+    "node":  ("https://github.com/hujiali30001/freecdn-node.git",  "master"),
 }
 ARCHS = ["amd64", "arm64"]
 
@@ -40,6 +40,18 @@ GO_FALLBACK_PATHS = [
     r"C:\Go\bin\go.exe",
     r"C:\Program Files\Go\bin\go.exe",
 ]
+
+# WSL 配置（用于需要 CGO 的 edge-node 编译）
+WSL_GO   = "/usr/local/go/bin/go"
+WSL_DISTRO = "Ubuntu-24.04"
+
+def wsl_path(win_path):
+    """把 Windows 路径转成 WSL 可访问的 /mnt/... 路径"""
+    p = win_path.replace("\\", "/")
+    if len(p) >= 2 and p[1] == ":":
+        drive = p[0].lower()
+        p = f"/mnt/{drive}{p[2:]}"
+    return p
 
 
 # ── 工具函数 ──────────────────────────────────────────────────────────────────
@@ -59,17 +71,44 @@ def find_go():
     return None
 
 
-def run(cmd, cwd=None, env=None, check=True):
+PROXY = os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY") or "http://127.0.0.1:4780"
+
+def _base_env():
+    """返回带代理的基础环境变量"""
+    e = os.environ.copy()
+    e.setdefault("HTTP_PROXY",  PROXY)
+    e.setdefault("HTTPS_PROXY", PROXY)
+    # 让 git 也走代理
+    e["GIT_CONFIG_COUNT"] = "1"
+    e["GIT_CONFIG_KEY_0"]   = "http.proxy"
+    e["GIT_CONFIG_VALUE_0"] = PROXY
+    return e
+
+
+def run(cmd, cwd=None, env=None, check=True, retries=3):
+    import time
     log(f"$ {' '.join(cmd) if isinstance(cmd, list) else cmd}")
-    result = subprocess.run(cmd, cwd=cwd, env=env,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                            text=True)
-    if result.stdout:
-        for line in result.stdout.splitlines():
-            print(f"  {line}")
-    if check and result.returncode != 0:
-        log(f"ERROR: command failed (exit {result.returncode})")
-        sys.exit(1)
+    # 默认继承带代理的环境
+    if env is None:
+        env = _base_env()
+    for attempt in range(1, retries + 1):
+        result = subprocess.run(cmd, cwd=cwd, env=env,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                text=True)
+        if result.stdout:
+            for line in result.stdout.splitlines():
+                print(f"  {line}")
+        if result.returncode == 0:
+            return result
+        if check:
+            if attempt < retries:
+                log(f"  command failed (exit {result.returncode}), retrying in 5s... ({attempt}/{retries})")
+                time.sleep(5)
+            else:
+                log(f"ERROR: command failed after {retries} attempts (exit {result.returncode})")
+                sys.exit(1)
+        else:
+            return result
     return result
 
 
@@ -92,39 +131,139 @@ def copy_tree_overlay(src, dst):
 
 
 # ── clone / 更新仓库 ──────────────────────────────────────────────────────────
-def ensure_repo(name, url, src_dir, token):
-    """clone 或 pull 仓库，返回本地路径"""
+def ensure_repo(name, url_branch, src_dir, token):
+    """clone 或 pull 仓库，返回本地路径。url_branch 可以是 str 或 (url, branch) 元组"""
+    if isinstance(url_branch, tuple):
+        url, branch = url_branch
+    else:
+        url, branch = url_branch, "master"
     repo_dir = os.path.join(src_dir, name)
     auth_url = url.replace("https://", f"https://{token}@")
     if os.path.isdir(os.path.join(repo_dir, ".git")):
-        log(f"Updating {name} ...")
-        run(["git", "fetch", "--depth=1", "origin", "master"], cwd=repo_dir)
-        run(["git", "reset", "--hard", "origin/master"], cwd=repo_dir)
+        log(f"Updating {name} (branch: {branch}) ...")
+        run(["git", "fetch", "origin", branch], cwd=repo_dir)
+        run(["git", "reset", "--hard", "FETCH_HEAD"], cwd=repo_dir)
     else:
-        log(f"Cloning {name} ...")
-        run(["git", "clone", "--depth=1", auth_url, repo_dir])
+        log(f"Cloning {name} (branch: {branch}) ...")
+        run(["git", "clone", "--branch", branch, auth_url, repo_dir])
     return repo_dir
 
 
+def _ensure_repo_wsl(name, url_branch, token, arch):
+    """
+    在 WSL 内部文件系统（/tmp/freecdn-src/<name>）clone 或更新仓库。
+    返回 WSL 内的路径字符串（供 WSL 命令使用）。
+    """
+    if isinstance(url_branch, tuple):
+        url, branch = url_branch
+    else:
+        url, branch = url_branch, "master"
+    auth_url  = url.replace("https://", f"https://{token}@")
+    repo_path = f"/tmp/freecdn-src/{name}"
+    host_ip   = _get_wsl_host_ip()
+    proxy     = f"http://{host_ip}:4780"
+    # 先检查是否已经 clone
+    check = subprocess.run(
+        ["wsl", "-d", WSL_DISTRO, "-u", "root", "--",
+         "bash", "-c", f"test -d '{repo_path}/.git' && echo YES || echo NO"],
+        capture_output=True, text=True
+    )
+    if "YES" in check.stdout:
+        log(f"[WSL] Updating {name} in {repo_path} ...")
+        script = (
+            f"export HTTPS_PROXY={proxy} HTTP_PROXY={proxy}; "
+            f"cd '{repo_path}' && git fetch origin {branch} && git reset --hard FETCH_HEAD"
+        )
+    else:
+        log(f"[WSL] Cloning {name} into {repo_path} ...")
+        script = (
+            f"export HTTPS_PROXY={proxy} HTTP_PROXY={proxy}; "
+            f"mkdir -p /tmp/freecdn-src && "
+            f"git clone --branch {branch} '{auth_url}' '{repo_path}'"
+        )
+    result = subprocess.run(
+        ["wsl", "-d", WSL_DISTRO, "-u", "root", "--", "bash", "-c", script],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+    )
+    for line in result.stdout.splitlines():
+        print(f"  {line}")
+    if result.returncode != 0:
+        log(f"ERROR: WSL repo setup failed (exit {result.returncode})")
+        sys.exit(1)
+    return repo_path  # WSL 内的路径
+
+
 # ── 编译单个组件 ──────────────────────────────────────────────────────────────
-def compile_binary(go_bin, repo_dir, cmd_subdir, output_path, goos, goarch):
+def compile_binary(go_bin, repo_dir, cmd_subdir, output_path, goos, goarch, use_wsl=False):
     """
     在 repo_dir 下编译 cmd/<cmd_subdir>/main.go，输出到 output_path。
-    使用 -trimpath -ldflags="-s -w" 减小体积。
+    use_wsl=True 时在 WSL Linux 环境编译（支持 CGO，用于 edge-node）。
     """
-    env = os.environ.copy()
-    env["GOOS"]   = goos
-    env["GOARCH"] = goarch
-    env["CGO_ENABLED"] = "0"
-    env["GOFLAGS"] = "-mod=mod"        # 允许自动更新 go.sum
-    env["GOPROXY"] = "https://goproxy.cn,https://proxy.golang.org,direct"
+    cmd_path = f"./cmd/{cmd_subdir}"
 
-    cmd_path = os.path.join("cmd", cmd_subdir)
-    run([go_bin, "build", "-trimpath", "-ldflags=-s -w",
-         "-o", output_path, f"./{cmd_path}"],
-        cwd=repo_dir, env=env)
+    if use_wsl:
+        # 路径转换：如果已经是 /xxx 形式就不转，否则从 Windows 路径转 WSL 路径
+        repo_dir_wsl    = repo_dir    if repo_dir.startswith("/")    else wsl_path(repo_dir)
+        output_path_wsl = output_path if output_path.startswith("/") else wsl_path(output_path)
+        host_ip = _get_wsl_host_ip()
+        proxy   = f"http://{host_ip}:4780"
+        # arm64 交叉编译需要指定 CC
+        cc_line = "export CC=aarch64-linux-gnu-gcc;" if goarch == "arm64" else ""
+        # 用 env -i 启动干净环境，避免 Windows PATH 里的括号导致 bash syntax error
+        script = (
+            f"export PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; "
+            f"export HTTPS_PROXY={proxy} HTTP_PROXY={proxy}; "
+            f"export GOPROXY=https://proxy.golang.org,direct; "
+            f"export GOFLAGS=-mod=mod; "
+            f"export GOOS={goos} GOARCH={goarch} CGO_ENABLED=1; "
+            f"{cc_line} "
+            f"cd '{repo_dir_wsl}' && "
+            f"go mod download && "
+            f"go build -trimpath -ldflags='-s -w' -o '{output_path_wsl}' {cmd_path}"
+        )
+        log(f"[WSL] $ {script}")
+        result = subprocess.run(
+            ["wsl", "-d", WSL_DISTRO, "-u", "root", "--", "bash", "-c", script],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        )
+        for line in result.stdout.splitlines():
+            print(f"  {line}")
+        if result.returncode != 0:
+            log(f"ERROR: WSL compile failed (exit {result.returncode})")
+            sys.exit(1)
+    else:
+        env = _base_env()
+        env["GOOS"]   = goos
+        env["GOARCH"] = goarch
+        env["CGO_ENABLED"] = "0"
+        env["GOFLAGS"] = "-mod=mod"
+        env["GOPROXY"] = "https://proxy.golang.org,direct"
+
+        # 先 go mod download
+        run([go_bin, "mod", "download"], cwd=repo_dir, env=env)
+
+        run([go_bin, "build", "-trimpath", "-ldflags=-s -w",
+             "-o", output_path, cmd_path],
+            cwd=repo_dir, env=env)
+
     size = os.path.getsize(output_path) / 1024 / 1024
     log(f"  -> {output_path} ({size:.1f} MB)")
+
+
+def _get_wsl_host_ip():
+    """获取 WSL 宿主机 IP（用于代理）"""
+    try:
+        result = subprocess.run(
+            ["wsl", "-d", WSL_DISTRO, "--", "ip", "route", "show", "default"],
+            capture_output=True, text=True
+        )
+        import re
+        for part in result.stdout.split():
+            if re.match(r"^\d+\.\d+\.\d+\.\d+$", part):
+                return part
+    except Exception:
+        pass
+    return "172.24.208.1"  # 默认回退
 
 
 # ── 组装发布包 ────────────────────────────────────────────────────────────────
@@ -137,9 +276,11 @@ def build_package(go_bin, src_dir, work_dir, freecdn_ver, arch, repo_root, token
     os.makedirs(arch_dir, exist_ok=True)
 
     # 1. 确保三个仓库都是最新
-    admin_dir = ensure_repo("admin", REPOS["admin"], src_dir, token)
-    api_dir   = ensure_repo("api",   REPOS["api"],   src_dir, token)
-    node_dir  = ensure_repo("node",  REPOS["node"],  src_dir, token)
+    # admin 直接用本地工作目录（就是这个脚本所在的仓库），不重复 clone
+    admin_dir = repo_root
+    log(f"Using local admin repo: {admin_dir}")
+    api_dir   = ensure_repo("api",  REPOS["api"],  src_dir, token)
+    node_dir  = ensure_repo("node", REPOS["node"], src_dir, token)
 
     # 2. 编译三个二进制
     bin_dir = os.path.join(arch_dir, "bin")
@@ -153,9 +294,11 @@ def build_package(go_bin, src_dir, work_dir, freecdn_ver, arch, repo_root, token
     compile_binary(go_bin, api_dir, "edge-api",
                    os.path.join(bin_dir, "edge-api"), "linux", arch)
 
-    log(f"\n-- Compiling edge-node ({arch}) --")
-    compile_binary(go_bin, node_dir, "edge-node",
-                   os.path.join(bin_dir, "edge-node"), "linux", arch)
+    log(f"\n-- Compiling edge-node ({arch}) via WSL (CGO) --")
+    # edge-node 在 WSL 本地文件系统里编译（避免跨 /mnt/c 的 I/O 性能问题）
+    node_dir_wsl = _ensure_repo_wsl("node", REPOS["node"], token, arch)
+    compile_binary(go_bin, node_dir_wsl, "edge-node",
+                   os.path.join(bin_dir, "edge-node"), "linux", arch, use_wsl=True)
 
     # 3. 组装包目录
     pkg_name = f"freecdn-{freecdn_ver}-linux-{arch}"
@@ -314,7 +457,7 @@ def get_or_create_release(token, version):
 def main():
     parser = argparse.ArgumentParser(description="FreeCDN full-source build & GitHub Release upload")
     parser.add_argument("--token",   required=True, help="GitHub PAT (contents:write)")
-    parser.add_argument("--version", default="v0.1.5", help="FreeCDN release version tag")
+    parser.add_argument("--version", default="v0.1.6", help="FreeCDN release version tag")
     parser.add_argument("--arch",    default="all",    help="amd64, arm64, or all")
     parser.add_argument("--work-dir", default=None,   help="Build output directory")
     parser.add_argument("--src-dir",  default=None,   help="Directory for cloned source repos")

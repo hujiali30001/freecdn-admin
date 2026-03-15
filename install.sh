@@ -105,7 +105,7 @@ FreeCDN 一键安装脚本
   --mysql-host     MySQL 地址（默认 127.0.0.1）
   --mysql-pass     MySQL 密码（默认自动生成）
   --skip-mysql     跳过 MySQL 安装（自行管理数据库时使用）
-  --version        指定 FreeCDN Release 版本（默认 v0.1.4）
+  --version        指定 FreeCDN Release 版本（默认 v0.1.6）
   --freecdn-version 同 --version
   --goedge-version  强制指定 GoEdge 底层版本（高级用法，默认 v1.3.9）
   --reinstall      强制重新安装（覆盖现有安装）
@@ -503,6 +503,11 @@ if [ "$MODE" = "admin" ]; then
   if [ -d "$WEB_DIR" ]; then
     cp -r "${WEB_DIR}/." "${ADMIN_DIR}/web/"
     info "web 静态资源安装完成"
+  fi
+
+  # 保存 VERSION 文件
+  if [ -f "${SRC_ROOT}/VERSION" ]; then
+    cp "${SRC_ROOT}/VERSION" "${ADMIN_DIR}/VERSION"
   fi
 
   # 安装 edge-api 二进制（包里没有时保留已有版本）

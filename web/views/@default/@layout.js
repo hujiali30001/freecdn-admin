@@ -14,6 +14,41 @@
 		});
 	}
 	document.title = document.title.replace(/GoEdge/g, 'FreeCDN');
+
+	// ── 移除 settings 页面左侧子菜单中的「商业版本」链接 ─────────────────────
+	// GoEdge 在 settings/* 页面里用模板固定写入了 authority 菜单项，需要用 DOM 删除
+	function removeCommercialMenuItems() {
+		var links = document.querySelectorAll('a[href]');
+		links.forEach(function(a) {
+			var href = a.getAttribute('href') || '';
+			// 匹配 /settings/authority 及其子路径
+			if (/\/settings\/authority/.test(href)) {
+				var parent = a.parentElement;
+				// 移除 <a> 本身或其 <li> 父节点
+				if (parent && (parent.tagName === 'LI' || parent.tagName === 'DIV')) {
+					parent.remove();
+				} else {
+					a.remove();
+				}
+			}
+		});
+	}
+
+	// DOM 已就绪时执行；Vue 渲染后可能动态插入，监听 MutationObserver 兜底
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', removeCommercialMenuItems);
+	} else {
+		removeCommercialMenuItems();
+	}
+	// MutationObserver 兜底，确保 Vue 渲染后也能清除
+	var _observer = new MutationObserver(function() {
+		removeCommercialMenuItems();
+	});
+	document.addEventListener('DOMContentLoaded', function() {
+		_observer.observe(document.body, { childList: true, subtree: true });
+		// 3 秒后断开，避免长期监听影响性能
+		setTimeout(function() { _observer.disconnect(); }, 3000);
+	});
 })();
 
 Tea.context(function () {

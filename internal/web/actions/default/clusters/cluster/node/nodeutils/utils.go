@@ -45,7 +45,7 @@ func InitNodeInfo(parentAction *actionutils.ParentAction, nodeId int64) (*pb.Nod
 		"isUp":         node.IsUp,
 		"group":        groupMap,
 		"level":        node.Level,
-		"bypassMobile": node.BypassMobile,
+		"bypassMobile": false, // BypassMobile field not in current EdgeCommon version
 	}
 	var clusterId int64 = 0
 	if node.NodeCluster != nil {

@@ -629,8 +629,7 @@ if [ "$MODE" = "admin" ]; then
   fi
   info "数据库迁移完成"
 
-  # 生成 nodeId 和 secret，写入 edge-api 的 api.yaml（API 节点自身认证）
-  # 同时向数据库插入 API 节点记录和管理员 Token
+  # 生成 nodeId 和 secret（仅在数据库中尚无记录时才会实际使用）
   NODE_ID_VAL=$(cat /proc/sys/kernel/random/uuid | tr -d '-')
   NODE_SECRET_VAL=$(cat /proc/sys/kernel/random/uuid | tr -d '-')
   ADMIN_TOKEN_NODE_ID=$(cat /proc/sys/kernel/random/uuid | tr -d '-')
@@ -638,12 +637,6 @@ if [ "$MODE" = "admin" ]; then
   set +o pipefail
   ADMIN_TOKEN_SECRET=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32)
   set -o pipefail
-
-  # edge-api: api.yaml（API 节点自身 ID，由 edge-api 用于注册自己）
-  cat > "${API_DIR}/configs/api.yaml" <<YAML
-nodeId: "${NODE_ID_VAL}"
-secret: "${NODE_SECRET_VAL}"
-YAML
 
   # 获取服务器内网 IP（用于 accessAddrs）
   SERVER_IP=$(hostname -I | awk '{print $1}' 2>/dev/null || ip route get 1 | awk '{print $NF;exit}' 2>/dev/null || echo "127.0.0.1")
@@ -679,6 +672,24 @@ SQL
     info "API 节点记录写入完成"
   fi
 
+  # 从数据库反查实际生效的 uniqueId/secret（INSERT IGNORE 不覆盖时读已有值）
+  DB_API_UNIQUE_ID=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT uniqueId FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null || echo "")
+  DB_API_SECRET=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT secret FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null || echo "")
+  if [ -n "$DB_API_UNIQUE_ID" ] && [ -n "$DB_API_SECRET" ]; then
+    cat > "${API_DIR}/configs/api.yaml" <<YAML
+nodeId: "${DB_API_UNIQUE_ID}"
+secret: "${DB_API_SECRET}"
+YAML
+    info "api.yaml 已与数据库同步（nodeId: ${DB_API_UNIQUE_ID}）"
+  else
+    # 回退：写入本次生成的值（数据库查询失败的兜底）
+    cat > "${API_DIR}/configs/api.yaml" <<YAML
+nodeId: "${NODE_ID_VAL}"
+secret: "${NODE_SECRET_VAL}"
+YAML
+    warn "无法从数据库读取 API 节点凭证，使用本次生成值"
+  fi
+
   # 插入管理员 Token（role=admin，供 edge-admin 连接 edge-api 用）
   INSERT_ERR2=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<SQL
 INSERT IGNORE INTO edgeAPITokens (nodeId, secret, role, state)
@@ -694,6 +705,17 @@ SQL
     warn "插入 Token 记录有错误: $INSERT_ERR2"
   else
     info "管理员 Token 写入完成"
+  fi
+
+  # 从数据库反查实际生效的 admin token（INSERT IGNORE 不覆盖时读已有值）
+  DB_ADMIN_TOKEN_ID=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT nodeId FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null || echo "")
+  DB_ADMIN_TOKEN_SECRET=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT secret FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null || echo "")
+  if [ -n "$DB_ADMIN_TOKEN_ID" ] && [ -n "$DB_ADMIN_TOKEN_SECRET" ]; then
+    ADMIN_TOKEN_NODE_ID="$DB_ADMIN_TOKEN_ID"
+    ADMIN_TOKEN_SECRET="$DB_ADMIN_TOKEN_SECRET"
+    info "admin token 已与数据库同步"
+  else
+    warn "无法从数据库读取 admin token，使用本次生成值"
   fi
 
   # 写 api_admin.yaml（edge-admin 连接 edge-api 的认证配置）

@@ -602,7 +602,7 @@ YAML
   #   uniqueId  = api.yaml 里的 nodeId（edge-api 启动时校验）
   #   http      = HTTPProtocolConfig JSON，protocol 必须是 "http"（非空字符串）
   #   accessAddrs = 外部访问地址数组（至少一个，不能为空 []）
-  INSERT_ERR=$(mysql -u root "$MYSQL_DATABASE" 2>&1 <<SQL
+  INSERT_ERR=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<SQL
 INSERT IGNORE INTO edgeAPINodes (id, isOn, uniqueId, name, description, secret, clusterId, http, https, accessAddrs, state, createdAt, updatedAt)
 VALUES (
   1,
@@ -628,7 +628,7 @@ SQL
   fi
 
   # 插入管理员 Token（role=admin，供 edge-admin 连接 edge-api 用）
-  INSERT_ERR2=$(mysql -u root "$MYSQL_DATABASE" 2>&1 <<SQL
+  INSERT_ERR2=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<SQL
 INSERT IGNORE INTO edgeAPITokens (nodeId, secret, role, state)
 VALUES (
   '${ADMIN_TOKEN_NODE_ID}',
@@ -655,7 +655,7 @@ YAML
   # 创建管理员账号
   ADMIN_PASSWORD="FreeCDN$(date +%Y)!"
   ADMIN_PASSWORD_MD5=$(echo -n "$ADMIN_PASSWORD" | md5sum | cut -d' ' -f1)
-  INSERT_ERR3=$(mysql -u root "$MYSQL_DATABASE" 2>&1 <<SQL
+  INSERT_ERR3=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<SQL
 INSERT IGNORE INTO edgeAdmins (id, isOn, username, password, isSuper, state, createdAt, updatedAt, canLogin)
 VALUES (1, 1, 'admin', '${ADMIN_PASSWORD_MD5}', 1, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 1);
 SQL

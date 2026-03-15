@@ -13,15 +13,6 @@
                         <p class="comment">当前网站所属平台用户。</p>
                     </td>
                 </tr>
-                <tr v-if="plans.length > 0">
-                    <td class="title">选择套餐</td>
-                    <td>
-                        <select class="ui dropdown auto-width" name="userPlanId">
-                            <option value="0">[选择套餐]</option>
-                            <option v-for="plan in plans" :value="plan.id">{{plan.name}}（{{plan.dayTo}}）</option>
-                        </select>
-                    </td>
-                </tr>
                 <tr>
                     <td class="title">部署的集群 *</td>
                     <td>

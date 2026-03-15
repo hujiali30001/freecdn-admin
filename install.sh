@@ -48,7 +48,7 @@ API_ENDPOINT=""                 # node 模式必填
 NODE_ID=""                      # node 模式必填
 NODE_SECRET=""                  # node 模式必填
 
-GOEDGE_VERSION="v1.4.7"
+GOEDGE_VERSION="v1.3.9"
 FORCE_REINSTALL="false"
 
 # ── 参数解析 ───────────────────────────────────────────────────────────────────
@@ -91,7 +91,7 @@ FreeCDN 一键安装脚本
   --mysql-host     MySQL 地址（默认 127.0.0.1）
   --mysql-pass     MySQL 密码（默认自动生成）
   --skip-mysql     跳过 MySQL 安装（自行管理数据库时使用）
-  --version        指定版本，如 v1.4.7（默认 v1.4.7）
+  --version        指定版本，如 v1.3.9（默认 v1.3.9，安全基线）
   --reinstall      强制重新安装（覆盖现有安装）
 EOF
       exit 0
@@ -259,12 +259,17 @@ SQL
 fi
 
 # ── 下载 URL 函数 ─────────────────────────────────────────────────────────────
-# GoEdge 下载 URL 格式（已验证 v1.4.7）：
-#   edge-admin 全家桶: https://dl.goedge.cloud/edge/v1.4.7/edge-admin-linux-amd64-plus-v1.4.7.zip
-#   （包内含 edge-admin、edge-api、edge-node 和 web 静态资源）
+# GoEdge v1.3.9（安全基线）下载 URL：
+#   主源（goedge.rip 社区镜像，专门存档 v1.3.9 安全版本）：
+#     https://goedge.rip/dl/edge/v1.3.9/edge-admin-linux-amd64-plus-v1.3.9.zip
+#   注：goedge.cloud 原站在投毒事件后已不可信，不使用
 get_admin_zip_url() {
-  echo "https://dl.goedge.cloud/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH_TAG}-plus-${GOEDGE_VERSION}.zip"
+  echo "https://goedge.rip/dl/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH_TAG}-plus-${GOEDGE_VERSION}.zip"
 }
+# 备用下载源（当主源不可用时依次尝试）
+FALLBACK_URLS=(
+  "https://dl.goedge.cloud/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH_TAG}-plus-${GOEDGE_VERSION}.zip"
+)
 
 # ── 创建目录 ──────────────────────────────────────────────────────────────────
 step "创建目录结构"
@@ -298,8 +303,18 @@ ADMIN_ZIP_URL=$(get_admin_zip_url)
 ADMIN_ZIP="/tmp/freecdn-admin.zip"
 
 info "下载 edge-admin 全家桶 (${GOEDGE_VERSION})..."
-wget -q --show-progress --timeout=300 "$ADMIN_ZIP_URL" -O "$ADMIN_ZIP" \
-  || error "下载失败，URL: ${ADMIN_ZIP_URL}，请检查网络或 --version 参数"
+DOWNLOAD_OK="false"
+for DL_URL in "$ADMIN_ZIP_URL" "${FALLBACK_URLS[@]}"; do
+  info "尝试: $DL_URL"
+  if wget -q --show-progress --timeout=300 "$DL_URL" -O "$ADMIN_ZIP" 2>&1; then
+    DOWNLOAD_OK="true"
+    break
+  else
+    warn "下载失败，尝试备用源..."
+    rm -f "$ADMIN_ZIP"
+  fi
+done
+[ "$DOWNLOAD_OK" = "true" ] || error "所有下载源均失败，请检查网络连接。可手动指定 --version 参数，或从 https://goedge.rip/downloads.html 手动下载"
 info "下载完成，解压中..."
 
 TMP_SRC="/tmp/freecdn-admin-src"
@@ -381,12 +396,10 @@ YAML
   # ② edge-api: db.yaml（数据库连接）
   # 正确格式：dbs 下面是 map（prod 为 key），不是数组
   cat > "${API_DIR}/configs/db.yaml" <<YAML
-dbs:
-  prod:
-    driver: mysql
-    dsn: "${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}?charset=utf8mb4&parseTime=true&loc=Local"
-    prefix: "edge"
-    tablePrefix: "edge_"
+user: ${MYSQL_USER}
+password: ${MYSQL_PASSWORD}
+host: ${MYSQL_HOST}:${MYSQL_PORT}
+database: ${MYSQL_DATABASE}
 YAML
   info "db.yaml 生成完成"
 
@@ -498,9 +511,7 @@ SQL
 
   # 写 api_admin.yaml（edge-admin 连接 edge-api 的认证配置）
   cat > "${ADMIN_DIR}/configs/api_admin.yaml" <<YAML
-rpc:
-  endpoints:
-    - "http://127.0.0.1:${API_RPC_PORT}"
+rpc.endpoints: [ "http://127.0.0.1:${API_RPC_PORT}" ]
 nodeId: "${ADMIN_TOKEN_NODE_ID}"
 secret: "${ADMIN_TOKEN_SECRET}"
 YAML

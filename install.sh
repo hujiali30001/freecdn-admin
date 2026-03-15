@@ -367,21 +367,20 @@ info "探测最快下载镜像，请稍候..."
 BEST_URL=$(pick_fastest_mirror)
 if [ -n "$BEST_URL" ]; then
   info "最快镜像: $BEST_URL"
+  # 把最快的镜像放到队列头，再加上其余镜像作为后备
+  ORDERED_MIRRORS=("$BEST_URL")
+  for u in "${GITHUB_MIRRORS[@]}"; do
+    [ "$u" = "$BEST_URL" ] && continue
+    ORDERED_MIRRORS+=("$u")
+  done
 else
-  BEST_URL="${GITHUB_MIRRORS[-1]}"  # fallback: 直连 GitHub
-  warn "镜像探测失败，使用 GitHub 直连"
+  warn "镜像探测失败，依次尝试所有镜像..."
+  ORDERED_MIRRORS=("${GITHUB_MIRRORS[@]}")
 fi
-
-# 把最快的镜像放到队列头，再加上其余镜像作为后备
-ORDERED_MIRRORS=("$BEST_URL")
-for u in "${GITHUB_MIRRORS[@]}"; do
-  [ "$u" = "$BEST_URL" ] && continue
-  ORDERED_MIRRORS+=("$u")
-done
 
 for FREECDN_URL in "${ORDERED_MIRRORS[@]}"; do
   info "尝试下载: $FREECDN_URL"
-  if wget -q --show-progress --timeout=30 --tries=2 "$FREECDN_URL" \
+  if wget -q --show-progress --timeout=15 --tries=1 "$FREECDN_URL" \
        -O "${DOWNLOAD_FILE}.tar.gz" 2>/dev/null; then
     DOWNLOAD_OK="true"
     DOWNLOAD_TYPE="tar"

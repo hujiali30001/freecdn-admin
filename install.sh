@@ -505,11 +505,16 @@ if [ "$MODE" = "admin" ]; then
     info "web 静态资源安装完成"
   fi
 
-  # 安装 edge-api 二进制
-  [ -f "$API_BIN" ] || error "未找到 edge-api 二进制，请检查下载包（期望路径: $API_BIN）"
-  cp "$API_BIN" "${API_DIR}/bin/edge-api"
-  chmod +x "${API_DIR}/bin/edge-api"
-  info "edge-api 安装完成"
+  # 安装 edge-api 二进制（包里没有时保留已有版本）
+  if [ -f "$API_BIN" ]; then
+    cp "$API_BIN" "${API_DIR}/bin/edge-api"
+    chmod +x "${API_DIR}/bin/edge-api"
+    info "edge-api 安装完成"
+  elif [ -f "${API_DIR}/bin/edge-api" ]; then
+    info "包中无 edge-api，保留现有版本（$(${API_DIR}/bin/edge-api -version 2>/dev/null || echo unknown)）"
+  else
+    error "未找到 edge-api 二进制，请检查下载包（期望路径: $API_BIN）"
+  fi
 
   # 保存 edge-node zip 供后续节点使用
   NODE_ZIP_FOUND=$(find "$NODE_DEPLOY_DIR" -name "edge-node-linux-${ARCH_TAG}-*.zip" 2>/dev/null | head -1 || true)

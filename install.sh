@@ -715,6 +715,21 @@ SQL
   else
     info "管理员账号创建完成（用户名: admin）"
   fi
+
+  # 写入品牌设置：产品名称和管理员系统名称替换为 FreeCDN
+  INSERT_ERR4=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<'SQL'
+INSERT INTO edgeSysSettings (code, value, updatedAt)
+VALUES
+  ('product.name', '"FreeCDN"', UNIX_TIMESTAMP()),
+  ('admin.name',   '"FreeCDN管理员系统"', UNIX_TIMESTAMP())
+ON DUPLICATE KEY UPDATE value = VALUES(value), updatedAt = VALUES(updatedAt);
+SQL
+) || INSERT_ERR4="[INSERT FAILED: exit $?]"
+  if echo "$INSERT_ERR4" | grep -qi "error"; then
+    warn "品牌设置写入有错误: $INSERT_ERR4"
+  else
+    info "品牌设置写入完成（产品名: FreeCDN）"
+  fi
 fi
 
 # ── 注册 systemd 服务 ─────────────────────────────────────────────────────────

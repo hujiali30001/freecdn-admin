@@ -556,12 +556,15 @@ YAML
   info "server.yaml 生成完成"
 
   # ② edge-api: db.yaml（数据库连接）
-  # 正确格式：dbs 下面是 map（prod 为 key），不是数组
+  # TeaGo dbs 标准格式：default.db 指向 dbs 下的 key，dsn 使用 Go MySQL DSN 格式
   cat > "${API_DIR}/configs/db.yaml" <<YAML
-user: ${MYSQL_USER}
-password: ${MYSQL_PASSWORD}
-host: ${MYSQL_HOST}:${MYSQL_PORT}
-database: ${MYSQL_DATABASE}
+default:
+  db: prod
+
+dbs:
+  prod:
+    driver: mysql
+    dsn: "${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}?charset=utf8mb4&parseTime=true"
 YAML
   info "db.yaml 生成完成"
 

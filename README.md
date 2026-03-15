@@ -45,8 +45,8 @@ curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/free
 ### 方式二：Docker Compose
 
 ```bash
-# 1. 克隆仓库
-git clone https://ghfast.top/https://github.com/hujiali30001/freecdn-admin.git
+# 1. 克隆仓库（推荐直连，ghproxy 类加速有时会丢文件）
+git clone https://github.com/hujiali30001/freecdn-admin.git
 cd freecdn-admin
 
 # 2. 复制并编辑配置（修改密码等）

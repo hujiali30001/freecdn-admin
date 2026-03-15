@@ -24,7 +24,7 @@ cp deploy/.env.example deploy/.env
 # 建议至少修改 MYSQL_PASSWORD 和 ADMIN_PASSWORD
 nano deploy/.env
 
-# 3. 构建镜像（首次构建会自动下载 GoEdge v1.3.9 二进制，约需 2-5 分钟）
+# 3. 构建镜像（首次构建会从 FreeCDN GitHub Releases 下载预编译包，约需 2-5 分钟）
 docker compose -f deploy/docker-compose.yml build
 
 # 4. 启动

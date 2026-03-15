@@ -63,7 +63,7 @@ jobs:
 
           # edge-api 二进制（内嵌子进程）
           mkdir -p "${PKG_DIR}/edge-api/bin"
-          cp goedge/edge-api/bin/edge-api "${PKG_DIR}/edge-api/"
+          cp goedge/edge-api/bin/edge-api "${PKG_DIR}/edge-api/bin/"
 
           # edge-node 安装包（供节点服务器使用）
           mkdir -p "${PKG_DIR}/edge-api/deploy"

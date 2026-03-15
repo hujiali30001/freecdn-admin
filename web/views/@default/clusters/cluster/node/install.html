@@ -81,7 +81,7 @@ secret: "{{node.secret}}"</source-code-box>
             <td>
                 <div v-if="node.installDir.length == 0">
                     <span v-if="node.cluster != null && node.cluster.installDir.length > 0">建议使用集群设置（{{node.cluster.installDir}}</span>
-                    <span v-else>建议安装在 /usr/local/goedge/edge-node</span>
+                    <span v-else>建议安装在 /usr/local/freecdn/edge-node</span>
                 </div>
                 <span v-else>{{node.installDir}}</span>
             </td>

@@ -436,12 +436,12 @@ mkdir -p "$TMP_SRC"
 
 if [ "$DOWNLOAD_TYPE" = "tar" ]; then
   tar xzf "$DOWNLOAD_FILE" -C "$TMP_SRC" --strip-components=1
-  rm -f "$DOWNLOAD_FILE"
+  rm -f "$DOWNLOAD_FILE" 2>/dev/null || true
   # FreeCDN Release 包解压后结构：直接包含 edge-admin、web/、edge-api/
   SRC_ROOT="$TMP_SRC"
 else
   unzip -q "$DOWNLOAD_FILE" -d "$TMP_SRC"
-  rm -f "$DOWNLOAD_FILE"
+  rm -f "$DOWNLOAD_FILE" 2>/dev/null || true
   # GoEdge zip 解压后结构：可能在 edge-admin/ 子目录或直接在根
   if [ -d "${TMP_SRC}/edge-admin" ]; then
     SRC_ROOT="${TMP_SRC}/edge-admin"

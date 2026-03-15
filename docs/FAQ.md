@@ -19,32 +19,39 @@
 需要以 root 身份执行：
 
 ```bash
-sudo bash <(curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh)
+sudo bash <(curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh)
 # 或者
 sudo su -
-curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash
+curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash
 ```
 
 ### Q: 国内服务器 GitHub 下载很慢或超时
 
-安装脚本会自动 fallback 到 GoEdge 官方下载地址（`dl.goedge.cloud`），国内访问通常更快。如果两个地址都慢，可以手动下载后上传到服务器：
+安装脚本内置了镜像站加速，会自动探测最快的镜像（ghfast.top、gh-proxy.com、mirror.ghproxy.com 等）然后下载，无需手动干预。
+
+如果脚本本身拉取就很慢，用镜像站的 URL 来获取脚本：
 
 ```bash
-# 在本地或境外服务器下载
-wget https://github.com/hujiali30001/freecdn-admin/releases/download/v0.1.0/freecdn-admin-linux-amd64.tar.gz
-
-# 上传到目标服务器
-scp freecdn-admin-linux-amd64.tar.gz root@YOUR_SERVER:/tmp/
+# 推荐：用镜像站拉取脚本
+curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
 ```
 
-然后手动解压安装（参考 `docs/install.md` 的手动安装章节）。
+如果所有镜像都失败，可以手动下载后上传到服务器：
+
+```bash
+# 从 Release 页面手动下载
+wget https://github.com/hujiali30001/freecdn-admin/releases/download/v0.1.0/freecdn-v0.1.0-linux-amd64.tar.gz
+# 上传到目标服务器
+scp freecdn-v0.1.0-linux-amd64.tar.gz root@YOUR_SERVER:/tmp/freecdn-pkg.tar.gz
+# 然后在服务器上执行 install.sh，脚本会自动检测到已存在的包，跳过下载
+```
 
 ### Q: 甲骨文 ARM64 实例应该下载哪个版本？
 
 甲骨文免费 ARM64 实例（Ampere A1）架构为 `aarch64`，对应 `arm64` 版本：
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash
+curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash
 # 安装脚本会自动检测架构，无需手动指定
 ```
 
@@ -297,7 +304,7 @@ go build -tags community ./...
 2. 备份数据库
 3. 重新运行安装脚本（`--reinstall` 参数会覆盖已有安装）：
    ```bash
-   curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash -s -- --reinstall
+   curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash -s -- --reinstall
    ```
 4. 重启服务
 

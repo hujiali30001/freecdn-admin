@@ -69,11 +69,17 @@ firewall-cmd --reload
 
 适合：Linux 服务器，无 Docker 环境。
 
+**国内服务器（推荐，镜像加速）：**
+```bash
+curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash
+```
+
+**GitHub 直连（境外服务器或镜像不可用时）：**
 ```bash
 curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash
 ```
 
-安装完成后按提示访问管理台完成向导。
+安装脚本会自动探测最快的下载镜像，国内服务器下载速度通常在 5-20 MB/s，安装全程约 2-5 分钟。安装完成后按提示访问管理台完成向导。
 
 ---
 
@@ -104,21 +110,33 @@ docker run -d \
   -e ENDPOINTS="$ENDPOINTS" \
   -e CLUSTERID="$CLUSTERID" \
   -e SECRET="$SECRET" \
-  -v /var/lib/freecdn/node/configs:/usr/local/goedge/edge-node/configs \
-  -v /var/lib/freecdn/node/caches:/usr/local/goedge/edge-node/caches \
-  goedge/edge-node:latest
+  -v /var/lib/freecdn/node/configs:/usr/local/freecdn/edge-node/configs \
+  -v /var/lib/freecdn/node/caches:/usr/local/freecdn/edge-node/caches \
+  ghcr.io/hujiali30001/freecdn-node:latest
 ```
 
 ### 方法三：二进制手动安装
 
 ```bash
-# 1. 下载安装包（在管理台获取最新版本号）
-wget https://dl.goedge.cloud/edge-node/linux/amd64/v1.3.9/edge-node.zip
-unzip edge-node.zip -d /usr/local/freecdn/node
+# 1. 从 FreeCDN Releases 下载对应架构的包
+# amd64 (x86_64)
+wget https://github.com/hujiali30001/freecdn-admin/releases/download/v0.1.0/freecdn-v0.1.0-linux-amd64.tar.gz
+# arm64（甲骨文 ARM 实例）
+# wget https://github.com/hujiali30001/freecdn-admin/releases/download/v0.1.0/freecdn-v0.1.0-linux-arm64.tar.gz
+
+tar xzf freecdn-v0.1.0-linux-amd64.tar.gz
+FREECDN_DIR=$(tar tf freecdn-v0.1.0-linux-amd64.tar.gz | head -1 | cut -d/ -f1)
+mkdir -p /usr/local/freecdn/edge-node
+cp "${FREECDN_DIR}/edge-api/deploy/"edge-node-linux-amd64-*.zip /tmp/edge-node.zip
+unzip /tmp/edge-node.zip -d /tmp/edge-node-src
+NODE_BIN=$(find /tmp/edge-node-src -name edge-node -type f | head -1)
+cp "$NODE_BIN" /usr/local/freecdn/edge-node/edge-node
+chmod +x /usr/local/freecdn/edge-node/edge-node
 
 # 2. 配置节点
-cd /usr/local/freecdn/node
-# 编辑 configs/api.conf，填写 endpoints、clusterId、secret
+cd /usr/local/freecdn/edge-node
+# 编辑 configs/api_node.yaml，填写 endpoints、clusterId、secret
+# 从管理台「节点管理 → 安装」页面复制这三个参数
 
 # 3. 注册为系统服务
 ./edge-node service install

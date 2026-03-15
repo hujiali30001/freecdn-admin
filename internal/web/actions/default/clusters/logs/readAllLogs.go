@@ -3,8 +3,8 @@
 package logs
 
 import (
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/helpers"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/helpers"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
 )
 

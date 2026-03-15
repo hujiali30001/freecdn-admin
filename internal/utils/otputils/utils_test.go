@@ -5,7 +5,7 @@ package otputils_test
 import (
 	"testing"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/utils/otputils"
+	"github.com/hujiali30001/freecdn-admin/internal/utils/otputils"
 )
 
 func TestFixIssuer(t *testing.T) {

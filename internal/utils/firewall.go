@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"runtime"
 
-	executils "github.com/TeaOSLab/EdgeAdmin/internal/utils/exec"
+	executils "github.com/hujiali30001/freecdn-admin/internal/utils/exec"
 	"github.com/iwind/TeaGo/logs"
 	"github.com/iwind/TeaGo/types"
 )

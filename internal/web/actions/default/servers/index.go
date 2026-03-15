@@ -3,9 +3,9 @@ package servers
 import (
 	"encoding/json"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/configloaders"
-	"github.com/TeaOSLab/EdgeAdmin/internal/utils/numberutils"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/actionutils"
+	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
+	"github.com/hujiali30001/freecdn-admin/internal/utils/numberutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
 	"github.com/TeaOSLab/EdgeCommon/pkg/configutils"
 	"github.com/TeaOSLab/EdgeCommon/pkg/nodeconfigs"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"

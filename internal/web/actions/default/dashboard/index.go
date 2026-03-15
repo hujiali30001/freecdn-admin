@@ -5,12 +5,12 @@ package dashboard
 import (
 	"regexp"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/configloaders"
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
-	"github.com/TeaOSLab/EdgeAdmin/internal/utils/numberutils"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/dashboard/dashboardutils"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/helpers"
+	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
+	"github.com/hujiali30001/freecdn-admin/internal/utils/numberutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/dashboard/dashboardutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/helpers"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
 	"github.com/TeaOSLab/EdgeCommon/pkg/serverconfigs"

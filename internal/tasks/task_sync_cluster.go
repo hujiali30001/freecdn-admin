@@ -3,12 +3,12 @@ package tasks
 import (
 	"time"
 
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
-	"github.com/TeaOSLab/EdgeAdmin/internal/events"
-	"github.com/TeaOSLab/EdgeAdmin/internal/goman"
-	"github.com/TeaOSLab/EdgeAdmin/internal/rpc"
-	"github.com/TeaOSLab/EdgeAdmin/internal/setup"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/nodes/nodeutils"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
+	"github.com/hujiali30001/freecdn-admin/internal/events"
+	"github.com/hujiali30001/freecdn-admin/internal/goman"
+	"github.com/hujiali30001/freecdn-admin/internal/rpc"
+	"github.com/hujiali30001/freecdn-admin/internal/setup"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/nodes/nodeutils"
 	"github.com/TeaOSLab/EdgeCommon/pkg/messageconfigs"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
 	_ "github.com/iwind/TeaGo/bootstrap"

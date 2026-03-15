@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/goman"
-	"github.com/TeaOSLab/EdgeAdmin/internal/utils/sizes"
+	"github.com/hujiali30001/freecdn-admin/internal/goman"
+	"github.com/hujiali30001/freecdn-admin/internal/utils/sizes"
 	"github.com/iwind/TeaGo/Tea"
 	"github.com/iwind/TeaGo/files"
 	timeutil "github.com/iwind/TeaGo/utils/time"

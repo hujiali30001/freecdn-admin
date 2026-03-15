@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/rpc"
+	"github.com/hujiali30001/freecdn-admin/internal/rpc"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
 	"github.com/TeaOSLab/EdgeCommon/pkg/nodeconfigs"

@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
-	executils "github.com/TeaOSLab/EdgeAdmin/internal/utils/exec"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
+	executils "github.com/hujiali30001/freecdn-admin/internal/utils/exec"
 	"github.com/iwind/TeaGo/Tea"
 	"github.com/iwind/TeaGo/maps"
 	"github.com/iwind/TeaGo/types"

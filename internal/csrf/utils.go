@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/configs"
+	"github.com/hujiali30001/freecdn-admin/internal/configs"
 	"github.com/iwind/TeaGo/types"
 )
 

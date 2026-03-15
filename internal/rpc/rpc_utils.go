@@ -4,7 +4,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/configs"
+	"github.com/hujiali30001/freecdn-admin/internal/configs"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

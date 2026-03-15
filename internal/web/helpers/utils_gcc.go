@@ -6,7 +6,7 @@ package helpers
 import (
 	"net/http"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/waf/injectionutils"
+	"github.com/hujiali30001/freecdn-admin/internal/waf/injectionutils"
 )
 
 // filter request

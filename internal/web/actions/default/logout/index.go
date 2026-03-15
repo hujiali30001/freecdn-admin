@@ -1,7 +1,7 @@
 package logout
 
 import (
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/helpers"
+	"github.com/hujiali30001/freecdn-admin/internal/web/helpers"
 	"github.com/iwind/TeaGo/actions"
 )
 

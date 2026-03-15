@@ -1,14 +1,11 @@
-module github.com/TeaOSLab/EdgeAdmin
+module github.com/hujiali30001/freecdn-admin
 
 go 1.22
 
 replace github.com/TeaOSLab/EdgeCommon => ../EdgeCommon
 
-replace github.com/TeaOSLab/EdgePlus => ../EdgePlus
-
 require (
 	github.com/TeaOSLab/EdgeCommon v0.0.0-00010101000000-000000000000
-	github.com/TeaOSLab/EdgePlus v0.0.0-00010101000000-000000000000
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/iwind/TeaGo v0.0.0-20240508072741-7647e70b7070

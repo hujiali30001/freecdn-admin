@@ -3,7 +3,7 @@ package actionutils
 import (
 	"context"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/rpc"
+	"github.com/hujiali30001/freecdn-admin/internal/rpc"
 	"github.com/iwind/TeaGo/maps"
 )
 

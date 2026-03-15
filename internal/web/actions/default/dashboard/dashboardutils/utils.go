@@ -12,8 +12,8 @@ import (
 	"runtime"
 	"strings"
 
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
-	"github.com/TeaOSLab/EdgeAdmin/internal/rpc"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
+	"github.com/hujiali30001/freecdn-admin/internal/rpc"
 	"github.com/TeaOSLab/EdgeCommon/pkg/nodeconfigs"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
 	"github.com/iwind/TeaGo/lists"

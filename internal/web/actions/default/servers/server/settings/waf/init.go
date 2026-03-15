@@ -1,10 +1,10 @@
 package waf
 
 import (
-	"github.com/TeaOSLab/EdgeAdmin/internal/configloaders"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/servers/server/settings/waf/ipadmin"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/servers/serverutils"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/helpers"
+	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/servers/server/settings/waf/ipadmin"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/servers/serverutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/helpers"
 	"github.com/iwind/TeaGo"
 )
 

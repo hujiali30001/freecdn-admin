@@ -3,8 +3,8 @@ package locationutils
 import (
 	"net/http"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/helpers"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/helpers"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
 	"github.com/TeaOSLab/EdgeCommon/pkg/serverconfigs"
 	"github.com/iwind/TeaGo/actions"

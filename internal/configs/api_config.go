@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
 	"github.com/iwind/TeaGo/Tea"
 	"gopkg.in/yaml.v3"
 )

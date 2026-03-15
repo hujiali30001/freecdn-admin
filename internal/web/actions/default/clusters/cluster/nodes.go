@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
-	"github.com/TeaOSLab/EdgeAdmin/internal/utils/numberutils"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/actionutils"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
+	"github.com/hujiali30001/freecdn-admin/internal/utils/numberutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
 	"github.com/TeaOSLab/EdgeCommon/pkg/nodeconfigs"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"

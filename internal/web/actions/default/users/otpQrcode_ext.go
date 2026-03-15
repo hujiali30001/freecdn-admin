@@ -3,7 +3,7 @@
 
 package users
 
-import "github.com/TeaOSLab/EdgeAdmin/internal/configloaders"
+import "github.com/hujiali30001/freecdn-admin/internal/configloaders"
 
 func (this *OtpQrcodeAction) findProductName() (string, error) {
 	uiConfig, err := configloaders.LoadAdminUIConfig()

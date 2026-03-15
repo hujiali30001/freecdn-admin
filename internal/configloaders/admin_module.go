@@ -1,8 +1,8 @@
 package configloaders
 
 import (
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
-	"github.com/TeaOSLab/EdgeAdmin/internal/rpc"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
+	"github.com/hujiali30001/freecdn-admin/internal/rpc"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"

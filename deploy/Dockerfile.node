@@ -8,8 +8,8 @@
 #       获取 NODE_ID 和 NODE_SECRET 后才能启动。
 #
 # 说明：
-#   构建时直接从 goedge.rip 下载 GoEdge v1.3.9（安全基线版本），
-#   从 edge-admin 全家桶中提取 edge-node 二进制。
+#   构建时从 GitHub Releases 下载 GoEdge v1.3.9（安全基线版本），
+#   国内环境自动尝试多个 ghproxy 加速源，从全家桶中提取 edge-node 二进制。
 # ==============================================================
 
 # ---- 构建阶段：提取 edge-node 二进制 ----
@@ -20,15 +20,29 @@ ARG GOEDGE_VERSION=v1.3.9
 
 RUN apt-get update -qq && apt-get install -y -qq wget unzip ca-certificates && rm -rf /var/lib/apt/lists/*
 
+# 按顺序尝试多个下载源，国内优先走 ghproxy 加速
+ARG MIRROR_PREFIX=https://ghfast.top/https://github.com/TeaOSLab/EdgeAdmin/releases/download
 WORKDIR /tmp
 RUN set -e; \
     ARCH="$(echo $TARGETARCH | sed 's/arm64/arm64/;s/amd64/amd64/')"; \
-    URL="https://goedge.rip/dl/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH}-plus-${GOEDGE_VERSION}.zip"; \
-    echo "Downloading: ${URL}"; \
-    wget -q --timeout=300 "${URL}" -O goedge.zip \
-      || wget -q --timeout=300 \
-           "https://dl.goedge.cloud/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH}-plus-${GOEDGE_VERSION}.zip" \
-           -O goedge.zip; \
+    ZIP="edge-admin-linux-${ARCH}-plus-${GOEDGE_VERSION}.zip"; \
+    \
+    try_download() { \
+      echo "  Trying: $1"; \
+      wget -q --timeout=120 "$1" -O goedge.zip && return 0; \
+      return 1; \
+    }; \
+    \
+    echo "==> Downloading GoEdge ${GOEDGE_VERSION} (${ARCH})..."; \
+    try_download "${MIRROR_PREFIX}/${GOEDGE_VERSION}/${ZIP}" \
+    || try_download "https://mirror.ghproxy.com/https://github.com/TeaOSLab/EdgeAdmin/releases/download/${GOEDGE_VERSION}/${ZIP}" \
+    || try_download "https://gh.llkk.cc/https://github.com/TeaOSLab/EdgeAdmin/releases/download/${GOEDGE_VERSION}/${ZIP}" \
+    || try_download "https://github.com/TeaOSLab/EdgeAdmin/releases/download/${GOEDGE_VERSION}/${ZIP}" \
+    || try_download "https://goedge.rip/dl/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH}-plus-${GOEDGE_VERSION}.zip" \
+    || try_download "https://dl.goedge.cloud/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH}-plus-${GOEDGE_VERSION}.zip" \
+    || ( echo "All download sources failed!" && exit 1 ); \
+    \
+    echo "==> Download complete, extracting edge-node..."; \
     unzip -q goedge.zip -d /tmp/goedge-src; \
     rm goedge.zip; \
     # edge-node zip 在 edge-api/deploy/ 目录下

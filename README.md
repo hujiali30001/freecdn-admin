@@ -46,7 +46,7 @@ curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/free
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/hujiali30001/freecdn-admin.git
+git clone https://ghfast.top/https://github.com/hujiali30001/freecdn-admin.git
 cd freecdn-admin
 
 # 2. 复制并编辑配置（修改密码等）
@@ -60,6 +60,26 @@ docker compose -f deploy/docker-compose.yml up -d
 # 默认地址：http://localhost:7788
 # 默认账号：admin / REDACTED_SSH_PASS
 ```
+
+**国内服务器提速建议**
+
+`docker build` 过程会从 GitHub 下载约 200MB 的软件包，构建脚本已内置多个国内加速源，一般无需额外配置。如果 `docker pull` 基础镜像（debian/mysql）也很慢，可以配置 Docker 镜像加速：
+
+```bash
+# 编辑 /etc/docker/daemon.json（没有则新建）
+sudo tee /etc/docker/daemon.json > /dev/null <<'EOF'
+{
+  "registry-mirrors": [
+    "https://docker.1ms.run",
+    "https://dockerpull.org",
+    "https://hub.rat.dev"
+  ]
+}
+EOF
+sudo systemctl daemon-reload && sudo systemctl restart docker
+```
+
+配置完成后重新执行 `docker compose build`。
 
 ---
 

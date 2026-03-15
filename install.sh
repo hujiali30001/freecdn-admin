@@ -382,11 +382,17 @@ for FREECDN_URL in "${ORDERED_MIRRORS[@]}"; do
   info "尝试下载: $FREECDN_URL"
   if wget -q --show-progress --timeout=15 --tries=1 "$FREECDN_URL" \
        -O "${DOWNLOAD_FILE}.tar.gz" 2>/dev/null; then
-    DOWNLOAD_OK="true"
-    DOWNLOAD_TYPE="tar"
-    DOWNLOAD_FILE="${DOWNLOAD_FILE}.tar.gz"
-    info "下载成功"
-    break
+    # 校验包完整性
+    if tar -tzf "${DOWNLOAD_FILE}.tar.gz" >/dev/null 2>&1; then
+      DOWNLOAD_OK="true"
+      DOWNLOAD_TYPE="tar"
+      DOWNLOAD_FILE="${DOWNLOAD_FILE}.tar.gz"
+      info "下载成功"
+      break
+    else
+      warn "包校验失败（文件损坏），尝试下一个镜像..."
+      rm -f "${DOWNLOAD_FILE}.tar.gz"
+    fi
   else
     warn "下载失败，尝试下一个镜像..."
     rm -f "${DOWNLOAD_FILE}.tar.gz"

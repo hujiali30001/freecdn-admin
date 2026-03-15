@@ -59,7 +59,11 @@ function run(cmd, opts = {}) {
 // ──── Step 1: 清理并重建输出目录 ──────────────────────────────────────────────
 log(`Building FreeCDN ${VERSION} from source`);
 if (fs.existsSync(DIST_DIR)) {
-  fs.rmSync(DIST_DIR, { recursive: true, force: true });
+  try {
+    fs.rmSync(DIST_DIR, { recursive: true, force: true });
+  } catch (e) {
+    log(`Warning: could not fully clean dist dir (${e.code}), continuing...`);
+  }
 }
 fs.mkdirSync(DIST_DIR, { recursive: true });
 

@@ -1,160 +1,197 @@
 #!/usr/bin/env python3
 """
 FreeCDN 本地构建 & GitHub Release 上传脚本
+从自有仓库编译全部三个组件（freecdn-admin / freecdn-api / freecdn-node），不依赖 GoEdge Release 包。
+
 用法:
-  python scripts/local_build_release.py --token <GITHUB_TOKEN> [--version v0.1.0] [--goedge-version v1.3.9]
+  python scripts/local_build_release.py --token <GITHUB_TOKEN> [--version v0.1.5] [--arch amd64|arm64|all]
+
+依赖:
+  - Go 1.22+  (脚本自动在 PATH 或 C:\\Go_temp\\go\\bin 中查找)
+  - Git
+  - Python 3.8+
 """
 
 import argparse
+import datetime
 import hashlib
+import http.client
+import json
 import os
 import shutil
 import subprocess
 import sys
-import urllib.request
-import urllib.error
-import zipfile
 import tarfile
-import json
-import http.client
 import urllib.parse
-import pathlib
+import urllib.request
 
-REPO = "hujiali30001/freecdn-admin"
-# 按优先级排列：国内走 ghproxy 加速，最后兜底直连 + 原 goedge 源
-GOEDGE_DOWNLOAD_URLS = [
-    "https://ghfast.top/https://github.com/TeaOSLab/EdgeAdmin/releases/download/{goedge_ver}/edge-admin-linux-{arch}-plus-{goedge_ver}.zip",
-    "https://mirror.ghproxy.com/https://github.com/TeaOSLab/EdgeAdmin/releases/download/{goedge_ver}/edge-admin-linux-{arch}-plus-{goedge_ver}.zip",
-    "https://gh.llkk.cc/https://github.com/TeaOSLab/EdgeAdmin/releases/download/{goedge_ver}/edge-admin-linux-{arch}-plus-{goedge_ver}.zip",
-    "https://github.com/TeaOSLab/EdgeAdmin/releases/download/{goedge_ver}/edge-admin-linux-{arch}-plus-{goedge_ver}.zip",
-    "https://goedge.rip/dl/edge/{goedge_ver}/edge-admin-linux-{arch}-plus-{goedge_ver}.zip",
-    "https://dl.goedge.cloud/edge/{goedge_ver}/edge-admin-linux-{arch}-plus-{goedge_ver}.zip",
-]
+# ── 仓库配置 ──────────────────────────────────────────────────────────────────
+RELEASE_REPO   = "hujiali30001/freecdn-admin"   # Release 发布到这里
+REPOS = {
+    "admin": "https://github.com/hujiali30001/freecdn-admin.git",
+    "api":   "https://github.com/hujiali30001/freecdn-api.git",
+    "node":  "https://github.com/hujiali30001/freecdn-node.git",
+}
 ARCHS = ["amd64", "arm64"]
 
+# Go 二进制查找路径（Windows 备用）
+GO_FALLBACK_PATHS = [
+    r"C:\Go_temp\go\bin\go.exe",
+    r"C:\Go\bin\go.exe",
+    r"C:\Program Files\Go\bin\go.exe",
+]
 
+
+# ── 工具函数 ──────────────────────────────────────────────────────────────────
 def log(msg):
     print(f"[build] {msg}", flush=True)
 
 
-def download_file(url, dest):
-    log(f"Downloading {url}")
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "FreeCDN-Builder/1.0"})
-        with urllib.request.urlopen(req, timeout=300) as resp, open(dest, "wb") as f:
-            total = int(resp.headers.get("Content-Length", 0))
-            downloaded = 0
-            chunk = 65536
-            while True:
-                data = resp.read(chunk)
-                if not data:
-                    break
-                f.write(data)
-                downloaded += len(data)
-                if total:
-                    pct = downloaded * 100 // total
-                    print(f"\r  {pct}% ({downloaded/1024/1024:.1f} MB)", end="", flush=True)
-        print()
-        log(f"Saved to {dest} ({os.path.getsize(dest)/1024/1024:.1f} MB)")
-        return True
-    except Exception as e:
-        log(f"Failed: {e}")
-        return False
-
-
-def find_in_zip(zf, name):
-    """在 zip 里找文件名匹配的第一个 entry，返回 ZipInfo 或 None"""
-    for info in zf.infolist():
-        if pathlib.Path(info.filename).name == name:
-            return info
+def find_go():
+    """找到可用的 go 可执行文件路径"""
+    # 先试 PATH
+    go = shutil.which("go")
+    if go:
+        return go
+    for p in GO_FALLBACK_PATHS:
+        if os.path.isfile(p):
+            return p
     return None
 
 
-def build_package(work_dir, freecdn_ver, goedge_ver, arch, repo_root):
-    log(f"=== Building {arch} ===")
+def run(cmd, cwd=None, env=None, check=True):
+    log(f"$ {' '.join(cmd) if isinstance(cmd, list) else cmd}")
+    result = subprocess.run(cmd, cwd=cwd, env=env,
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            text=True)
+    if result.stdout:
+        for line in result.stdout.splitlines():
+            print(f"  {line}")
+    if check and result.returncode != 0:
+        log(f"ERROR: command failed (exit {result.returncode})")
+        sys.exit(1)
+    return result
+
+
+def sha256sum(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while chunk := f.read(65536):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def copy_tree_overlay(src, dst):
+    """把 src 目录内容覆盖合并到 dst（已有文件直接覆盖）"""
+    for root, dirs, files in os.walk(src):
+        rel = os.path.relpath(root, src)
+        dst_dir = dst if rel == "." else os.path.join(dst, rel)
+        os.makedirs(dst_dir, exist_ok=True)
+        for fname in files:
+            shutil.copy2(os.path.join(root, fname), os.path.join(dst_dir, fname))
+
+
+# ── clone / 更新仓库 ──────────────────────────────────────────────────────────
+def ensure_repo(name, url, src_dir, token):
+    """clone 或 pull 仓库，返回本地路径"""
+    repo_dir = os.path.join(src_dir, name)
+    auth_url = url.replace("https://", f"https://{token}@")
+    if os.path.isdir(os.path.join(repo_dir, ".git")):
+        log(f"Updating {name} ...")
+        run(["git", "fetch", "--depth=1", "origin", "master"], cwd=repo_dir)
+        run(["git", "reset", "--hard", "origin/master"], cwd=repo_dir)
+    else:
+        log(f"Cloning {name} ...")
+        run(["git", "clone", "--depth=1", auth_url, repo_dir])
+    return repo_dir
+
+
+# ── 编译单个组件 ──────────────────────────────────────────────────────────────
+def compile_binary(go_bin, repo_dir, cmd_subdir, output_path, goos, goarch):
+    """
+    在 repo_dir 下编译 cmd/<cmd_subdir>/main.go，输出到 output_path。
+    使用 -trimpath -ldflags="-s -w" 减小体积。
+    """
+    env = os.environ.copy()
+    env["GOOS"]   = goos
+    env["GOARCH"] = goarch
+    env["CGO_ENABLED"] = "0"
+    env["GOFLAGS"] = "-mod=mod"        # 允许自动更新 go.sum
+    env["GOPROXY"] = "https://goproxy.cn,https://proxy.golang.org,direct"
+
+    cmd_path = os.path.join("cmd", cmd_subdir)
+    run([go_bin, "build", "-trimpath", "-ldflags=-s -w",
+         "-o", output_path, f"./{cmd_path}"],
+        cwd=repo_dir, env=env)
+    size = os.path.getsize(output_path) / 1024 / 1024
+    log(f"  -> {output_path} ({size:.1f} MB)")
+
+
+# ── 组装发布包 ────────────────────────────────────────────────────────────────
+def build_package(go_bin, src_dir, work_dir, freecdn_ver, arch, repo_root, token):
+    log(f"\n{'='*60}")
+    log(f"Building {arch} ...")
+    log(f"{'='*60}")
+
     arch_dir = os.path.join(work_dir, arch)
     os.makedirs(arch_dir, exist_ok=True)
 
-    # 1. 下载 GoEdge zip
-    zip_path = os.path.join(arch_dir, f"goedge-{arch}.zip")
-    if os.path.exists(zip_path) and os.path.getsize(zip_path) > 10_000_000:
-        log(f"Reusing cached {zip_path}")
-    else:
-        ok = False
-        for url_tpl in GOEDGE_DOWNLOAD_URLS:
-            url = url_tpl.format(goedge_ver=goedge_ver, arch=arch)
-            ok = download_file(url, zip_path)
-            if ok:
-                break
-        if not ok:
-            log(f"ERROR: Failed to download GoEdge {goedge_ver} {arch}")
-            return None
+    # 1. 确保三个仓库都是最新
+    admin_dir = ensure_repo("admin", REPOS["admin"], src_dir, token)
+    api_dir   = ensure_repo("api",   REPOS["api"],   src_dir, token)
+    node_dir  = ensure_repo("node",  REPOS["node"],  src_dir, token)
 
-    # 2. 解压
-    extract_dir = os.path.join(arch_dir, "goedge-src")
-    if os.path.exists(extract_dir):
-        shutil.rmtree(extract_dir)
-    os.makedirs(extract_dir)
-    log(f"Extracting {zip_path}")
-    with zipfile.ZipFile(zip_path) as zf:
-        zf.extractall(extract_dir)
+    # 2. 编译三个二进制
+    bin_dir = os.path.join(arch_dir, "bin")
+    os.makedirs(bin_dir, exist_ok=True)
 
-    # 找 edge-admin 目录（兼容有无顶层目录）
-    goedge_dir = extract_dir
-    entries = os.listdir(extract_dir)
-    if len(entries) == 1 and os.path.isdir(os.path.join(extract_dir, entries[0])):
-        goedge_dir = os.path.join(extract_dir, entries[0])
-    log(f"GoEdge dir: {goedge_dir}")
-    log(f"Contents: {os.listdir(goedge_dir)}")
+    log(f"\n-- Compiling edge-admin ({arch}) --")
+    compile_binary(go_bin, admin_dir, "edge-admin",
+                   os.path.join(bin_dir, "edge-admin"), "linux", arch)
+
+    log(f"\n-- Compiling edge-api ({arch}) --")
+    compile_binary(go_bin, api_dir, "edge-api",
+                   os.path.join(bin_dir, "edge-api"), "linux", arch)
+
+    log(f"\n-- Compiling edge-node ({arch}) --")
+    compile_binary(go_bin, node_dir, "edge-node",
+                   os.path.join(bin_dir, "edge-node"), "linux", arch)
 
     # 3. 组装包目录
     pkg_name = f"freecdn-{freecdn_ver}-linux-{arch}"
-    pkg_dir = os.path.join(arch_dir, pkg_name)
+    pkg_dir  = os.path.join(arch_dir, pkg_name)
     if os.path.exists(pkg_dir):
         shutil.rmtree(pkg_dir)
     os.makedirs(pkg_dir)
 
-    def copy_if_exists(src, dst):
-        if os.path.exists(src):
-            if os.path.isdir(src):
-                shutil.copytree(src, dst)
-            else:
-                os.makedirs(os.path.dirname(dst), exist_ok=True)
-                shutil.copy2(src, dst)
-            return True
-        log(f"  WARN: {src} not found, skipping")
-        return False
+    log(f"\n-- Assembling package {pkg_name} --")
 
     # edge-admin 二进制
-    copy_if_exists(os.path.join(goedge_dir, "bin", "edge-admin"), os.path.join(pkg_dir, "edge-admin"))
-    # web 资源：先铺 GoEdge 原版，再用仓库里改过的文件覆盖（品牌替换 + 去收费模块）
-    copy_if_exists(os.path.join(goedge_dir, "web"), os.path.join(pkg_dir, "web"))
-    repo_web = os.path.join(repo_root, "web")
-    if os.path.isdir(repo_web):
-        log(f"Overlaying repo web/ onto GoEdge web/ ...")
-        for root, dirs, files in os.walk(repo_web):
-            rel = os.path.relpath(root, repo_web)
-            dst_dir = os.path.join(pkg_dir, "web") if rel == "." else os.path.join(pkg_dir, "web", rel)
-            os.makedirs(dst_dir, exist_ok=True)
-            for fname in files:
-                shutil.copy2(os.path.join(root, fname), os.path.join(dst_dir, fname))
-        log("Overlay done.")
-    else:
-        log("WARN: repo web/ not found, using GoEdge original web/ (commercial modules NOT removed!)")
-    # edge-api 二进制
-    os.makedirs(os.path.join(pkg_dir, "edge-api", "bin"), exist_ok=True)
-    edge_api_src = os.path.join(goedge_dir, "edge-api", "bin", "edge-api")
-    copy_if_exists(edge_api_src, os.path.join(pkg_dir, "edge-api", "bin", "edge-api"))
-    # edge-node 安装包
-    os.makedirs(os.path.join(pkg_dir, "edge-api", "deploy"), exist_ok=True)
-    deploy_src = os.path.join(goedge_dir, "edge-api", "deploy")
-    if os.path.isdir(deploy_src):
-        for f in os.listdir(deploy_src):
-            if f.startswith(f"edge-node-linux-{arch}-") and f.endswith(".zip"):
-                shutil.copy2(os.path.join(deploy_src, f), os.path.join(pkg_dir, "edge-api", "deploy", f))
-                log(f"  Copied edge-node package: {f}")
+    shutil.copy2(os.path.join(bin_dir, "edge-admin"), os.path.join(pkg_dir, "edge-admin"))
 
-    # FreeCDN 自定义文件
+    # web 资源（直接用 admin 仓库的 web/）
+    web_src = os.path.join(admin_dir, "web")
+    if os.path.isdir(web_src):
+        shutil.copytree(web_src, os.path.join(pkg_dir, "web"))
+        log("  Copied web/")
+    else:
+        log("  WARN: web/ not found in admin repo")
+
+    # edge-api
+    api_bin_dir = os.path.join(pkg_dir, "edge-api", "bin")
+    os.makedirs(api_bin_dir, exist_ok=True)
+    shutil.copy2(os.path.join(bin_dir, "edge-api"),
+                 os.path.join(api_bin_dir, "edge-api"))
+
+    # edge-node（打包成 zip 放进 edge-api/deploy/，供安装脚本分发到边缘节点）
+    deploy_dir = os.path.join(pkg_dir, "edge-api", "deploy")
+    os.makedirs(deploy_dir, exist_ok=True)
+    node_zip_name = f"edge-node-linux-{arch}-{freecdn_ver}.zip"
+    node_zip_path = os.path.join(deploy_dir, node_zip_name)
+    _make_node_zip(node_dir, os.path.join(bin_dir, "edge-node"), node_zip_path, arch)
+    log(f"  edge-node zip: {node_zip_name}")
+
+    # FreeCDN 附带文件
     for fname in ["install.sh", "install-node.sh", "README.md", "NOTICE", "LICENSE"]:
         src = os.path.join(repo_root, fname)
         if os.path.exists(src):
@@ -165,14 +202,15 @@ def build_package(work_dir, freecdn_ver, goedge_ver, arch, repo_root):
 
     # VERSION 文件
     with open(os.path.join(pkg_dir, "VERSION"), "w") as f:
-        import datetime
-        f.write(f"FreeCDN {freecdn_ver} (based on GoEdge {goedge_ver})\n")
+        f.write(f"FreeCDN {freecdn_ver}\n")
         f.write(f"Build date: {datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}\n")
+        f.write(f"Components: edge-admin / edge-api / edge-node\n")
+        f.write(f"Source: https://github.com/hujiali30001\n")
 
     # 4. 打 tar.gz
     archive_name = f"{pkg_name}.tar.gz"
     archive_path = os.path.join(work_dir, archive_name)
-    log(f"Creating {archive_path}")
+    log(f"\nCreating {archive_path}")
     with tarfile.open(archive_path, "w:gz") as tf:
         tf.add(pkg_dir, arcname=pkg_name)
     size_mb = os.path.getsize(archive_path) / 1024 / 1024
@@ -180,18 +218,25 @@ def build_package(work_dir, freecdn_ver, goedge_ver, arch, repo_root):
     return archive_path
 
 
-def sha256sum(path):
-    h = hashlib.sha256()
-    with open(path, "rb") as f:
-        while True:
-            data = f.read(65536)
-            if not data:
-                break
-            h.update(data)
-    return h.hexdigest()
+def _make_node_zip(node_repo_dir, node_bin_path, zip_path, arch):
+    """把 edge-node 二进制 + conf/ 模板打成 zip，供安装脚本下发到边缘节点"""
+    import zipfile
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        # 二进制
+        zf.write(node_bin_path, arcname="edge-node")
+        # conf 目录（如果仓库里有模板）
+        conf_src = os.path.join(node_repo_dir, "configs")
+        if os.path.isdir(conf_src):
+            for root, dirs, files in os.walk(conf_src):
+                for fname in files:
+                    fpath = os.path.join(root, fname)
+                    arcname = os.path.join("configs",
+                                           os.path.relpath(fpath, conf_src))
+                    zf.write(fpath, arcname=arcname)
 
 
-def github_api(token, method, path, body=None, headers=None):
+# ── GitHub API ────────────────────────────────────────────────────────────────
+def github_api(token, method, path, body=None, extra_headers=None):
     conn = http.client.HTTPSConnection("api.github.com")
     h = {
         "Authorization": f"Bearer {token}",
@@ -199,25 +244,22 @@ def github_api(token, method, path, body=None, headers=None):
         "X-GitHub-Api-Version": "2022-11-28",
         "User-Agent": "FreeCDN-Builder/1.0",
     }
-    if headers:
-        h.update(headers)
+    if extra_headers:
+        h.update(extra_headers)
     payload = json.dumps(body).encode() if body else None
     if payload:
         h["Content-Type"] = "application/json"
     conn.request(method, path, body=payload, headers=h)
     resp = conn.getresponse()
     data = resp.read()
-    return resp.status, json.loads(data) if data else {}
+    return resp.status, (json.loads(data) if data else {})
 
 
 def upload_asset(token, upload_url, file_path):
-    """upload_url like https://uploads.github.com/repos/.../releases/123/assets{?name,label}"""
-    # 去掉 {?name,label} 模板
     base_url = upload_url.split("{")[0]
     fname = os.path.basename(file_path)
     url = f"{base_url}?name={urllib.parse.quote(fname)}"
-    log(f"Uploading {fname} ({os.path.getsize(file_path)/1024/1024:.1f} MB) → {url}")
-
+    log(f"Uploading {fname} ({os.path.getsize(file_path)/1024/1024:.1f} MB)")
     parsed = urllib.parse.urlparse(url)
     conn = http.client.HTTPSConnection(parsed.netloc)
     with open(file_path, "rb") as f:
@@ -234,30 +276,33 @@ def upload_asset(token, upload_url, file_path):
     resp = conn.getresponse()
     resp_data = json.loads(resp.read())
     if resp.status in (200, 201):
-        log(f"  Uploaded: {resp_data.get('browser_download_url', 'ok')}")
+        log(f"  -> {resp_data.get('browser_download_url', 'ok')}")
     else:
         log(f"  ERROR {resp.status}: {resp_data}")
     return resp.status in (200, 201)
 
 
 def get_or_create_release(token, version):
-    """获取已有 Release 或创建新的"""
-    # 先查
-    status, data = github_api(token, "GET", f"/repos/{REPO}/releases/tags/{version}")
+    status, data = github_api(token, "GET", f"/repos/{RELEASE_REPO}/releases/tags/{version}")
     if status == 200:
         log(f"Found existing release: {data['id']} - {data['name']}")
         return data
-
-    # 创建
-    log(f"Creating release {version}")
+    log(f"Creating release {version} ...")
     body = {
         "tag_name": version,
         "name": f"FreeCDN {version}",
-        "body": f"## FreeCDN {version}\n\n基于 **GoEdge v1.3.9**（安全基线版本）打包。\n\n> ⚠️ 注意：FreeCDN 锁定使用 GoEdge v1.3.9，不跟踪 v1.4.x 及以上版本（v1.4.0/v1.4.1 存在恶意代码注入安全事件）。\n\n### 快速安装\n\n```bash\ncurl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash\n```",
+        "body": (
+            f"## FreeCDN {version}\n\n"
+            "全组件从源码自主构建（edge-admin / edge-api / edge-node），不依赖第三方二进制。\n\n"
+            "### 快速安装\n\n"
+            "```bash\n"
+            "curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash\n"
+            "```\n"
+        ),
         "draft": False,
         "prerelease": False,
     }
-    status, data = github_api(token, "POST", f"/repos/{REPO}/releases", body)
+    status, data = github_api(token, "POST", f"/repos/{RELEASE_REPO}/releases", body)
     if status == 201:
         log(f"Created release: {data['id']}")
         return data
@@ -265,32 +310,44 @@ def get_or_create_release(token, version):
     return None
 
 
+# ── 主入口 ────────────────────────────────────────────────────────────────────
 def main():
-    parser = argparse.ArgumentParser(description="FreeCDN local build & upload to GitHub Release")
-    parser.add_argument("--token", required=True, help="GitHub personal access token (contents:write)")
-    parser.add_argument("--version", default="v0.1.1", help="FreeCDN version tag")
-    parser.add_argument("--goedge-version", default="v1.3.9", help="GoEdge version to package")
-    parser.add_argument("--arch", default="all", help="amd64, arm64, or all")
-    parser.add_argument("--work-dir", default=None, help="Work directory for downloads/build")
+    parser = argparse.ArgumentParser(description="FreeCDN full-source build & GitHub Release upload")
+    parser.add_argument("--token",   required=True, help="GitHub PAT (contents:write)")
+    parser.add_argument("--version", default="v0.1.5", help="FreeCDN release version tag")
+    parser.add_argument("--arch",    default="all",    help="amd64, arm64, or all")
+    parser.add_argument("--work-dir", default=None,   help="Build output directory")
+    parser.add_argument("--src-dir",  default=None,   help="Directory for cloned source repos")
+    parser.add_argument("--no-upload", action="store_true", help="Build only, skip GitHub upload")
     args = parser.parse_args()
 
+    # 找 go
+    go_bin = find_go()
+    if not go_bin:
+        log("ERROR: go not found. Install Go 1.22+ or set PATH.")
+        sys.exit(1)
+    result = subprocess.run([go_bin, "version"], capture_output=True, text=True)
+    log(f"Using Go: {result.stdout.strip()}")
+
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    work_dir = args.work_dir or os.path.join(repo_root, "dist", "build")
+    work_dir  = args.work_dir or os.path.join(repo_root, "dist", "build")
+    src_dir   = args.src_dir  or os.path.join(repo_root, "dist", "src")
     os.makedirs(work_dir, exist_ok=True)
+    os.makedirs(src_dir,  exist_ok=True)
 
     archs = ARCHS if args.arch == "all" else [args.arch]
 
-    # 构建各架构包
+    # 构建各架构
     archives = []
     for arch in archs:
-        path = build_package(work_dir, args.version, args.goedge_version, arch, repo_root)
+        path = build_package(go_bin, src_dir, work_dir, args.version, arch, repo_root, args.token)
         if path:
             archives.append(path)
         else:
             log(f"Build failed for {arch}")
             sys.exit(1)
 
-    # 生成 SHA256SUMS
+    # SHA256SUMS
     checksum_path = os.path.join(work_dir, "SHA256SUMS")
     with open(checksum_path, "w") as f:
         for p in archives:
@@ -299,30 +356,33 @@ def main():
             log(f"SHA256 {os.path.basename(p)}: {digest}")
     archives.append(checksum_path)
 
-    # 获取/创建 Release
+    if args.no_upload:
+        log("\n=== Build complete (--no-upload, skipping GitHub upload) ===")
+        for p in archives:
+            log(f"  {p}")
+        return
+
+    # 上传到 GitHub Release
     release = get_or_create_release(args.token, args.version)
     if not release:
         sys.exit(1)
 
     upload_url = release["upload_url"]
-
-    # 删除同名已有 assets（避免重复上传报错）
     existing_assets = {a["name"]: a["id"] for a in release.get("assets", [])}
     for p in archives:
         fname = os.path.basename(p)
         if fname in existing_assets:
             log(f"Deleting existing asset: {fname}")
-            github_api(args.token, "DELETE", f"/repos/{REPO}/releases/assets/{existing_assets[fname]}")
+            github_api(args.token, "DELETE",
+                       f"/repos/{RELEASE_REPO}/releases/assets/{existing_assets[fname]}")
 
-    # 上传
     for p in archives:
-        ok = upload_asset(args.token, upload_url, p)
-        if not ok:
-            log(f"Upload failed for {p}")
+        if not upload_asset(args.token, upload_url, p):
+            log(f"Upload failed: {p}")
             sys.exit(1)
 
-    log("=== All done! ===")
-    log(f"Release URL: {release.get('html_url', 'https://github.com/' + REPO + '/releases/tag/' + args.version)}")
+    log("\n=== All done! ===")
+    log(f"Release: {release.get('html_url', 'https://github.com/' + RELEASE_REPO + '/releases/tag/' + args.version)}")
 
 
 if __name__ == "__main__":

@@ -692,8 +692,11 @@ SQL
   fi
 
   # 写 api_admin.yaml（edge-admin 连接 edge-api 的认证配置）
+  # 必须使用嵌套格式，role=admin 的 token（ADMIN_TOKEN_NODE_ID），不能用 edgeAPINodes 的 uniqueId
   cat > "${ADMIN_DIR}/configs/api_admin.yaml" <<YAML
-rpc.endpoints: [ "http://127.0.0.1:${API_RPC_PORT}" ]
+rpc:
+  endpoints:
+    - "http://127.0.0.1:${API_RPC_PORT}"
 nodeId: "${ADMIN_TOKEN_NODE_ID}"
 secret: "${ADMIN_TOKEN_SECRET}"
 YAML

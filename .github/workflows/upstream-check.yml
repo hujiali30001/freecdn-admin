@@ -1,0 +1,100 @@
+name: Upstream Security Monitor
+
+# 每周一 UTC 09:00 检查上游 GoEdge 是否有新版本
+# 有新版本时创建 Issue 提醒人工审计，不自动 merge
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    name: Check GoEdge upstream
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check GoEdge latest release
+        id: check
+        run: |
+          # 当前锁定版本
+          LOCKED_VERSION="v1.3.9"
+
+          # 获取 GoEdge 最新 Release（通过 GitHub API）
+          LATEST=$(curl -sf \
+            "https://api.github.com/repos/TeaOSLab/EdgeAdmin/releases/latest" \
+            | grep '"tag_name"' | head -1 | cut -d'"' -f4 || echo "unknown")
+
+          echo "Locked version: ${LOCKED_VERSION}"
+          echo "Latest upstream: ${LATEST}"
+          echo "locked_version=${LOCKED_VERSION}" >> $GITHUB_OUTPUT
+          echo "latest_version=${LATEST}" >> $GITHUB_OUTPUT
+
+          if [ "${LATEST}" != "${LOCKED_VERSION}" ] && [ "${LATEST}" != "unknown" ]; then
+            echo "has_new_version=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_new_version=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if issue already exists
+        id: issue_check
+        if: steps.check.outputs.has_new_version == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LATEST="${{ steps.check.outputs.latest_version }}"
+          # 检查是否已经有同版本的 Issue
+          EXISTING=$(gh issue list \
+            --label "upstream-update" \
+            --search "GoEdge ${LATEST}" \
+            --state all \
+            --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$EXISTING" ]; then
+            echo "Issue already exists: #${EXISTING}"
+            echo "should_create=false" >> $GITHUB_OUTPUT
+          else
+            echo "should_create=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create security audit issue
+        if: steps.check.outputs.has_new_version == 'true' && steps.issue_check.outputs.should_create == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LOCKED="${{ steps.check.outputs.locked_version }}"
+          LATEST="${{ steps.check.outputs.latest_version }}"
+
+          gh issue create \
+            --title "🔍 [上游更新] GoEdge ${LATEST} 发布，需要安全审计后决定是否合并" \
+            --label "upstream-update,security" \
+            --body "## 上游版本更新通知
+
+          GoEdge 上游仓库发布了新版本，请人工审计后决定是否合并到 FreeCDN。
+
+          | 项目 | 版本 |
+          |------|------|
+          | FreeCDN 当前锁定 | \`${LOCKED}\` |
+          | 上游最新发布 | \`${LATEST}\` |
+
+          ## 审计步骤
+
+          1. **查看 Changelog**：https://github.com/TeaOSLab/EdgeAdmin/releases/tag/${LATEST}
+          2. **代码差异对比**：https://github.com/TeaOSLab/EdgeAdmin/compare/${LOCKED}...${LATEST}
+          3. **重点审计 EdgeNode**：供应链投毒通常从 EdgeNode 的 JS 注入入手
+          4. **检查新增依赖**：查看 go.mod/go.sum 是否有可疑新依赖
+          5. **社区反馈**：参考 NodeSeek、奶昔论坛等中文 VPS 社区的评价
+
+          ## 背景
+
+          GoEdge v1.4.0/v1.4.1 曾被植入恶意 JS 注入代码。FreeCDN 采用人工审计策略，在确认安全之前不自动合并上游更新。
+
+          **⚠️ 请不要直接关闭此 Issue，需要审计结论（合并 / 跳过 / 等待更多信息）。**
+
+          ---
+          *此 Issue 由 GitHub Actions 自动创建（upstream-monitor）*"

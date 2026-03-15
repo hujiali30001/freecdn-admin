@@ -22,7 +22,7 @@
 sudo bash <(curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh)
 # 或者
 sudo su -
-curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash
+curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
 ```
 
 ### Q: 国内服务器 GitHub 下载很慢或超时
@@ -51,7 +51,7 @@ scp freecdn-v0.1.0-linux-amd64.tar.gz root@YOUR_SERVER:/tmp/freecdn-pkg.tar.gz
 甲骨文免费 ARM64 实例（Ampere A1）架构为 `aarch64`，对应 `arm64` 版本：
 
 ```bash
-curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash
+curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
 # 安装脚本会自动检测架构，无需手动指定
 ```
 
@@ -304,7 +304,7 @@ go build -tags community ./...
 2. 备份数据库
 3. 重新运行安装脚本（`--reinstall` 参数会覆盖已有安装）：
    ```bash
-   curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash -s -- --reinstall
+   curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash -s -- --reinstall
    ```
 4. 重启服务
 

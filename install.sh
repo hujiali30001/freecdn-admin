@@ -49,6 +49,7 @@ NODE_ID=""                      # node 模式必填
 NODE_SECRET=""                  # node 模式必填
 
 GOEDGE_VERSION="v1.3.9"
+FREECDN_VERSION="v0.1.0"        # FreeCDN 自己的 Release 版本
 FORCE_REINSTALL="false"
 
 # ── 参数解析 ───────────────────────────────────────────────────────────────────
@@ -67,7 +68,8 @@ while [[ $# -gt 0 ]]; do
     --mysql-pass)      MYSQL_PASSWORD="$2"; shift ;;
     --mysql-db)        MYSQL_DATABASE="$2"; shift ;;
     --skip-mysql)      SKIP_MYSQL="true" ;;
-    --version)         GOEDGE_VERSION="$2"; shift ;;
+    --version|--freecdn-version) FREECDN_VERSION="$2"; shift ;;
+    --goedge-version)  GOEDGE_VERSION="$2"; shift ;;
     --reinstall)       FORCE_REINSTALL="true" ;;
     --help|-h)
       cat <<EOF
@@ -91,7 +93,9 @@ FreeCDN 一键安装脚本
   --mysql-host     MySQL 地址（默认 127.0.0.1）
   --mysql-pass     MySQL 密码（默认自动生成）
   --skip-mysql     跳过 MySQL 安装（自行管理数据库时使用）
-  --version        指定版本，如 v1.3.9（默认 v1.3.9，安全基线）
+  --version        指定 FreeCDN Release 版本（默认 v0.1.0）
+  --freecdn-version 同 --version
+  --goedge-version  强制指定 GoEdge 底层版本（高级用法，默认 v1.3.9）
   --reinstall      强制重新安装（覆盖现有安装）
 EOF
       exit 0
@@ -259,16 +263,23 @@ SQL
 fi
 
 # ── 下载 URL 函数 ─────────────────────────────────────────────────────────────
-# GoEdge v1.3.9（安全基线）下载 URL：
-#   主源（goedge.rip 社区镜像，专门存档 v1.3.9 安全版本）：
-#     https://goedge.rip/dl/edge/v1.3.9/edge-admin-linux-amd64-plus-v1.3.9.zip
-#   注：goedge.cloud 原站在投毒事件后已不可信，不使用
+# 下载优先级：
+#   1. FreeCDN GitHub Release（自己打包，含脚本和二进制）
+#   2. goedge.rip 社区镜像（GoEdge v1.3.9 安全存档）
+#   3. goedge.cloud 原站备用
+#
+# FreeCDN Release 包命名规则：
+#   freecdn-v0.1.0-linux-amd64.tar.gz
+get_freecdn_release_url() {
+  echo "https://github.com/hujiali30001/freecdn-admin/releases/download/${FREECDN_VERSION}/freecdn-${FREECDN_VERSION}-linux-${ARCH_TAG}.tar.gz"
+}
 get_admin_zip_url() {
   echo "https://goedge.rip/dl/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH_TAG}-plus-${GOEDGE_VERSION}.zip"
 }
-# 备用下载源（当主源不可用时依次尝试）
+# 备用下载源（当主源不可用时依次尝试，格式 "url|type"）
 FALLBACK_URLS=(
-  "https://dl.goedge.cloud/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH_TAG}-plus-${GOEDGE_VERSION}.zip"
+  "$(get_admin_zip_url)|zip"
+  "https://dl.goedge.cloud/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH_TAG}-plus-${GOEDGE_VERSION}.zip|zip"
 )
 
 # ── 创建目录 ──────────────────────────────────────────────────────────────────
@@ -291,66 +302,113 @@ fi
 # ── 下载并安装二进制 ──────────────────────────────────────────────────────────
 step "下载 FreeCDN 二进制"
 
-# edge-admin 全家桶 zip 包结构（已实测 v1.4.7）：
+# FreeCDN Release tar.gz 包结构：
+#   freecdn-v0.1.0-linux-amd64/
+#     edge-admin          ← 主程序
+#     web/                ← 前端资源
+#     edge-api/bin/edge-api
+#     edge-api/deploy/edge-node-linux-amd64-*.zip
+#
+# 降级：GoEdge zip 包结构：
 #   edge-admin/
 #     bin/edge-admin
 #     web/
-#     edge-api/
-#       bin/edge-api
-#       deploy/edge-node-linux-amd64-v*.zip
+#     edge-api/bin/edge-api
+#     edge-api/deploy/edge-node-linux-amd64-*.zip
 
-ADMIN_ZIP_URL=$(get_admin_zip_url)
-ADMIN_ZIP="/tmp/freecdn-admin.zip"
-
-info "下载 edge-admin 全家桶 (${GOEDGE_VERSION})..."
+DOWNLOAD_FILE="/tmp/freecdn-pkg"
 DOWNLOAD_OK="false"
-for DL_URL in "$ADMIN_ZIP_URL" "${FALLBACK_URLS[@]}"; do
-  info "尝试: $DL_URL"
-  if wget -q --show-progress --timeout=300 "$DL_URL" -O "$ADMIN_ZIP" 2>&1; then
-    DOWNLOAD_OK="true"
-    break
-  else
-    warn "下载失败，尝试备用源..."
-    rm -f "$ADMIN_ZIP"
-  fi
-done
-[ "$DOWNLOAD_OK" = "true" ] || error "所有下载源均失败，请检查网络连接。可手动指定 --version 参数，或从 https://goedge.rip/downloads.html 手动下载"
+DOWNLOAD_TYPE="tar"   # tar | zip
+
+# 1. 优先尝试 FreeCDN 自己的 Release（tar.gz）
+FREECDN_URL=$(get_freecdn_release_url)
+info "尝试 FreeCDN Release: $FREECDN_URL"
+if wget -q --show-progress --timeout=60 "$FREECDN_URL" -O "${DOWNLOAD_FILE}.tar.gz" 2>/dev/null; then
+  DOWNLOAD_OK="true"
+  DOWNLOAD_TYPE="tar"
+  DOWNLOAD_FILE="${DOWNLOAD_FILE}.tar.gz"
+  info "使用 FreeCDN Release 包"
+else
+  warn "FreeCDN Release 不可用，降级到 GoEdge 安全存档..."
+  rm -f "${DOWNLOAD_FILE}.tar.gz"
+fi
+
+# 2. 降级：GoEdge zip 备用源
+if [ "$DOWNLOAD_OK" = "false" ]; then
+  DOWNLOAD_FILE="${DOWNLOAD_FILE}.zip"
+  for ENTRY in "${FALLBACK_URLS[@]}"; do
+    DL_URL="${ENTRY%|*}"
+    info "尝试备用源: $DL_URL"
+    if wget -q --show-progress --timeout=300 "$DL_URL" -O "$DOWNLOAD_FILE" 2>/dev/null; then
+      DOWNLOAD_OK="true"
+      DOWNLOAD_TYPE="zip"
+      break
+    else
+      warn "下载失败，尝试下一个备用源..."
+      rm -f "$DOWNLOAD_FILE"
+    fi
+  done
+fi
+
+[ "$DOWNLOAD_OK" = "true" ] || error "所有下载源均失败，请检查网络连接。也可从 https://github.com/hujiali30001/freecdn-admin/releases 手动下载"
 info "下载完成，解压中..."
 
 TMP_SRC="/tmp/freecdn-admin-src"
 rm -rf "$TMP_SRC"
 mkdir -p "$TMP_SRC"
-unzip -q "$ADMIN_ZIP" -d "$TMP_SRC"
-rm -f "$ADMIN_ZIP"
 
-# 找解压根目录（不同版本可能直接在根或在 edge-admin/ 子目录）
-if [ -d "${TMP_SRC}/edge-admin" ]; then
-  SRC_ROOT="${TMP_SRC}/edge-admin"
-else
+if [ "$DOWNLOAD_TYPE" = "tar" ]; then
+  tar xzf "$DOWNLOAD_FILE" -C "$TMP_SRC" --strip-components=1
+  rm -f "$DOWNLOAD_FILE"
+  # FreeCDN Release 包解压后结构：直接包含 edge-admin、web/、edge-api/
   SRC_ROOT="$TMP_SRC"
+else
+  unzip -q "$DOWNLOAD_FILE" -d "$TMP_SRC"
+  rm -f "$DOWNLOAD_FILE"
+  # GoEdge zip 解压后结构：可能在 edge-admin/ 子目录或直接在根
+  if [ -d "${TMP_SRC}/edge-admin" ]; then
+    SRC_ROOT="${TMP_SRC}/edge-admin"
+  else
+    SRC_ROOT="$TMP_SRC"
+  fi
+fi
+
+# 判断 edge-admin 二进制在 bin/edge-admin（GoEdge zip）还是直接在根（FreeCDN Release）
+if [ -f "${SRC_ROOT}/edge-admin" ]; then
+  # FreeCDN Release 结构：binary 直接在根目录
+  ADMIN_BIN="${SRC_ROOT}/edge-admin"
+  API_BIN="${SRC_ROOT}/edge-api/bin/edge-api"
+  NODE_DEPLOY_DIR="${SRC_ROOT}/edge-api/deploy"
+  WEB_DIR="${SRC_ROOT}/web"
+else
+  # GoEdge zip 结构：binary 在 bin/ 子目录
+  ADMIN_BIN="${SRC_ROOT}/bin/edge-admin"
+  API_BIN="${SRC_ROOT}/edge-api/bin/edge-api"
+  NODE_DEPLOY_DIR="${SRC_ROOT}/edge-api/deploy"
+  WEB_DIR="${SRC_ROOT}/web"
 fi
 
 if [ "$MODE" = "admin" ]; then
   # 安装 edge-admin 二进制
-  [ -f "${SRC_ROOT}/bin/edge-admin" ] || error "未找到 edge-admin 二进制，包结构异常"
-  cp "${SRC_ROOT}/bin/edge-admin" "${ADMIN_DIR}/bin/edge-admin"
+  [ -f "$ADMIN_BIN" ] || error "未找到 edge-admin 二进制，包结构异常（期望路径: $ADMIN_BIN）"
+  cp "$ADMIN_BIN" "${ADMIN_DIR}/bin/edge-admin"
   chmod +x "${ADMIN_DIR}/bin/edge-admin"
   info "edge-admin 安装完成"
 
   # 安装 web 静态资源
-  if [ -d "${SRC_ROOT}/web" ]; then
-    cp -r "${SRC_ROOT}/web/." "${ADMIN_DIR}/web/"
+  if [ -d "$WEB_DIR" ]; then
+    cp -r "${WEB_DIR}/." "${ADMIN_DIR}/web/"
     info "web 静态资源安装完成"
   fi
 
   # 安装 edge-api 二进制
-  [ -f "${SRC_ROOT}/edge-api/bin/edge-api" ] || error "未找到 edge-api 二进制，请检查下载包"
-  cp "${SRC_ROOT}/edge-api/bin/edge-api" "${API_DIR}/bin/edge-api"
+  [ -f "$API_BIN" ] || error "未找到 edge-api 二进制，请检查下载包（期望路径: $API_BIN）"
+  cp "$API_BIN" "${API_DIR}/bin/edge-api"
   chmod +x "${API_DIR}/bin/edge-api"
   info "edge-api 安装完成"
 
   # 保存 edge-node zip 供后续节点使用
-  NODE_ZIP_FOUND=$(find "${SRC_ROOT}/edge-api/deploy" -name "edge-node-linux-${ARCH_TAG}-*.zip" 2>/dev/null | head -1 || true)
+  NODE_ZIP_FOUND=$(find "$NODE_DEPLOY_DIR" -name "edge-node-linux-${ARCH_TAG}-*.zip" 2>/dev/null | head -1 || true)
   if [ -n "$NODE_ZIP_FOUND" ]; then
     cp "$NODE_ZIP_FOUND" "${DATA_DIR}/edge-node.zip"
     info "edge-node 安装包已保存至: ${DATA_DIR}/edge-node.zip（供节点服务器使用）"
@@ -358,7 +416,7 @@ if [ "$MODE" = "admin" ]; then
 
 else
   # 节点模式：从全家桶中提取 edge-node
-  NODE_ZIP_FOUND=$(find "${SRC_ROOT}/edge-api/deploy" -name "edge-node-linux-${ARCH_TAG}-*.zip" 2>/dev/null | head -1 || true)
+  NODE_ZIP_FOUND=$(find "$NODE_DEPLOY_DIR" -name "edge-node-linux-${ARCH_TAG}-*.zip" 2>/dev/null | head -1 || true)
   [ -n "$NODE_ZIP_FOUND" ] || error "未在下载包中找到 edge-node，请检查版本"
 
   TMP_NODE="/tmp/freecdn-node-extract"

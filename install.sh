@@ -362,7 +362,16 @@ DOWNLOAD_FILE="/tmp/freecdn-pkg"
 DOWNLOAD_OK="false"
 DOWNLOAD_TYPE="tar"   # tar | zip
 
+# 0. 本地缓存检测：如果已有完整的 tar.gz，直接使用，跳过所有网络下载
+if [ -f "${DOWNLOAD_FILE}.tar.gz" ] && tar -tzf "${DOWNLOAD_FILE}.tar.gz" >/dev/null 2>&1; then
+  info "检测到本地缓存包，跳过下载"
+  DOWNLOAD_OK="true"
+  DOWNLOAD_TYPE="tar"
+  DOWNLOAD_FILE="${DOWNLOAD_FILE}.tar.gz"
+fi
+
 # 1. 优先尝试 FreeCDN Release（经镜像站加速）
+if [ "$DOWNLOAD_OK" = "false" ]; then
 info "探测最快下载镜像，请稍候..."
 BEST_URL=$(pick_fastest_mirror)
 if [ -n "$BEST_URL" ]; then
@@ -416,6 +425,7 @@ if [ "$DOWNLOAD_OK" = "false" ]; then
     fi
   done
 fi
+fi  # end: if DOWNLOAD_OK = false (skip download block)
 
 [ "$DOWNLOAD_OK" = "true" ] || error "所有下载源均失败，请检查网络连接。也可从 https://github.com/hujiali30001/freecdn-admin/releases 手动下载"
 info "下载完成，解压中..."

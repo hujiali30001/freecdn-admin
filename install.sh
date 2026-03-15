@@ -306,13 +306,13 @@ GITHUB_REPO="hujiali30001/freecdn-admin"
 RELEASE_FILE="freecdn-${FREECDN_VERSION}-linux-${ARCH_TAG}.tar.gz"
 GITHUB_RELEASE_PATH="releases/download/${FREECDN_VERSION}/${RELEASE_FILE}"
 
-# GitHub 镜像站列表（国内常用，优先级依次降低）
-# 格式：镜像前缀，最终 URL = 前缀 + https://github.com/... 或 前缀/REPO/RELEASE_PATH
+# GitHub 镜像站列表（国内常用，实测优先级排序）
+# gh-proxy.com 实测腾讯云广州约 1.6MB/s，排第一；ghfast.top 约 150KB/s 排第二兜底
 GITHUB_MIRRORS=(
-  "https://ghfast.top/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
   "https://gh-proxy.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
-  "https://mirror.ghproxy.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
+  "https://ghfast.top/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
   "https://hub.gitmirror.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
+  "https://mirror.ghproxy.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
   "https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
 )
 
@@ -325,22 +325,30 @@ FALLBACK_URLS=(
   "https://dl.goedge.cloud/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH_TAG}-plus-${GOEDGE_VERSION}.zip|zip"
 )
 
-# 探测最快的镜像站（发 HEAD 请求，取响应最快的）
+# 探测最快的镜像站：
+# 策略：下载前 128KB 计算实际速度（bytes/s），选速度最快的；
+# 若全部探测失败则返回空串，调用方将按列表顺序逐一尝试。
 pick_fastest_mirror() {
-  local best_url="" best_ms=9999
+  local best_url="" best_speed=0
   for url in "${GITHUB_MIRRORS[@]}"; do
-    # curl --max-time 5 只做 HEAD，测连接延迟
-    local ms
-    ms=$(curl -o /dev/null -sS --head --max-time 5 -w "%{time_total}" "$url" 2>/dev/null || echo "9999")
-    # 去掉小数点后转整数比较（bash 不支持浮点）
-    local ms_int=${ms/./}; ms_int=${ms_int%%0}   # e.g. "0.342" -> "0342" -> "342"
-    ms_int=$((10#${ms_int:-9999}))
-    if [ "$ms_int" -lt "$best_ms" ]; then
-      best_ms=$ms_int
+    # 下载最多 128KB，限时 8 秒，取实际下载速度
+    local speed
+    speed=$(curl -L -o /dev/null -sS --max-time 8 --max-filesize 131072 \
+      -w "%{speed_download}" "$url" 2>/dev/null || echo "0")
+    # 去掉小数点（bash 不支持浮点比较）
+    local sp_int=${speed%%.*}
+    sp_int=$((${sp_int:-0}))
+    if [ "$sp_int" -gt "$best_speed" ]; then
+      best_speed=$sp_int
       best_url=$url
     fi
   done
-  echo "$best_url"
+  # 速度太低（<10KB/s）视为无效
+  if [ "$best_speed" -lt 10240 ]; then
+    echo ""
+  else
+    echo "$best_url"
+  fi
 }
 
 # ── 创建目录 ──────────────────────────────────────────────────────────────────
@@ -408,7 +416,7 @@ fi
 
 for FREECDN_URL in "${ORDERED_MIRRORS[@]}"; do
   info "尝试下载: $FREECDN_URL"
-  if wget -q --show-progress --timeout=15 --tries=1 "$FREECDN_URL" \
+  if wget -q --show-progress --timeout=300 --tries=1 "$FREECDN_URL" \
        -O "${DOWNLOAD_FILE}.tar.gz" 2>/dev/null; then
     # 校验包完整性
     if tar -tzf "${DOWNLOAD_FILE}.tar.gz" >/dev/null 2>&1; then

@@ -3,12 +3,15 @@
 # FreeCDN 一键安装脚本
 #
 # 用法（管理节点）：
-#   curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash
+#   curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash
 #
 # 用法（边缘节点）：
-#   curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | \
+#   curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | \
 #     bash -s -- --node --api-endpoint http://YOUR_ADMIN_IP:8003 \
 #                --node-id YOUR_NODE_ID --node-secret YOUR_NODE_SECRET
+#
+# 如果镜像站不可用，改用 GitHub 直连：
+#   curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | bash
 #
 # 支持系统：Ubuntu 20.04+  Debian 11+  CentOS 7/8  Rocky Linux 8+  AlmaLinux 8+
 # 支持架构：linux/amd64  linux/arm64
@@ -264,15 +267,27 @@ fi
 
 # ── 下载 URL 函数 ─────────────────────────────────────────────────────────────
 # 下载优先级：
-#   1. FreeCDN GitHub Release（自己打包，含脚本和二进制）
+#   1. FreeCDN GitHub Release，经镜像站加速（多个镜像并行探测，取最快的）
 #   2. goedge.rip 社区镜像（GoEdge v1.3.9 安全存档）
 #   3. goedge.cloud 原站备用
 #
 # FreeCDN Release 包命名规则：
 #   freecdn-v0.1.0-linux-amd64.tar.gz
-get_freecdn_release_url() {
-  echo "https://github.com/hujiali30001/freecdn-admin/releases/download/${FREECDN_VERSION}/freecdn-${FREECDN_VERSION}-linux-${ARCH_TAG}.tar.gz"
-}
+
+GITHUB_REPO="hujiali30001/freecdn-admin"
+RELEASE_FILE="freecdn-${FREECDN_VERSION}-linux-${ARCH_TAG}.tar.gz"
+GITHUB_RELEASE_PATH="releases/download/${FREECDN_VERSION}/${RELEASE_FILE}"
+
+# GitHub 镜像站列表（国内常用，优先级依次降低）
+# 格式：镜像前缀，最终 URL = 前缀 + https://github.com/... 或 前缀/REPO/RELEASE_PATH
+GITHUB_MIRRORS=(
+  "https://ghfast.top/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
+  "https://gh-proxy.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
+  "https://mirror.ghproxy.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
+  "https://hub.gitmirror.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
+  "https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
+)
+
 get_admin_zip_url() {
   echo "https://goedge.rip/dl/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH_TAG}-plus-${GOEDGE_VERSION}.zip"
 }
@@ -281,6 +296,24 @@ FALLBACK_URLS=(
   "$(get_admin_zip_url)|zip"
   "https://dl.goedge.cloud/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH_TAG}-plus-${GOEDGE_VERSION}.zip|zip"
 )
+
+# 探测最快的镜像站（发 HEAD 请求，取响应最快的）
+pick_fastest_mirror() {
+  local best_url="" best_ms=9999
+  for url in "${GITHUB_MIRRORS[@]}"; do
+    # curl --max-time 5 只做 HEAD，测连接延迟
+    local ms
+    ms=$(curl -o /dev/null -sS --head --max-time 5 -w "%{time_total}" "$url" 2>/dev/null || echo "9999")
+    # 去掉小数点后转整数比较（bash 不支持浮点）
+    local ms_int=${ms/./}; ms_int=${ms_int%%0}   # e.g. "0.342" -> "0342" -> "342"
+    ms_int=$((10#${ms_int:-9999}))
+    if [ "$ms_int" -lt "$best_ms" ]; then
+      best_ms=$ms_int
+      best_url=$url
+    fi
+  done
+  echo "$best_url"
+}
 
 # ── 创建目录 ──────────────────────────────────────────────────────────────────
 step "创建目录结构"
@@ -320,21 +353,41 @@ DOWNLOAD_FILE="/tmp/freecdn-pkg"
 DOWNLOAD_OK="false"
 DOWNLOAD_TYPE="tar"   # tar | zip
 
-# 1. 优先尝试 FreeCDN 自己的 Release（tar.gz）
-FREECDN_URL=$(get_freecdn_release_url)
-info "尝试 FreeCDN Release: $FREECDN_URL"
-if wget -q --show-progress --timeout=60 "$FREECDN_URL" -O "${DOWNLOAD_FILE}.tar.gz" 2>/dev/null; then
-  DOWNLOAD_OK="true"
-  DOWNLOAD_TYPE="tar"
-  DOWNLOAD_FILE="${DOWNLOAD_FILE}.tar.gz"
-  info "使用 FreeCDN Release 包"
+# 1. 优先尝试 FreeCDN Release（经镜像站加速）
+info "探测最快下载镜像，请稍候..."
+BEST_URL=$(pick_fastest_mirror)
+if [ -n "$BEST_URL" ]; then
+  info "最快镜像: $BEST_URL"
 else
-  warn "FreeCDN Release 不可用，降级到 GoEdge 安全存档..."
-  rm -f "${DOWNLOAD_FILE}.tar.gz"
+  BEST_URL="${GITHUB_MIRRORS[-1]}"  # fallback: 直连 GitHub
+  warn "镜像探测失败，使用 GitHub 直连"
 fi
 
-# 2. 降级：GoEdge zip 备用源
+# 把最快的镜像放到队列头，再加上其余镜像作为后备
+ORDERED_MIRRORS=("$BEST_URL")
+for u in "${GITHUB_MIRRORS[@]}"; do
+  [ "$u" = "$BEST_URL" ] && continue
+  ORDERED_MIRRORS+=("$u")
+done
+
+for FREECDN_URL in "${ORDERED_MIRRORS[@]}"; do
+  info "尝试下载: $FREECDN_URL"
+  if wget -q --show-progress --timeout=30 --tries=2 "$FREECDN_URL" \
+       -O "${DOWNLOAD_FILE}.tar.gz" 2>/dev/null; then
+    DOWNLOAD_OK="true"
+    DOWNLOAD_TYPE="tar"
+    DOWNLOAD_FILE="${DOWNLOAD_FILE}.tar.gz"
+    info "下载成功"
+    break
+  else
+    warn "下载失败，尝试下一个镜像..."
+    rm -f "${DOWNLOAD_FILE}.tar.gz"
+  fi
+done
+
+# 2. 降级：GoEdge zip 备用源（兜底）
 if [ "$DOWNLOAD_OK" = "false" ]; then
+  warn "所有 FreeCDN 镜像均失败，降级到 GoEdge 安全存档..."
   DOWNLOAD_FILE="${DOWNLOAD_FILE}.zip"
   for ENTRY in "${FALLBACK_URLS[@]}"; do
     DL_URL="${ENTRY%|*}"

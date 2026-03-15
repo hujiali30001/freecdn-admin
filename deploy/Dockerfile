@@ -10,61 +10,56 @@
 #     -f deploy/Dockerfile -t freecdn/admin:latest --push .
 #
 # 说明：
-#   构建时从 GitHub Releases 下载 GoEdge v1.3.9（安全基线版本），
-#   国内环境会依次尝试 ghfast.top / mirror.ghproxy.com / gh.llkk.cc 等加速镜像，
-#   全部失败才尝试直连 GitHub 和 goedge.rip。无需在宿主机上预先编译二进制。
-#
-#   如需手动指定下载源（例如使用自建镜像）：
+#   构建时从 FreeCDN GitHub Releases 下载预编译包（已完成品牌替换）。
+#   国内环境会依次尝试 ghfast.top / mirror.ghproxy.com / gh.llkk.cc 等加速镜像。
+#   如需手动指定镜像前缀：
 #   docker build --build-arg MIRROR_PREFIX=https://你的镜像/https://github.com/... ...
 # ==============================================================
 
-# ---- 构建阶段：下载并解压 GoEdge 二进制 ----
+# ---- 构建阶段：下载并解压 FreeCDN Release 包 ----
 FROM debian:bookworm-slim AS downloader
 
 ARG TARGETARCH=amd64
-ARG GOEDGE_VERSION=v1.3.9
+ARG FREECDN_VERSION=v0.1.6
+ARG GITHUB_REPO=hujiali30001/freecdn-admin
 
 # 安装下载工具
-RUN apt-get update -qq && apt-get install -y -qq wget unzip ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -qq && apt-get install -y -qq wget ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# 下载 GoEdge 全家桶（包含 edge-admin + edge-api + edge-node）
-# 按顺序尝试多个源，国内服务器走 ghproxy 加速，境外走原始地址
-# ARG MIRROR_PREFIX 可在 build 时覆盖，默认使用 ghproxy
-ARG MIRROR_PREFIX=https://ghfast.top/https://github.com/TeaOSLab/EdgeAdmin/releases/download
+# 下载 FreeCDN Release 包（含品牌替换后的 web/）
+# ARG MIRROR_PREFIX 可在 build 时覆盖
+ARG MIRROR_PREFIX=https://ghfast.top/https://github.com/${GITHUB_REPO}/releases/download
 WORKDIR /tmp
 RUN set -e; \
-    ARCH="$(echo $TARGETARCH | sed 's/arm64/arm64/;s/amd64/amd64/')"; \
-    ZIP="edge-admin-linux-${ARCH}-plus-${GOEDGE_VERSION}.zip"; \
+    ARCH="${TARGETARCH}"; \
+    TAR="freecdn-${FREECDN_VERSION}-linux-${ARCH}.tar.gz"; \
+    BASE_URL="https://github.com/${GITHUB_REPO}/releases/download/${FREECDN_VERSION}"; \
     \
-    try_download() { \
-      echo "  Trying: $1"; \
-      wget -q --timeout=120 "$1" -O goedge.zip && return 0; \
-      return 1; \
-    }; \
+    try_dl() { echo "  Trying: $1"; wget -q --timeout=120 "$1" -O freecdn.tar.gz && return 0; return 1; }; \
     \
-    echo "==> Downloading GoEdge ${GOEDGE_VERSION} (${ARCH})..."; \
-    try_download "${MIRROR_PREFIX}/${GOEDGE_VERSION}/${ZIP}" \
-    || try_download "https://mirror.ghproxy.com/https://github.com/TeaOSLab/EdgeAdmin/releases/download/${GOEDGE_VERSION}/${ZIP}" \
-    || try_download "https://gh.llkk.cc/https://github.com/TeaOSLab/EdgeAdmin/releases/download/${GOEDGE_VERSION}/${ZIP}" \
-    || try_download "https://github.com/TeaOSLab/EdgeAdmin/releases/download/${GOEDGE_VERSION}/${ZIP}" \
-    || try_download "https://goedge.rip/dl/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH}-plus-${GOEDGE_VERSION}.zip" \
-    || try_download "https://dl.goedge.cloud/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH}-plus-${GOEDGE_VERSION}.zip" \
+    echo "==> Downloading FreeCDN ${FREECDN_VERSION} (${ARCH})..."; \
+    try_dl "${MIRROR_PREFIX}/${FREECDN_VERSION}/${TAR}" \
+    || try_dl "https://mirror.ghproxy.com/${BASE_URL}/${TAR}" \
+    || try_dl "https://gh.llkk.cc/${BASE_URL}/${TAR}" \
+    || try_dl "${BASE_URL}/${TAR}" \
     || ( echo "All download sources failed!" && exit 1 ); \
     \
-    echo "==> Download complete, extracting..."; \
-    unzip -q goedge.zip -d /tmp/goedge-src; \
-    rm goedge.zip
-
-# 找到解压根目录（不同版本解压后目录层级可能不同）
-RUN set -e; \
-    if [ -d /tmp/goedge-src/edge-admin ]; then \
-      mv /tmp/goedge-src/edge-admin /tmp/goedge; \
+    echo "==> Extracting..."; \
+    mkdir -p /tmp/freecdn-src; \
+    tar -xzf freecdn.tar.gz -C /tmp/freecdn-src; \
+    rm freecdn.tar.gz; \
+    \
+    # 包解压后根目录是 edge-admin/
+    if [ -d /tmp/freecdn-src/edge-admin ]; then \
+      mv /tmp/freecdn-src/edge-admin /tmp/freecdn; \
     else \
-      mv /tmp/goedge-src /tmp/goedge; \
+      mv /tmp/freecdn-src /tmp/freecdn; \
     fi; \
-    chmod +x /tmp/goedge/bin/edge-admin /tmp/goedge/edge-api/bin/edge-api; \
-    # 找出嵌套的 edge-node zip（供后续节点安装使用）\
-    find /tmp/goedge/edge-api/deploy -name "*.zip" -type f 2>/dev/null | head -5 || true
+    \
+    chmod +x /tmp/freecdn/bin/edge-admin; \
+    chmod +x /tmp/freecdn/edge-api/bin/edge-api; \
+    echo "==> Contents:"; \
+    ls -lh /tmp/freecdn/bin/ /tmp/freecdn/edge-api/bin/ 2>/dev/null || true
 
 # ---- 最终镜像 ----
 FROM debian:bookworm-slim
@@ -80,16 +75,16 @@ RUN apt-get update -qq && apt-get install -y -qq \
     default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# 工作目录：模拟 GoEdge 标准目录结构
+# 工作目录
 WORKDIR /app/edge-admin
 
-# 从 downloader 阶段复制 edge-admin 二进制和 web 资源
-COPY --from=downloader /tmp/goedge/bin/edge-admin ./bin/edge-admin
-COPY --from=downloader /tmp/goedge/web ./web
-COPY --from=downloader /tmp/goedge/edge-api/bin/edge-api ./edge-api/bin/edge-api
+# 从 downloader 阶段复制二进制和 web 资源（品牌替换版）
+COPY --from=downloader /tmp/freecdn/bin/edge-admin        ./bin/edge-admin
+COPY --from=downloader /tmp/freecdn/edge-api/bin/edge-api ./edge-api/bin/edge-api
+COPY --from=downloader /tmp/freecdn/web                   ./web
 
-# 复制 edge-node zip（供参考，用户可通过卷挂载访问）
-COPY --from=downloader /tmp/goedge/edge-api/deploy ./edge-api/deploy
+# 复制 edge-api 部署资源（node zip 等，供参考）
+COPY --from=downloader /tmp/freecdn/edge-api/deploy       ./edge-api/deploy
 
 # 创建必要目录
 RUN mkdir -p \
@@ -112,7 +107,12 @@ ENV TZ=Asia/Shanghai
 EXPOSE 7788 8003
 
 # 健康检查
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -sf http://localhost:7788/ -H "Accept: text/html" > /dev/null || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+  CMD wget -qO- http://localhost:7788/ > /dev/null 2>&1 || exit 1
+
+LABEL org.opencontainers.image.title="FreeCDN Admin" \
+      org.opencontainers.image.description="FreeCDN management panel with EdgeAPI" \
+      org.opencontainers.image.source="https://github.com/hujiali30001/freecdn-admin" \
+      org.opencontainers.image.version="${FREECDN_VERSION}"
 
 ENTRYPOINT ["/entrypoint.sh"]

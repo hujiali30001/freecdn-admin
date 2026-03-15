@@ -199,6 +199,7 @@ info "依赖安装完成"
 # ── MySQL 安装（仅 admin 模式）────────────────────────────────────────────────
 if [ "$MODE" = "admin" ] && [ "$SKIP_MYSQL" = "false" ]; then
   step "安装 MySQL"
+  MYSQL_ROOT_OPT=""   # 默认无密码（Ubuntu auth_socket）
   if command -v mysqladmin &>/dev/null && mysqladmin ping --silent 2>/dev/null; then
     info "MySQL 已安装且正在运行，跳过"
   else
@@ -223,6 +224,24 @@ if [ "$MODE" = "admin" ] && [ "$SKIP_MYSQL" = "false" ]; then
       || systemctl enable --now mysqld 2>/dev/null \
       || true
     info "MySQL 安装完成"
+
+    # CentOS/Rocky 的 MySQL 8 首次启动会在日志里生成临时 root 密码。
+    # 必须用临时密码登录并重置后才能无密码操作，否则后续 `mysql -u root` 会失败。
+    if [ "$PKG_MANAGER" != "apt" ]; then
+      MYSQL_TMP_PWD=$(grep -oP '(?<=temporary password is: )\S+' \
+        /var/log/mysqld.log 2>/dev/null | tail -1 || true)
+      if [ -n "$MYSQL_TMP_PWD" ]; then
+        info "检测到 MySQL 临时密码，正在重置为随机密码..."
+        set +o pipefail
+        ROOT_TMP=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 20)
+        set -o pipefail
+        mysql -u root -p"${MYSQL_TMP_PWD}" --connect-expired-password 2>/dev/null <<SQL || true
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${ROOT_TMP}';
+SQL
+        MYSQL_ROOT_OPT="-p${ROOT_TMP}"
+        info "MySQL root 密码已重置"
+      fi
+    fi
   fi
 
   # 生成密码（若未指定）
@@ -244,7 +263,7 @@ if [ "$MODE" = "admin" ] && [ "$SKIP_MYSQL" = "false" ]; then
   #       但某些工具或 MySQL 版本可能仍然通过 socket 连接匹配 'localhost'。
   #       同时授权两个 host 可以完全规避此问题。
   info "创建数据库: ${MYSQL_DATABASE}"
-  MYSQL_CREATE_ERR=$(mysql -u root 2>&1 <<SQL
+  MYSQL_CREATE_ERR=$(mysql -u root ${MYSQL_ROOT_OPT} 2>&1 <<SQL
 CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'localhost' IDENTIFIED BY '${MYSQL_PASSWORD}';
@@ -264,7 +283,7 @@ SQL
     fi
   fi
   # 确保密码一致（即使用户已存在）
-  mysql -u root 2>/dev/null <<SQL || true
+  mysql -u root ${MYSQL_ROOT_OPT} 2>/dev/null <<SQL || true
 ALTER USER '${MYSQL_USER}'@'localhost' IDENTIFIED BY '${MYSQL_PASSWORD}';
 ALTER USER '${MYSQL_USER}'@'127.0.0.1' IDENTIFIED BY '${MYSQL_PASSWORD}';
 GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'localhost';
@@ -746,9 +765,19 @@ if [ "$MODE" = "admin" ]; then
   sleep 5
 
   # 等待 HTTP 端口就绪（最多 30 秒）
+  # 注意：不能用 curl -sf，GoEdge 对无浏览器 UA 的请求返回 403，
+  # -f 会把 403 视为失败导致误报"等待超时"。
+  # 改为只检测端口是否可连接（nc 或 /dev/tcp），不看 HTTP 状态码。
+  _port_open() {
+    if command -v nc &>/dev/null; then
+      nc -z -w2 127.0.0.1 "$1" &>/dev/null
+    else
+      # bash 内置 /dev/tcp 作为后备
+      (echo >/dev/tcp/127.0.0.1/"$1") &>/dev/null
+    fi
+  }
   for i in $(seq 1 10); do
-    if curl -sf --connect-timeout 2 -H 'Accept: text/html' \
-        "http://127.0.0.1:${ADMIN_HTTP_PORT}/" > /dev/null 2>&1; then
+    if _port_open "${ADMIN_HTTP_PORT}"; then
       info "管理后台已就绪 (${ADMIN_HTTP_PORT} 端口)"
       break
     fi

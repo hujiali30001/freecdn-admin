@@ -34,6 +34,9 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 - [x] Docker Compose + Dockerfile 骨架
 - [x] 文档体系（ARCHITECTURE.md、INSTALL.md、FAQ.md）
 - [x] README.md FreeCDN 化
+- [x] GitHub Actions release.yml（push tag v* 自动打包 FreeCDN Release）
+- [x] GitHub Actions upstream-check.yml（每周检查 GoEdge 上游新 tag，自动创建审计 Issue）
+- [x] P5 品牌替换：JS 文件中 goedge.cloud 链接/示例域名全部替换为 FreeCDN
 - [x] GitHub 推送（commit 0f421fbb）
 - [x] 完成 GoEdge 全维度研究报告
 

@@ -8,24 +8,24 @@
 
 ## 快速开始
 
-**第一步：安装管理节点**（新建一台 Linux 服务器）
+**第一步：安装管理节点**（新建一台 Linux 服务器，需要 root 权限）
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
 ```
 
-安装完成后，浏览器访问 `http://你的服务器IP:7788`，完成初始化向导。
+安装完成后，脚本会输出管理后台地址和初始账号密码。用浏览器访问 `http://你的服务器IP:7788` 登录即可。
 
-**第二步：添加边缘节点**（可以用另一台服务器，也可以同机）
+**第二步：添加边缘节点**（可以另起一台服务器，也可以同机）
 
-在管理台 → 节点管理 → 添加节点，获取节点 ID 和密钥，然后在边缘节点服务器上执行：
+在管理台 → 集群 → 节点 → 添加节点，获取节点 uniqueId 和 secret，然后在边缘节点服务器上执行：
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash -s -- \
   --node \
-  --api-endpoint http://管理节点IP:8001 \
-  --node-id 你的节点ID \
-  --node-secret 你的节点密钥
+  --api-endpoint http://管理节点IP:8003 \
+  --node-id 你的节点uniqueId \
+  --node-secret 你的节点secret
 ```
 
 **第三步：添加网站，配置源站，开始加速。**

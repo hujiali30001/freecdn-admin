@@ -1,100 +1,148 @@
-name: Upstream Security Monitor
+name: Upstream Security Check
 
-# 每周一 UTC 09:00 检查上游 GoEdge 是否有新版本
-# 有新版本时创建 Issue 提醒人工审计，不自动 merge
 on:
   schedule:
-    - cron: '0 9 * * 1'
+    # 每周一 UTC 00:00 运行（北京时间周一 08:00）
+    - cron: '0 0 * * 1'
   workflow_dispatch:
+    # 支持手动触发
 
 permissions:
-  contents: read
   issues: write
+  contents: read
 
 jobs:
-  check:
-    name: Check GoEdge upstream
+  check-upstream:
+    name: Check GoEdge upstream for new tags
     runs-on: ubuntu-latest
 
+    env:
+      # FreeCDN 锁定的安全基线，不跟踪此版本及以上
+      SAFE_BASELINE: "v1.3.9"
+      # 上游仓库（注意 GoEdge 是 TeaOSLab/EdgeAdmin）
+      UPSTREAM_REPO: "TeaOSLab/EdgeAdmin"
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Check GoEdge latest release
-        id: check
+      - name: Fetch upstream tags
+        id: fetch
         run: |
-          # 当前锁定版本
-          LOCKED_VERSION="v1.3.9"
+          echo "Fetching tags from upstream: $UPSTREAM_REPO"
+          # 获取最新的 10 个 tag，按版本排序
+          UPSTREAM_TAGS=$(curl -fsSL \
+            "https://api.github.com/repos/${UPSTREAM_REPO}/tags?per_page=10" \
+            -H "Accept: application/vnd.github+json" \
+            | jq -r '.[].name' 2>/dev/null || echo "")
 
-          # 获取 GoEdge 最新 Release（通过 GitHub API）
-          LATEST=$(curl -sf \
-            "https://api.github.com/repos/TeaOSLab/EdgeAdmin/releases/latest" \
-            | grep '"tag_name"' | head -1 | cut -d'"' -f4 || echo "unknown")
-
-          echo "Locked version: ${LOCKED_VERSION}"
-          echo "Latest upstream: ${LATEST}"
-          echo "locked_version=${LOCKED_VERSION}" >> $GITHUB_OUTPUT
-          echo "latest_version=${LATEST}" >> $GITHUB_OUTPUT
-
-          if [ "${LATEST}" != "${LOCKED_VERSION}" ] && [ "${LATEST}" != "unknown" ]; then
-            echo "has_new_version=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_new_version=false" >> $GITHUB_OUTPUT
+          if [ -z "$UPSTREAM_TAGS" ]; then
+            echo "WARNING: Failed to fetch upstream tags, skipping check"
+            echo "has_new_tag=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
-      - name: Check if issue already exists
-        id: issue_check
-        if: steps.check.outputs.has_new_version == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          LATEST="${{ steps.check.outputs.latest_version }}"
-          # 检查是否已经有同版本的 Issue
-          EXISTING=$(gh issue list \
-            --label "upstream-update" \
-            --search "GoEdge ${LATEST}" \
-            --state all \
-            --json number --jq '.[0].number' 2>/dev/null || echo "")
-          if [ -n "$EXISTING" ]; then
-            echo "Issue already exists: #${EXISTING}"
-            echo "should_create=false" >> $GITHUB_OUTPUT
+          echo "Upstream tags found:"
+          echo "$UPSTREAM_TAGS"
+
+          # 找出所有高于安全基线的 tag
+          NEW_TAGS=""
+          while IFS= read -r tag; do
+            # 跳过非 v 开头的 tag
+            [[ "$tag" =~ ^v[0-9] ]] || continue
+            # 版本比较：仅关注大于基线的
+            if printf '%s\n%s\n' "$SAFE_BASELINE" "$tag" | sort -V -C 2>/dev/null; then
+              # sort -V -C 返回 0 表示已排好序（基线 <= tag），再排除等于基线的
+              if [ "$tag" != "$SAFE_BASELINE" ]; then
+                NEW_TAGS="${NEW_TAGS}${tag}\n"
+              fi
+            fi
+          done <<< "$UPSTREAM_TAGS"
+
+          if [ -n "$NEW_TAGS" ]; then
+            echo "NEW_TAGS=$(echo -e "$NEW_TAGS" | tr '\n' ' ' | sed 's/ $//')" >> "$GITHUB_OUTPUT"
+            echo "has_new_tag=true" >> "$GITHUB_OUTPUT"
+            echo "New tags detected: $NEW_TAGS"
           else
-            echo "should_create=true" >> $GITHUB_OUTPUT
+            echo "has_new_tag=false" >> "$GITHUB_OUTPUT"
+            echo "No new tags beyond baseline $SAFE_BASELINE"
+          fi
+
+      - name: Check for existing issue
+        if: steps.fetch.outputs.has_new_tag == 'true'
+        id: issue_check
+        run: |
+          NEW_TAGS="${{ steps.fetch.outputs.NEW_TAGS }}"
+          FIRST_TAG=$(echo "$NEW_TAGS" | awk '{print $1}')
+
+          # 检查是否已有同名 issue（避免重复创建）
+          EXISTING=$(curl -fsSL \
+            "https://api.github.com/repos/${{ github.repository }}/issues?state=open&labels=upstream-check&per_page=50" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            | jq -r --arg tag "$FIRST_TAG" '.[] | select(.title | contains($tag)) | .number' 2>/dev/null | head -1)
+
+          if [ -n "$EXISTING" ]; then
+            echo "Issue already exists for $FIRST_TAG (#${EXISTING}), skipping creation"
+            echo "should_create=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_create=true" >> "$GITHUB_OUTPUT"
+            echo "first_tag=$FIRST_TAG" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create security audit issue
-        if: steps.check.outputs.has_new_version == 'true' && steps.issue_check.outputs.should_create == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          LOCKED="${{ steps.check.outputs.locked_version }}"
-          LATEST="${{ steps.check.outputs.latest_version }}"
+        if: steps.fetch.outputs.has_new_tag == 'true' && steps.issue_check.outputs.should_create == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const newTags = '${{ steps.fetch.outputs.NEW_TAGS }}'.trim().split(/\s+/);
+            const firstTag = newTags[0];
+            const upstreamRepo = 'TeaOSLab/EdgeAdmin';
+            const safeBaseline = 'v1.3.9';
 
-          gh issue create \
-            --title "🔍 [上游更新] GoEdge ${LATEST} 发布，需要安全审计后决定是否合并" \
-            --label "upstream-update,security" \
-            --body "## 上游版本更新通知
+            const tagList = newTags.map(t =>
+              `- [\`${t}\`](https://github.com/${upstreamRepo}/releases/tag/${t})`
+            ).join('\n');
 
-          GoEdge 上游仓库发布了新版本，请人工审计后决定是否合并到 FreeCDN。
+            const body = `## 上游安全审计通知
 
-          | 项目 | 版本 |
-          |------|------|
-          | FreeCDN 当前锁定 | \`${LOCKED}\` |
-          | 上游最新发布 | \`${LATEST}\` |
+            GoEdge 上游仓库检测到新版本，**必须人工代码审计后才能决定是否合并**。
 
-          ## 审计步骤
+            ### 检测到的新版本
 
-          1. **查看 Changelog**：https://github.com/TeaOSLab/EdgeAdmin/releases/tag/${LATEST}
-          2. **代码差异对比**：https://github.com/TeaOSLab/EdgeAdmin/compare/${LOCKED}...${LATEST}
-          3. **重点审计 EdgeNode**：供应链投毒通常从 EdgeNode 的 JS 注入入手
-          4. **检查新增依赖**：查看 go.mod/go.sum 是否有可疑新依赖
-          5. **社区反馈**：参考 NodeSeek、奶昔论坛等中文 VPS 社区的评价
+            ${tagList}
 
-          ## 背景
+            ### 安全背景
 
-          GoEdge v1.4.0/v1.4.1 曾被植入恶意 JS 注入代码。FreeCDN 采用人工审计策略，在确认安全之前不自动合并上游更新。
+            GoEdge v1.4.0 和 v1.4.1 曾被植入恶意代码（详见 [安全研究报告](../../blob/main/research_report_freecdn_goedge.md)）。
+            FreeCDN 当前锁定安全基线为 \`${safeBaseline}\`，**任何上游变更都必须通过人工审计**，不自动合并。
 
-          **⚠️ 请不要直接关闭此 Issue，需要审计结论（合并 / 跳过 / 等待更多信息）。**
+            ### 审计清单
 
-          ---
-          *此 Issue 由 GitHub Actions 自动创建（upstream-monitor）*"
+            请在合并前完成以下检查：
+
+            - [ ] 查看 [${firstTag} 与 ${safeBaseline} 的 diff](https://github.com/${upstreamRepo}/compare/${safeBaseline}...${firstTag})
+            - [ ] 检查所有新增的 \`go.mod\` 依赖（是否引入可疑包）
+            - [ ] 检查网络请求代码（是否有新增的外发请求）
+            - [ ] 检查 \`internal/\` 下的变更（尤其是 utils、apps、nodes 目录）
+            - [ ] 检查 \`cmd/\` 下的变更
+            - [ ] 检查是否包含二进制文件或混淆代码
+            - [ ] 确认 changelog 中描述的功能与实际代码变更一致
+
+            ### 操作指引
+
+            **如果审计通过**，在此 Issue 中留言并关闭，然后手动更新 \`PLAN.md\` 中的版本基线。
+
+            **如果审计发现问题**，在此 Issue 中记录并保持 open 状态，**不要合并**。
+
+            ---
+            *此 Issue 由 [Upstream Security Check](.github/workflows/upstream-check.yml) 自动创建，检测时间: ${new Date().toISOString()}*
+            `;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[安全审计] 检测到 GoEdge 上游新版本: ${firstTag}`,
+              body: body,
+              labels: ['upstream-check', 'security'],
+            });
+
+            core.info(`Created security audit issue for ${firstTag}`);

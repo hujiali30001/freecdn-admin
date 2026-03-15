@@ -61,7 +61,7 @@ NODE_ID=""                      # node 模式必填
 NODE_SECRET=""                  # node 模式必填
 
 GOEDGE_VERSION="v1.3.9"
-FREECDN_VERSION="v0.1.1"        # FreeCDN 自己的 Release 版本
+FREECDN_VERSION="v0.1.2"        # FreeCDN 自己的 Release 版本
 FORCE_REINSTALL="false"
 
 # ── 参数解析 ───────────────────────────────────────────────────────────────────
@@ -105,7 +105,7 @@ FreeCDN 一键安装脚本
   --mysql-host     MySQL 地址（默认 127.0.0.1）
   --mysql-pass     MySQL 密码（默认自动生成）
   --skip-mysql     跳过 MySQL 安装（自行管理数据库时使用）
-  --version        指定 FreeCDN Release 版本（默认 v0.1.0）
+  --version        指定 FreeCDN Release 版本（默认 v0.1.2）
   --freecdn-version 同 --version
   --goedge-version  强制指定 GoEdge 底层版本（高级用法，默认 v1.3.9）
   --reinstall      强制重新安装（覆盖现有安装）

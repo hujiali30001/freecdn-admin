@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/waf/injectionutils"
+	"github.com/hujiali30001/freecdn-admin/internal/waf/injectionutils"
 	"github.com/iwind/TeaGo/assert"
 	"github.com/iwind/TeaGo/rands"
 	"github.com/iwind/TeaGo/types"

@@ -1,12 +1,12 @@
 package certs
 
 import (
-	"github.com/TeaOSLab/EdgeAdmin/internal/configloaders"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/servers/certs/acme"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/servers/certs/acme/accounts"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/servers/certs/acme/users"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/servers/certs/ocsp"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/helpers"
+	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/servers/certs/acme"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/servers/certs/acme/accounts"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/servers/certs/acme/users"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/servers/certs/ocsp"
+	"github.com/hujiali30001/freecdn-admin/internal/web/helpers"
 	"github.com/iwind/TeaGo"
 )
 

@@ -1,16 +1,16 @@
 package cluster
 
 import (
-	"github.com/TeaOSLab/EdgeAdmin/internal/configloaders"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/clusters/cluster/groups"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/clusters/cluster/node"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/clusters/cluster/node/settings/cache"
-	ddosProtection "github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/clusters/cluster/node/settings/ddos-protection"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/clusters/cluster/node/settings/dns"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/clusters/cluster/node/settings/ssh"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/clusters/cluster/node/settings/system"
-	clusters "github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/clusters/clusterutils"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/helpers"
+	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/clusters/cluster/groups"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/clusters/cluster/node"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/clusters/cluster/node/settings/cache"
+	ddosProtection "github.com/hujiali30001/freecdn-admin/internal/web/actions/default/clusters/cluster/node/settings/ddos-protection"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/clusters/cluster/node/settings/dns"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/clusters/cluster/node/settings/ssh"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/clusters/cluster/node/settings/system"
+	clusters "github.com/hujiali30001/freecdn-admin/internal/web/actions/default/clusters/clusterutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/helpers"
 	"github.com/iwind/TeaGo"
 )
 

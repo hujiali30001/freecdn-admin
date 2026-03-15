@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/utils"
+	"github.com/hujiali30001/freecdn-admin/internal/utils"
 )
 
 func TestStringsStream_Filter(t *testing.T) {

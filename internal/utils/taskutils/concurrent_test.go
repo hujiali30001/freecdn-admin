@@ -5,7 +5,7 @@ package taskutils_test
 import (
 	"testing"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/utils/taskutils"
+	"github.com/hujiali30001/freecdn-admin/internal/utils/taskutils"
 )
 
 func TestRunConcurrent(t *testing.T) {

@@ -5,7 +5,7 @@ package utils_test
 import (
 	"testing"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/utils"
+	"github.com/hujiali30001/freecdn-admin/internal/utils"
 	"github.com/iwind/TeaGo/assert"
 )
 

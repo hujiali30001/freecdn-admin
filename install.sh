@@ -17,6 +17,15 @@
 # 支持架构：linux/amd64  linux/arm64
 # ==============================================================================
 
+# ── CRLF 自检（镜像站可能注入 \r，导致 bash 解析失败）──────────────────────────
+# 如果当前脚本含有 \r，说明被 CRLF 污染，自动用 tr 清理后重新执行
+if cat "$0" 2>/dev/null | grep -qP '\r'; then
+  CLEAN=$(mktemp /tmp/freecdn_install_XXXX.sh)
+  tr -d '\r' < "$0" > "$CLEAN"
+  chmod +x "$CLEAN"
+  exec bash "$CLEAN" "$@"
+fi
+
 set -euo pipefail
 IFS=$'\n\t'
 

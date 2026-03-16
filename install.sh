@@ -945,7 +945,7 @@ if [ "$MODE" = "admin" ]; then
   echo "  1. 在浏览器访问管理后台并登录"
   echo "  2. 在「集群管理 → 节点」中添加边缘节点，获取节点 ID 和密钥"
   echo "  3. 在边缘节点服务器上运行："
-  echo -e "     ${CYAN}curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | \\"
+  echo -e "     ${CYAN}curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | \\"
   echo -e "       bash -s -- --node --api-endpoint http://${SERVER_IP}:${API_RPC_PORT} \\"
   echo -e "                  --node-id YOUR_NODE_ID --node-secret YOUR_NODE_SECRET${NC}"
   echo ""

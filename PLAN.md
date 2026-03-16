@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-16 | 当前版本 v0.4.1 | 当前阶段：后台功能验收（阶段一）
+> 更新于 2026-03-16 | 当前版本 v0.4.1 | 当前阶段：后台功能验收（阶段一页面层全部完成，待 v0.5.0 功能操作验收）
 
 ---
 
@@ -80,23 +80,40 @@ MySQL：`freecdn:****@tcp(127.0.0.1:3306)/freecdn`（密码已从文档移除，
 - [x] **安全加固 v0.3.0**：完成审计 51 项中的 41 项代码修复，发布 v0.3.0（2026-03-16）
 - [x] **ORA-08 密码哈希升级（v0.4.0）**：bcrypt cost=12 取代 MD5，存量账号透明迁移，`create-admin` 同步更新（2026-03-16）
 - [x] **阶段一路由验收**：25/25 路由全通（扫描脚本修正 + PLAN.md 路径勘误），5 项明确标注为 ⚠️（3 个商业版未移植功能 + 2 个弹窗形式）（2026-03-16）
+- [x] **品牌修复**：数据库写入 `adminUIConfig`，`systemName/teaTitle/teaName` → FreeCDN 管理系统，version → v0.4.1（2026-03-16）
+- [x] **阶段一功能验收（页面层）**：18/18 待验收页面全部通过（登录机制调试：GET /csrf/token 获取 CSRF token，正确路径重新映射，307 重定向跟踪 200）；DNS 记录管理确认为 GoEdge 设计不存在独立路由（记录由 DNSPod/阿里云等服务商侧管理），标注为 ⚠️（2026-03-16）
 
 ---
 
-## 当前状态（v0.4.0，路由验收完成）
+## 当前状态（v0.4.1，阶段一功能验收完成）
 
-v0.4.0 于 2026-03-16 发布。完成 ORA-08 密码哈希升级（bcrypt cost=12），路由层扫描验收 **25/25 全通**。
+v0.4.1 于 2026-03-16 发布。完成 ORA-08 bcrypt 跟进修复（varchar 32→64），修复创建管理员 Data too long 错误。阶段一路由+页面验收 **18/18 全部通过**，品牌显示修复为 FreeCDN 管理系统 v0.4.1。
 
-**路由验收结论：**
+**验收结论：**
 
-- 25 个可访问路由全部返回 200（已登录状态）
-- 5 个条目明确标注为 ⚠️，原因如下：
-  - 集群缓存策略、集群 WAF：GoEdge 商业版功能，GoEdge 社区版 v1.3.9 代码中从未有过对应 Action 文件，非 FreeCDN 的问题
-  - 通知设置（邮件/Webhook）：GoEdge 商业版功能，同上
-  - IP 库配置、NS 配置：依赖商业 IP 数据库和自建 NS 服务，FreeCDN 定位为零门槛部署，暂不纳入
-  - 定时任务：已作为弹窗集成在 Dashboard，无独立页面属正常设计
+- 18 个 ⬜ 页面全部通过（已登录状态下均返回 200）
+- DNS 记录管理：GoEdge 设计即无独立路由，DNS 记录在服务商（DNSPod/阿里云等）侧管理，init.go 未注册，标注为 ⚠️
+- 发现并修复品牌残留：数据库写入 `adminUIConfig` JSON，覆盖 EdgeCommon 语言文件默认值
 
-**下一步：功能逻辑验收（阶段一正式进入）**
+**正确路由路径映射（PLAN.md 勘误）：**
+
+| PLAN.md 记录路径 | 实际路由 |
+|---|---|
+| /clusters/cluster/detail | /clusters/cluster?clusterId=X → 307 → /clusters/cluster/nodes?clusterId=X |
+| /clusters/cluster/node | /clusters/cluster/node?nodeId=X → 307 → /clusters/cluster/node/detail?clusterId=X&nodeId=X |
+| /clusters/cluster/node/cache | /clusters/cluster/node/settings/cache?nodeId=X |
+| /clusters/cluster/node/log | /clusters/cluster/node/logs?nodeId=X |
+| /servers/server/detail | /servers/server/settings?serverId=X |
+| /servers/server/origins | /servers/server/settings/reverseProxy?serverId=X |
+| /servers/server/https | /servers/server/settings/https?serverId=X |
+| /servers/server/cache | /servers/server/settings/cache?serverId=X |
+| /servers/server/waf | /servers/server/settings/waf?serverId=X |
+| /servers/server/rewrites | /servers/server/settings/rewrite?serverId=X |
+| /servers/server/headers | /servers/server/settings/headers?serverId=X |
+| /servers/server/access | /servers/server/settings/access?serverId=X |
+| /servers/certs/cert | /servers/certs/certPopup?certId=X（弹窗） |
+
+**下一步：功能操作验收（阶段一正式进入功能层）**
 
 路由层 OK 只是第一步，下一步是对每个 ✅ 页面做功能操作验收：
 
@@ -196,11 +213,11 @@ v0.4.0 于 2026-03-16 发布。完成 ORA-08 密码哈希升级（bcrypt cost=12
 | 功能 | 路径 | 状态 |
 |------|------|------|
 | 集群列表 / 创建集群 | /clusters | ✅ |
-| 集群详情 / 基本设置 | /clusters/cluster/detail | ⬜ |
+| 集群详情 / 基本设置 | /clusters/cluster?clusterId=X → 307 → /clusters/cluster/nodes?clusterId=X | ✅ |
 | 节点列表（边缘节点） | /clusters/nodes | ✅ |
-| 节点详情 / 基本信息 | /clusters/cluster/node | ⬜ |
-| 节点缓存配置 | /clusters/cluster/node/cache | ⬜ |
-| 节点日志配置 | /clusters/cluster/node/log | ⬜ |
+| 节点详情 / 基本信息 | /clusters/cluster/node?nodeId=X → 307 → /clusters/cluster/node/detail?clusterId=X&nodeId=X | ✅ |
+| 节点缓存配置 | /clusters/cluster/node/settings/cache?nodeId=X | ✅ |
+| 节点日志配置 | /clusters/cluster/node/logs?nodeId=X | ✅ |
 | 集群缓存策略 | /clusters/cluster/cache | ⚠️ 功能未实现（GoEdge 商业版功能，cluster/init.go 未注册） |
 | 集群 WAF 配置 | /clusters/cluster/waf | ⚠️ 功能未实现（GoEdge 商业版功能，cluster/init.go 未注册） |
 | 访问日志列表 | /clusters/logs | ✅ |
@@ -213,15 +230,15 @@ v0.4.0 于 2026-03-16 发布。完成 ORA-08 密码哈希升级（bcrypt cost=12
 |------|------|------|
 | 服务列表 | /servers | ✅ |
 | 创建 HTTP 服务 | /servers/create | ✅ |
-| 服务详情 / 基本信息 | /servers/server/detail | ⬜ |
-| 源站配置 | /servers/server/origins | ⬜ |
-| HTTPS 配置 / 证书绑定 | /servers/server/https | ⬜ |
-| 缓存规则 | /servers/server/cache | ⬜ |
-| WAF 规则 | /servers/server/waf | ⬜ |
-| 重写规则 | /servers/server/rewrites | ⬜ |
-| Header 规则 | /servers/server/headers | ⬜ |
-| 访问控制（IP 黑白名单） | /servers/server/access | ⬜ |
-| 带宽 / 流量统计 | /servers/server/stat | ⬜ |
+| 服务详情 / 基本信息 | /servers/server/settings?serverId=X | ✅ |
+| 源站配置 | /servers/server/settings/reverseProxy?serverId=X | ✅ |
+| HTTPS 配置 / 证书绑定 | /servers/server/settings/https?serverId=X | ✅ |
+| 缓存规则 | /servers/server/settings/cache?serverId=X | ✅ |
+| WAF 规则 | /servers/server/settings/waf?serverId=X | ✅ |
+| 重写规则 | /servers/server/settings/rewrite?serverId=X | ✅ |
+| Header 规则 | /servers/server/settings/headers?serverId=X | ✅ |
+| 访问控制（IP 黑白名单） | /servers/server/settings/access?serverId=X | ✅ |
+| 带宽 / 流量统计 | /servers/server/stat?serverId=X | ✅ |
 | 访问日志查询 | /servers/logs | ✅ |
 | IP 黑名单管理 | /servers/iplists | ✅ |
 | 服务分组管理 | /servers/groups | ✅ |
@@ -234,7 +251,7 @@ v0.4.0 于 2026-03-16 发布。完成 ORA-08 密码哈希升级（bcrypt cost=12
 | 证书列表 | /servers/certs | ✅ |
 | 申请证书（ACME） | /servers/certs/acme | ✅ |
 | 上传自定义证书 | /servers/certs/uploadPopup | ✅ |
-| 证书详情 / 到期时间 | /servers/certs/cert | ⬜ |
+| 证书详情 / 到期时间 | /servers/certs/certPopup?certId=X（弹窗形式） | ✅ |
 | 证书自动续期状态 | 任务管理页面 | ⬜ |
 
 #### 4. DNS 解析（dns/）
@@ -243,7 +260,7 @@ v0.4.0 于 2026-03-16 发布。完成 ORA-08 密码哈希升级（bcrypt cost=12
 |------|------|------|
 | DNS 域名列表 | /dns | ✅ |
 | 添加 DNS 域名 | /dns/domains/createPopup | ⚠️ 仅弹窗形式（/dns/create 未注册独立路由） |
-| DNS 记录管理 | /dns/domain/records | ⬜ |
+| DNS 记录管理 | 无独立路由 | ⚠️ GoEdge 设计：DNS 记录在服务商（DNSPod/阿里云等）侧管理，GoEdge 仅配置域名解析集群指向，无 records CRUD 路由 |
 
 #### 5. 管理员与权限（admins/）
 
@@ -259,7 +276,7 @@ v0.4.0 于 2026-03-16 发布。完成 ORA-08 密码哈希升级（bcrypt cost=12
 | 功能 | 路径 | 状态 |
 |------|------|------|
 | 用户列表 | /users | ✅ |
-| 用户详情 / 服务归属 | /users/user | ⬜ |
+| 用户详情 / 服务归属 | /users/user?userId=X | ✅ |
 
 #### 7. 系统设置（settings/）
 

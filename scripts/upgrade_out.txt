@@ -1,0 +1,25 @@
+=== 1. 当前版本 ===
+$ cat /usr/local/freecdn/edge-admin/VERSION 2>/dev/null || echo unknown
+FreeCDN v0.1.6
+Build date: 2026-03-15 20:24:48 UTC
+Components: edge-admin / edge-api / edge-node
+Source: https://github.com/hujiali30001
+$ ls -lh /usr/local/freecdn/edge-admin/bin/edge-admin /usr/local/freecdn/edge-admin/edge-api/bin/edge-api 2>/dev/null
+-rwxr-xr-x 1 root root 40M Mar 16 16:35 /usr/local/freecdn/edge-admin/bin/edge-admin
+-rwxr-xr-x 1 root root 50M Mar 16 16:35 /usr/local/freecdn/edge-admin/edge-api/bin/edge-api
+
+=== 2. 后台下载 v0.4.0 ===
+$ rm -f /tmp/freecdn_dl.log /tmp/freecdn_dl.done /tmp/freecdn_dl.fail /tmp/freecdn-v0.4.0-linux-amd64.tar.gz
+$ nohup bash -c 'curl -fsSL -m 400 --retry 2 -o /tmp/freecdn-v0.4.0-linux-amd64.tar.gz 'https://ghfast.top/https://github.com/hujiali30001/freecdn-admin/releases/download/v0.4.0/freecdn-v0.4.0-linux-amd64.tar.gz' 2>>/tmp/freecdn_dl.log && echo OK:https://ghfast.top/https://github.com/hujiali30001/freecdn-admin/releases/download/v0.4.0/freecdn-v0.4.0-linux-amd64.tar.gz >> /tmp/freecdn_dl.log && touch /tmp/freecdn_dl.done && exit 0 || curl -fsSL -m 400 --retry 2 -o /tmp/freecdn-v0.4.0-linux-amd64.tar.gz 'https://mirror.ghproxy.com/https://github.com/hujiali30001/freecdn-admin/releases/download/v0.4.0/freecdn-v0.4.0-linux-amd64.tar.gz' 2>>/tmp/freecdn_dl.log && echo OK:https://mirror.ghproxy.com/https://github.com/hujiali30001/freecdn-admin/releases/download/v0.4.0/freecdn-v0.4.0-linux-amd64.tar.gz >> /tmp/freecdn_dl.log && touch /tmp/freecdn_dl.done && exit 0 || curl -fsSL -m 400 --retry 2 -o /tmp/freecdn-v0.4.0-linux-amd64.tar.gz 'https://gh-proxy.com/https://github.com/hujiali30001/freecdn-admin/releases/download/v0.4.0/freecdn-v0.4.0-linux-amd64.tar.gz' 2>>/tmp/freecdn_dl.log && echo OK:https://gh-proxy.com/https://github.com/hujiali30001/freecdn-admin/releases/download/v0.4.0/freecdn-v0.4.0-linux-amd64.tar.gz >> /tmp/freecdn_dl.log && touch /tmp/freecdn_dl.done && exit 0 || (echo ALLFAIL >> /tmp/freecdn_dl.log && touch /tmp/freecdn_dl.fail)' >> /tmp/freecdn_dl.log 2>&1 &
+[INFO] 下载已在服务器后台启动，开始轮询...
+$ test -f /tmp/freecdn_dl.done && echo DONE || echo WAIT
+DONE
+$ test -f /tmp/freecdn_dl.fail && echo FAIL || echo OK
+OK
+$ stat -c '%s' /tmp/freecdn-v0.4.0-linux-amd64.tar.gz 2>/dev/null || echo 0
+45066310
+[20s] 进度: 43.0 MB  状态: DONE/OK
+Traceback (most recent call last):
+  File "C:\Users\Administrator\.workbuddy\FreeCDN\scripts\upgrade_v040.py", line 103, in <module>
+    print("\u2705 下载完成")
+UnicodeEncodeError: 'gbk' codec can't encode character '\u2705' in position 0: illegal multibyte sequence

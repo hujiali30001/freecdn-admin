@@ -9,3 +9,21 @@
 
 # 安装完成报告（含服务器IP/密码等敏感信息，不提交）
 INSTALL_COMPLETE.md
+
+# 敏感配置文件（含数据库密码等，使用 .env.example 作为模板）
+deploy/.env
+
+# 调试脚本（含生产服务器 SSH 凭据，不提交到公开仓库）
+scripts/diagnose*.py
+scripts/check_*.py
+scripts/fix_*.py
+scripts/final_*.py
+scripts/find_*.py
+scripts/commit_*.py
+scripts/add_*.py
+scripts/rerun_*.py
+
+# 构建产物
+dist/build/
+dist/src/
+$null

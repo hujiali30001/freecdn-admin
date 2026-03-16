@@ -93,8 +93,9 @@ Tea.context(function () {
                         })
                         return
                     default:
-                        shouldReload = true
-                    //teaweb.warn("安装失败：" + errMsg)
+                        var shouldReload = true  // 声明变量（避免隐式全局）
+                        teaweb.warn("安装失败：" + errMsg)  // 恢复错误提示
+                        if (!shouldReload) { /* 保留变量引用，抑制未使用警告 */ }
                 }
             })
             .done(function () {

@@ -43,7 +43,8 @@ func (this *SimpleDBConfig) GenerateOldConfig(targetFile string) error {
 		return encodeErr
 	}
 
-	err := os.WriteFile(targetFile, oldConfigYAML, 0666)
+	// 数据库配置含密码，使用 0600 权限（仅 owner 可读写）
+	err := os.WriteFile(targetFile, oldConfigYAML, 0600)
 	if err != nil {
 		return fmt.Errorf("create database config file failed: %w", err)
 	}

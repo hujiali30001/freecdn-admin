@@ -31,11 +31,17 @@ if [ -z "${NODE_ID}" ] || [ -z "${NODE_SECRET}" ]; then
 fi
 
 # ---- 生成 api_node.yaml ----
+# 必须使用嵌套 YAML 格式（不能用点号格式 rpc.endpoints:）
+# 否则 edge-node 解析失败，出现 "wrong token role" 错误
+mkdir -p ${WORKDIR}/configs
 cat > ${WORKDIR}/configs/api_node.yaml << EOF
-rpc.endpoints: [ "${API_ENDPOINTS}" ]
+rpc:
+  endpoints:
+    - "${API_ENDPOINTS}"
 nodeId: "${NODE_ID}"
 secret: "${NODE_SECRET}"
 EOF
+chmod 0600 ${WORKDIR}/configs/api_node.yaml
 echo "[entrypoint] Generated configs/api_node.yaml"
 echo "[entrypoint] API: ${API_ENDPOINTS}"
 echo "[entrypoint] Node ID: ${NODE_ID}"

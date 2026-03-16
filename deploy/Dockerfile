@@ -20,7 +20,7 @@
 FROM debian:bookworm-slim AS downloader
 
 ARG TARGETARCH=amd64
-ARG FREECDN_VERSION=v0.1.6
+ARG FREECDN_VERSION=v0.3.0
 ARG GITHUB_REPO=hujiali30001/freecdn-admin
 
 # 安装下载工具
@@ -114,6 +114,10 @@ RUN mkdir -p \
     ./edge-api/logs \
     ./edge-api/data
 
+# 创建非特权用户（ORA-12：避免以 root 运行服务）
+RUN groupadd -r freecdn && useradd -r -g freecdn -s /bin/false freecdn \
+    && chown -R freecdn:freecdn /app
+
 # 复制 entrypoint 脚本
 COPY deploy/docker-entrypoint-admin.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
@@ -137,3 +141,6 @@ LABEL org.opencontainers.image.title="FreeCDN Admin" \
       org.opencontainers.image.version="${FREECDN_VERSION}"
 
 ENTRYPOINT ["/entrypoint.sh"]
+
+# 以非特权用户运行（ORA-12）
+USER freecdn

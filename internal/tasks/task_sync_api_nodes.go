@@ -94,7 +94,7 @@ func (this *SyncAPINodesTask) Loop() error {
 	}
 
 	// 测试是否有API节点可用
-	hasOk := this.testEndpoints(newEndpoints)
+	hasOk := this.testEndpoints(newEndpoints, config)
 	if !hasOk {
 		return nil
 	}
@@ -121,7 +121,7 @@ func (this *SyncAPINodesTask) isSame(endpoints1 []string, endpoints2 []string) b
 	return strings.Join(endpoints1, "&") == strings.Join(endpoints2, "&")
 }
 
-func (this *SyncAPINodesTask) testEndpoints(endpoints []string) bool {
+func (this *SyncAPINodesTask) testEndpoints(endpoints []string, config *configs.APIConfig) bool {
 	if len(endpoints) == 0 {
 		return false
 	}
@@ -149,8 +149,11 @@ func (this *SyncAPINodesTask) testEndpoints(endpoints []string) bool {
 			if u.Scheme == "http" {
 				conn, err = grpc.DialContext(ctx, u.Host, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 			} else if u.Scheme == "https" {
+				// 同 rpc_client.go：EdgeAPI 默认自签证书，默认跳过验证。
+				// 可通过 api_admin.yaml 中 rpc.verifyTLS: true 启用严格验证。
+				skipVerify := !(config != nil && config.RPCVerifyTLS)
 				conn, err = grpc.DialContext(ctx, u.Host, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
-					InsecureSkipVerify: true,
+					InsecureSkipVerify: skipVerify, //nolint:gosec
 				})), grpc.WithBlock())
 			}
 			if err != nil {

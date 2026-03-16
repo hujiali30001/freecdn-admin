@@ -526,8 +526,13 @@ func (this *RPCClient) init() error {
 		if u.Scheme == "http" {
 			conn, err = grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()), callOptions, keepaliveParams)
 		} else if u.Scheme == "https" {
+			// EdgeAPI 默认使用自签名证书（edge-api 启动时自动生成），
+			// 因此内部 gRPC 通信默认跳过 CA 验证。
+			// 若已为 EdgeAPI 配置正规 CA 证书，可在 api_admin.yaml 中设置
+			// rpc.verifyTLS: true 以启用严格验证。
+			skipVerify := !(this.apiConfig != nil && this.apiConfig.RPCVerifyTLS)
 			conn, err = grpc.Dial(apiHost, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
-				InsecureSkipVerify: true,
+				InsecureSkipVerify: skipVerify, //nolint:gosec
 			})), callOptions, keepaliveParams)
 		} else {
 			return errors.New("parse endpoint failed: invalid scheme '" + u.Scheme + "'")

@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-16 | 当前版本 v0.2.0 | 下一阶段：后台功能验收 → UI 升级
+> 更新于 2026-03-16 | 当前版本 v0.3.0 | 下一阶段：安全加固收尾（ORA-08 密码哈希升级）→ 后台功能验收 → UI 升级
 
 ---
 
@@ -19,7 +19,7 @@
 | 管理节点 + 边缘节点（合一） | 134.175.67.168 | freecdn-admin、freecdn-node |
 
 管理后台：`http://134.175.67.168:7788`  
-MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
+MySQL：`freecdn:****@tcp(127.0.0.1:3306)/freecdn`（密码已从文档移除，见 deploy/.env）
 
 ---
 
@@ -38,9 +38,10 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 | v0.1.8 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 修复 MySQL socket 认证（加 -h 127.0.0.1），修复 node 模式覆盖运行中二进制 (Text file busy) |
 | v0.1.9 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | P3 HTTPS 链路验证通过：DuckDNS + Let's Encrypt DNS-01 + TLS 1.3 + HTTP/2 全链路跑通 |
 | v0.2.0 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 文档完善：install.md 补 HTTPS 证书申请流程，faq.md 扩充 HTTPS FAQ，README 「为什么不用 GoEdge」段落展开，推广帖草稿 |
+| v0.3.0 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 安全加固（审计 51 项中 41 项）：文件权限整改(0600/0640)、TLS 配置化、XSS 防护、安全响应头、Docker 非特权用户、entrypoint YAML 修复 |
 
-**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.2.0"`  
-**下载地址**：`https://github.com/hujiali30001/freecdn-admin/releases/download/v0.2.0/freecdn-v0.2.0-linux-{arch}.tar.gz`
+**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.3.0"`  
+**下载地址**：`https://github.com/hujiali30001/freecdn-admin/releases/download/v0.3.0/freecdn-v0.3.0-linux-{arch}.tar.gz`
 
 > v0.1.6 Release 包是从 **源码自主编译**（local_build_release.py），包含 edge-admin / edge-api / edge-node 三个组件，不再依赖 GoEdge 官方二进制。
 
@@ -73,14 +74,28 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 - [x] **v0.1.8 修复**：MySQL socket 认证 bug + node 模式 Text file busy bug（2026-03-16）
 - [x] **P3 HTTPS 链路验证**：DuckDNS + Let's Encrypt DNS-01 + TLS 1.3/HTTP2 全链路跑通，freecdntest.duckdns.org（2026-03-16）
 - [x] **文档完善（v0.2.0）**：install.md 补 HTTPS 申请流程（DuckDNS + certbot DNS-01）；faq.md 扩充 HTTPS FAQ（9 个 Q&A）；README「为什么不用 GoEdge 官方」段落展开；推广帖草稿（docs/promo_post_draft.md）（2026-03-16）
+- [x] **源码安全审计**：全量扫描（500+ Go 文件、321 JS 文件、441 HTML 文件、130+ 脚本），发现 51 项问题（🔴 8 / 🟠 22 / 🟡 21），输出 `research_report_source_code_audit.md`（2026-03-16）
 
 ---
 
-## 当前状态（v0.2.0，main 分支干净）
+## 当前状态（v0.3.0，安全加固中）
 
-v0.2.0 于 2026-03-16 发布，完成文档体系完善和社区推广准备：
+v0.3.0 于 2026-03-16 发布，完成源码安全审计 51 项中的 **41 项代码修复**。
 
-**文档更新：**
+**已完成的安全加固（v0.2.0 → v0.3.0）：**
+
+- 🔴 RED（代码可修复 5 项）：移除 Demo 硬编码密码、开放重定向同域校验、`.gitignore` 更新、`.env.example` 创建、旧 Dockerfile 删除、`create-admin` 敏感信息清理
+- 🟠 ORA（13 项）：InsecureSkipVerify 可配置化、全局文件权限 0600/0640/0750、TLS 私钥 0600、日志文件 0640、安全响应头（CSP/HSTS/X-Frame-Options）、Dashboard v-html XSS、installRemote.js XSS 转义、`Recover()` 结构化日志、Dockerfile 非特权用户、docker-entrypoint YAML 格式修复、vue.tea.js 移除 alert()
+- 🟡 YEL（7 项）：`node/install.js` 补声明、`setup/index.js` 重复属性+detectDB 回调、`create-admin` 死代码清理、GoEdge 前端品牌替换完成
+
+**仍需手动操作（需运维/账户权限，代码无法代劳）：**
+1. 腾讯云控制台轮换 SSH 密码（RED-01）
+2. 轮换 MySQL 密码（RED-04）
+3. `git rm --cached deploy/.env` + `git filter-repo` 清理历史（RED-03/04）
+4. 撤销并重新生成 GitHub Personal Access Token（RED-07）
+5. ORA-08：密码哈希升级（MD5 → bcrypt），需同步修改登录鉴权逻辑，影响较大，单独规划
+
+**文档更新（v0.2.0）：**
 - `docs/install.md`：新增「配置 HTTPS 证书」完整章节，涵盖管理台 UI 申请（HTTP-01）和 certbot DNS-01 两种方案，含 DuckDNS 注册、certbot 安装、证书申请、验证全流程 ✅
 - `docs/faq.md`：HTTPS 部分从 3 个 Q 扩充到 9 个 Q，覆盖「没有域名怎么办」「端口 80 被安全组挡」「DNS-01 插件安装」「证书申请成功但未启用」等实际遇到的问题 ✅
 - `README.md`：「为什么不用 GoEdge 官方」段落展开，详述 v1.4.0/v1.4.1 恶意代码事件始末和 FreeCDN 的应对策略 ✅
@@ -93,15 +108,84 @@ v0.2.0 于 2026-03-16 发布，完成文档体系完善和社区推广准备：
 
 ---
 
-## 下一步：后台功能验收
+## 下一步：安全加固（前置）→ 后台功能验收 → UI 升级
+
+---
+
+### 阶段零：安全加固（当前阶段，源码审计 51 项）
+
+> 功能验收前必须先完成安全加固，避免将已知漏洞带入生产。  
+> 完整问题列表见 `research_report_source_code_audit.md`。
+
+#### 第一批：立即处理（🔴 生产安全红线）
+
+| 编号 | 任务 | 涉及文件 | 状态 |
+|------|------|----------|------|
+| RED-01 | 轮换生产服务器 SSH 密码（腾讯云控制台） | — | ⬜ |
+| RED-01 | 将 80+ 个调试脚本中硬编码 SSH 密码改为环境变量读取 | `scripts/*.py` | ⬜ |
+| RED-01 | SSH `AutoAddPolicy()` 改为 `RejectPolicy` + known_hosts | `scripts/*.py` | ⬜ |
+| RED-01 | 将 `scripts/` 调试脚本整体移入 `.gitignore` 或迁移至私有仓库 | `.gitignore` | ✅ |
+| RED-02 | 删除 `scripts/rerun_install_fresh.py`（含无确认生产删库操作） | `scripts/rerun_install_fresh.py` | ⬜ |
+| RED-03 | 清除 `PLAN.md` 中明文 MySQL 密码（已完成占位替换），用 `git filter-repo` 清理历史 | `PLAN.md` | ⬜ |
+| RED-04 | `deploy/.env` 加入 `.gitignore`，`git rm --cached`，创建 `.env.example` 模板 | `deploy/.env` / `.gitignore` | ✅ |
+| RED-04 | 轮换 MySQL 密码（`freecdn_root_2026` / `freecdn_pass_2026`） | — | ⬜ |
+| RED-05 | `docker/Dockerfile` MySQL root 密码改从环境变量注入，删除 `EXPOSE 3306` | `docker/Dockerfile` | ✅ |
+| RED-06 | `cmd/create-admin/main.go` 工作目录改为环境变量读取，移除密码明文打印 | `cmd/create-admin/main.go` | ✅ |
+| RED-07 | 撤销并重新生成 GitHub Personal Access Token | — | ⬜ |
+| RED-08 | 移除登录页 Demo 模式硬编码明文密码（`admin` / `123456`） | `web/views/@default/index/index.js` | ✅ |
+
+#### 第二批：尽快修复（🟠 安全隐患）
+
+| 编号 | 任务 | 涉及文件 | 状态 |
+|------|------|----------|------|
+| ORA-01 | 修复三处 `InsecureSkipVerify: true`（gRPC 主连接、升级下载、节点同步） | `internal/rpc/rpc_client.go`<br>`internal/utils/upgrade_manager.go`<br>`internal/tasks/task_sync_api_nodes.go` | ✅ |
+| ORA-03 | 全局文件权限整改：含密钥配置文件 → 0600，普通配置 → 0640，服务文件 → 0644，目录 → 0750 | `internal/configs/api_config.go` 等 30+ 处 | ✅ |
+| ORA-04 | Dashboard `v-html="diskUsageWarning"` 改为纯文本绑定 | `web/views/@default/dashboard/index.html` | ✅ |
+| ORA-05 | `installRemote.js` `errMsg` 拼入 `html:` 前先做 `escapeHtml()` 转义 | `web/views/@default/clusters/cluster/installRemote.js` | ✅ |
+| ORA-06 | Session ID 存储改为 `HttpOnly + Secure + SameSite=Strict` Cookie | `web/views/@default/index/index.js` | ✅ |
+| ORA-07 | 开放重定向：`window.location = this.from` 加同域白名单校验 | `web/views/@default/index/index.js` | ✅ |
+| ORA-09 | `Recover()` 改为结构化日志记录，触发告警 | `internal/utils/recover.go` | ✅ |
+| ORA-11 | 日志文件权限改为 0640 | `internal/apps/log_writer.go`<br>`internal/utils/service.go` | ✅ |
+| ORA-12 | Dockerfile 添加非特权用户（`USER freecdn`） | `deploy/Dockerfile` | ✅ |
+| ORA-13 | 安全响应头（CSP / X-Frame-Options / HSTS 等）注入到 ParentAction.BeforeAction | `internal/web/actions/actionutils/parent_action.go`<br>`internal/web/actions/actionutils/security_headers.go` | ✅ |
+| ORA-14 | TLS 私钥文件权限改为 0600 | `internal/web/actions/default/settings/server/updateHTTPSPopup.go` | ✅ |
+| ORA-15 | `docker-entrypoint-node.sh` YAML 格式修复（点号格式 → 嵌套格式） | `deploy/docker-entrypoint-node.sh` | ✅ |
+| ORA-18 | `dist/` 目录 node/api 镜像代码中的 `InsecureSkipVerify: true`（15 处） | `dist/src/` | ✅ |
+| ORA-20 | `vue.tea.js` 移除 `alert()`（改为 teaweb 通知）和 `console.log` | `web/public/js/vue.tea.js` | ✅ |
+| ORA-21 | `installRemote.js` 批量安装 `$post()` 补充 `.success()` / `.fail()` 回调 | `web/views/@default/clusters/cluster/installRemote.js` | ✅ |
+| ORA-22 | `installRemote.js` `.done()` 回调中 `this.reload` 改为箭头函数 | `web/views/@default/clusters/cluster/installRemote.js` | ✅ |
+
+#### 第三批：计划改进（🟡 代码质量，可在功能验收期间穿插处理）
+
+| 编号 | 任务 | 状态 |
+|------|------|------|
+| YEL-01 | `node/install.js` `shouldReload` 补声明，恢复被注释的错误提示 | ✅ |
+| YEL-02 | `setup/index.js` `localDB` 对象删除重复 `port` 属性 | ✅ |
+| YEL-03 | `setup/index.js` `detectDB()` 补 `.fail()` 回调 | ✅ |
+| YEL-06/07 | `grpc.Dial` / `grpc.DialContext`（已废弃）迁移到 `grpc.NewClient` | ⬜ |
+| YEL-08 | 梳理 `context.TODO()` 调用，替换为请求上下文或带超时 context | ⬜ |
+| YEL-10 | 确认所有 `v-html="page"` 分页 HTML 均来自严格模板化的后端，不含用户输入 | ⬜ |
+| YEL-13 | `cmd/create-admin/main.go` 清理死代码 `_ = ctx` | ✅ |
+| YEL-15 | 创建 `deploy/.env.example` 环境变量说明模板 | ✅ |
+| YEL-16 | 删除遗留旧版 `docker/Dockerfile`，统一使用 `deploy/Dockerfile` | ✅ |
+| YEL-19 | 全局搜索替换残留 `GoEdge` 品牌字样（前端页面）为 `FreeCDN` | ✅（HTML/JS UI 已全部替换，Go 版权注释依许可证保留）|
+| YEL-21 | 更新 `.gitignore`，覆盖 `scripts/` 临时文件和 `deploy/.env` | ✅ |
+
+#### 密码哈希升级（单独规划，影响较大）
+
+| 任务 | 说明 | 状态 |
+|------|------|------|
+| ORA-08：密码哈希升级 | 后端改用 bcrypt（cost ≥ 12）或 Argon2id 存储密码，移除前端 MD5 步骤。需要同步更新 `cmd/create-admin/main.go` 和登录鉴权逻辑，并迁移现有账号哈希值 | ⬜ |
+
+> 注：当前架构速查表已注明「密码存储：MD5（非 bcrypt）」，此项改动完成后需同步更新。
+
+---
+
+### 阶段一：后台核心功能验收（安全加固完成后进行）
 
 **方向**：逐一验证后台管理页面的每个功能是否正常工作。所有功能验收完毕后，再进行 UI 界面升级。不做推广，自己用为主。
 
 测试环境：`http://134.175.67.168:7788`（管理后台）
-
----
-
-### 阶段一：后台核心功能验收
 
 按模块逐一验证，发现 bug 即时修复，验收通过后打 ✅。
 
@@ -248,7 +332,7 @@ _验收过程中发现的问题记录于此_
 | 上游许可证 | BSD-3-Clause |
 | FreeCDN 许可证 | Apache-2.0 |
 | 编译标志 | `-tags community`（开源版） |
-| 密码存储 | MD5（非 bcrypt） |
+| 密码存储 | MD5（非 bcrypt）⚠️ 安全加固待升级（ORA-08） |
 | CI 状态 | GitHub Actions 账单冻结，release 需本地 local_build_release.py 手动构建 |
 
 **架构关键原则**：EdgeNode 和 EdgeAdmin 均不直连 MySQL，所有数据操作通过 EdgeAPI（gRPC 8003）。
@@ -262,6 +346,9 @@ _验收过程中发现的问题记录于此_
 - `edgeSysSettings` INSERT 不能有 `updatedAt` 字段（该表无此列）
 - 管理员密码 MD5 存储，不是 bcrypt
 - curl 访问管理后台返回 403（正常），需要浏览器访问
+- `deploy/.env` 不能提交 Git（已加入 `.gitignore`），使用 `.env.example` 作为模板
+- 所有配置文件应以 0600 权限写入（含 RPC 密钥 `api_admin.yaml`、数据库配置 `db.yaml`）
+- `docker-entrypoint-node.sh` 中 `api_admin.yaml` 必须用嵌套 YAML，点号格式会导致解析失败（ORA-15）
 
 ---
 

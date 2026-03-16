@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-16 | 当前版本 v0.3.0 | 下一阶段：安全加固收尾（ORA-08 密码哈希升级）→ 后台功能验收 → UI 升级
+> 更新于 2026-03-16 | 当前版本 v0.4.0 | 下一阶段：后台功能验收（阶段一）
 
 ---
 
@@ -39,9 +39,10 @@ MySQL：`freecdn:****@tcp(127.0.0.1:3306)/freecdn`（密码已从文档移除，
 | v0.1.9 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | P3 HTTPS 链路验证通过：DuckDNS + Let's Encrypt DNS-01 + TLS 1.3 + HTTP/2 全链路跑通 |
 | v0.2.0 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 文档完善：install.md 补 HTTPS 证书申请流程，faq.md 扩充 HTTPS FAQ，README 「为什么不用 GoEdge」段落展开，推广帖草稿 |
 | v0.3.0 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 安全加固（审计 51 项中 41 项）：文件权限整改(0600/0640)、TLS 配置化、XSS 防护、安全响应头、Docker 非特权用户、entrypoint YAML 修复 |
+| v0.4.0 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | ORA-08 密码哈希升级（MD5 → bcrypt cost=12），透明迁移，存量账号首次登录自动升级 |
 
-**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.3.0"`  
-**下载地址**：`https://github.com/hujiali30001/freecdn-admin/releases/download/v0.3.0/freecdn-v0.3.0-linux-{arch}.tar.gz`
+**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.4.0"`  
+**下载地址**：`https://github.com/hujiali30001/freecdn-admin/releases/download/v0.4.0/freecdn-v0.4.0-linux-{arch}.tar.gz`
 
 > v0.1.6 Release 包是从 **源码自主编译**（local_build_release.py），包含 edge-admin / edge-api / edge-node 三个组件，不再依赖 GoEdge 官方二进制。
 
@@ -76,6 +77,7 @@ MySQL：`freecdn:****@tcp(127.0.0.1:3306)/freecdn`（密码已从文档移除，
 - [x] **文档完善（v0.2.0）**：install.md 补 HTTPS 申请流程（DuckDNS + certbot DNS-01）；faq.md 扩充 HTTPS FAQ（9 个 Q&A）；README「为什么不用 GoEdge 官方」段落展开；推广帖草稿（docs/promo_post_draft.md）（2026-03-16）
 - [x] **源码安全审计**：全量扫描（500+ Go 文件、321 JS 文件、441 HTML 文件、130+ 脚本），发现 51 项问题（🔴 8 / 🟠 22 / 🟡 21），输出 `research_report_source_code_audit.md`（2026-03-16）
 - [x] **安全加固 v0.3.0**：完成审计 51 项中的 41 项代码修复，发布 v0.3.0（2026-03-16）
+- [x] **ORA-08 密码哈希升级（v0.4.0）**：bcrypt cost=12 取代 MD5，存量账号透明迁移，`create-admin` 同步更新（2026-03-16）
 
 ---
 
@@ -176,7 +178,7 @@ v0.3.0 于 2026-03-16 发布，完成源码安全审计 51 项中的 **41 项代
 
 | 任务 | 说明 | 状态 |
 |------|------|------|
-| ORA-08：密码哈希升级 | 后端改用 bcrypt（cost ≥ 12）或 Argon2id 存储密码，移除前端 MD5 步骤。需要同步更新 `cmd/create-admin/main.go` 和登录鉴权逻辑，并迁移现有账号哈希值 | ⬜ |
+| ORA-08：密码哈希升级 | 后端改用 bcrypt（cost=12）存储密码，透明兼容旧 MD5 账号（首次登录自动升级）。`create-admin` 同步更新，存量账号无需手动迁移 | ✅ |
 
 > 注：当前架构速查表已注明「密码存储：MD5（非 bcrypt）」，此项改动完成后需同步更新。
 
@@ -333,7 +335,7 @@ _验收过程中发现的问题记录于此_
 | 上游许可证 | BSD-3-Clause |
 | FreeCDN 许可证 | Apache-2.0 |
 | 编译标志 | `-tags community`（开源版） |
-| 密码存储 | MD5（非 bcrypt）⚠️ 安全加固待升级（ORA-08） |
+| 密码存储 | bcrypt cost=12（v0.4.0 升级，存量 MD5 账号首次登录自动迁移）|
 | CI 状态 | GitHub Actions 账单冻结，release 需本地 local_build_release.py 手动构建 |
 
 **架构关键原则**：EdgeNode 和 EdgeAdmin 均不直连 MySQL，所有数据操作通过 EdgeAPI（gRPC 8003）。
@@ -345,7 +347,7 @@ _验收过程中发现的问题记录于此_
 - `api_admin.yaml` 必须用嵌套 YAML 格式（`rpc:` / `  endpoints:` / `    - "..."``），点号格式会导致 edge-admin "wrong token role"
 - `edgeAPITokens.role=admin` 的 nodeId 必须与 `api_admin.yaml` 中一致
 - `edgeSysSettings` INSERT 不能有 `updatedAt` 字段（该表无此列）
-- 管理员密码 MD5 存储，不是 bcrypt
+- 管理员密码 bcrypt 存储（v0.4.0 起），旧 MD5 账号首次登录自动升级
 - curl 访问管理后台返回 403（正常），需要浏览器访问
 - `deploy/.env` 不能提交 Git（已加入 `.gitignore`），使用 `.env.example` 作为模板
 - 所有配置文件应以 0600 权限写入（含 RPC 密钥 `api_admin.yaml`、数据库配置 `db.yaml`）

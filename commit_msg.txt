@@ -1,12 +1,1 @@
-fix: correct edgeSysSettings INSERT SQL in install.sh
-
-The edgeSysSettings table only has columns (id, userId, code, value).
-The previous SQL included a non-existent 'updatedAt' column which
-caused ERROR 1054 and silently skipped the FreeCDN brand name insert.
-
-Fix:
-- Remove updatedAt from INSERT column list and VALUES
-- Add userId=0 (required field)
-- Remove updatedAt from ON DUPLICATE KEY UPDATE clause
-
-Also adds a comment noting the actual table schema.
+docs: update PLAN.md for v0.3.0 security hardening complete

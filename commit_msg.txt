@@ -1,20 +1,12 @@
-fix: persist edge-api configs and sync ~/.edge-admin on container restart
+fix: correct edgeSysSettings INSERT SQL in install.sh
 
-Problem:
-- After `docker compose up -d` recreates the container, edge-api/configs/
-  (including api.yaml with nodeId/secret) was lost because it was not
-  mounted as a volume. This caused edge-api to fail matching its DB record,
-  leaving the admin backend stuck on the setup wizard every restart.
-- GoEdge checks ~/.edge-admin/api_admin.yaml (HOME dir, NOT /app/...) to
-  decide if it's a fresh install (IsNewInstalled()). Since HOME is not a
-  volume, the file disappeared on every container rebuild, forcing the
-  setup wizard to appear again even though DB was already initialized.
+The edgeSysSettings table only has columns (id, userId, code, value).
+The previous SQL included a non-existent 'updatedAt' column which
+caused ERROR 1054 and silently skipped the FreeCDN brand name insert.
 
-Fix (docker-compose.yml):
-- Add `api_configs` named volume mapped to /app/edge-admin/edge-api/configs
-  so that api.yaml survives container recreation.
+Fix:
+- Remove updatedAt from INSERT column list and VALUES
+- Add userId=0 (required field)
+- Remove updatedAt from ON DUPLICATE KEY UPDATE clause
 
-Fix (docker-entrypoint-admin.sh):
-- Before starting edge-admin, copy configs/api_admin.yaml into
-  ~/.edge-admin/ on every boot, so GoEdge always finds the file and
-  skips the setup wizard correctly.
+Also adds a comment noting the actual table schema.

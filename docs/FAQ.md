@@ -39,10 +39,10 @@ curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/free
 如果所有镜像都失败，可以手动下载后上传到服务器：
 
 ```bash
-# 从 Release 页面手动下载
-wget https://github.com/hujiali30001/freecdn-admin/releases/download/v0.2.0/freecdn-v0.2.0-linux-amd64.tar.gz
+# 从 Release 页面手动下载（以最新版本为例）
+wget https://github.com/hujiali30001/freecdn-admin/releases/download/v0.5.0/freecdn-v0.5.0-linux-amd64.tar.gz
 # 上传到目标服务器
-scp freecdn-v0.2.0-linux-amd64.tar.gz root@YOUR_SERVER:/tmp/freecdn-pkg.tar.gz
+scp freecdn-v0.5.0-linux-amd64.tar.gz root@YOUR_SERVER:/tmp/freecdn-pkg.tar.gz
 # 然后在服务器上执行 install.sh，脚本会自动检测到已存在的包，跳过下载
 ```
 
@@ -147,6 +147,7 @@ EdgeNode 包含 C 代码（TOA 模块），交叉编译 ARM64 时需要安装交
 apt-get install -y gcc-aarch64-linux-gnu
 export CC=aarch64-linux-gnu-gcc
 export CGO_ENABLED=1
+export GOOS=linux
 export GOARCH=arm64
 go build -tags community ./cmd/edge-node/
 ```
@@ -326,22 +327,31 @@ systemctl status freecdn-admin freecdn-api freecdn-node
 
 ### Q: 管理台密码忘了怎么办？
 
-通过数据库直接重置：
+通过数据库直接重置。GoEdge 使用 SHA512 + 盐，不建议手动计算哈希，推荐以下方式：
+
+**推荐方式：重新运行初始化向导**
 
 ```bash
-# 进入 MySQL
-mysql -u root freecdn
+# 停止 admin 服务
+systemctl stop freecdn-admin
 
-# 查询管理员账号
-SELECT id, username FROM edge_admins;
+# 删除初始化完成标记（让向导重新运行）
+rm /usr/local/freecdn/admin/configs/setup.lock 2>/dev/null || true
 
-# 生成新密码哈希（SHA512 + 盐，GoEdge 格式）
-# 建议用管理台"重置密码"功能，或联系数据库管理员
-
-# 如果实在无法登录，可临时禁用密码验证（开发环境）
+# 重启后访问 http://服务器IP:7788 会重新进入初始化向导
+systemctl start freecdn-admin
 ```
 
-更简单的方式：如果有数据库访问权限，通过管理台的"忘记密码"页面（`/dashboard/init`）重新初始化。
+初始化向导完成后，旧数据（节点、域名、证书）不会丢失，只有管理员密码会被重置。
+
+**备用方式：数据库置空密码字段**
+
+```bash
+mysql -u root freecdn
+SELECT id, username FROM edge_admins;
+# 置空后登录时系统会提示设置新密码
+UPDATE edge_admins SET password = '' WHERE username = 'admin';
+```
 
 ### Q: 数据库备份建议
 
@@ -382,6 +392,21 @@ go build -tags community ./...
    curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash -s -- --reinstall
    ```
 4. 重启服务
+
+### Q: 如何查看当前安装的版本？
+
+```bash
+# 查看 Admin 版本
+/usr/local/freecdn/admin/freecdn-admin -v
+
+# 查看 EdgeAPI 版本
+/usr/local/freecdn/api/freecdn-api -v
+
+# 查看边缘节点版本
+/usr/local/freecdn/edge-node/freecdn-node -v
+```
+
+也可以在管理台右上角的「关于」页面查看当前版本号。
 
 ### Q: FreeCDN 和 GoEdge 商业版有什么区别？
 

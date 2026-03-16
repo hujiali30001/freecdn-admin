@@ -158,7 +158,7 @@ func (this *UploadBatchPopupAction) RunPost(params struct {
 			CertData: certData,
 			KeyData:  keyData,
 		}
-		err := certConfig.Init(context.TODO())
+		err := certConfig.Init(context.Background())
 		if err != nil {
 			this.Fail("证书验证失败：" + err.Error())
 			return

@@ -84,7 +84,7 @@ func (this *IndexAction) RunGet(params struct{}) {
 						this.ErrorPage(err)
 						return
 					}
-					_ = httpsConfig.Init(context.TODO())
+					_ = httpsConfig.Init(context.Background())
 					if httpsConfig.IsOn && len(httpsConfig.Listen) > 0 {
 						restAccessAddrs = append(restAccessAddrs, httpsConfig.FullAddresses()...)
 					}

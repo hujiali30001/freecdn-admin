@@ -60,7 +60,7 @@ func (this *IndexAction) RunGet(params struct {
 			this.ErrorPage(err)
 			return
 		}
-		_ = httpsConfig.Init(context.TODO())
+		_ = httpsConfig.Init(context.Background())
 		for _, port := range httpsConfig.AllPorts() {
 			if lists.ContainsInt(httpPorts, port) {
 				conflictingPorts = append(conflictingPorts, port)

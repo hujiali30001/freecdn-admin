@@ -122,7 +122,7 @@ func (this *UpdatePopupAction) RunPost(params struct {
 
 	// 校验
 	certConfig.IsCA = params.IsCA
-	err = certConfig.Init(context.TODO())
+	err = certConfig.Init(context.Background())
 	if err != nil {
 		if params.IsCA {
 			this.Fail("证书校验错误：" + err.Error())

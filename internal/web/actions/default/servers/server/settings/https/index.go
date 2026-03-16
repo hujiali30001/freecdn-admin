@@ -51,7 +51,7 @@ func (this *IndexAction) RunGet(params struct {
 		httpsConfig.IsOn = true
 	}
 
-	_ = httpsConfig.Init(context.TODO())
+	_ = httpsConfig.Init(context.Background())
 	var httpsPorts = httpsConfig.AllPorts()
 
 	// 检查http和https端口冲突

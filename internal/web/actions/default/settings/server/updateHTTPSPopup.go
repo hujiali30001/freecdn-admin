@@ -51,7 +51,7 @@ func (this *UpdateHTTPSPopupAction) RunGet(params struct{}) {
 			CertData: certData,
 			KeyData:  keyData,
 		}
-		_ = certConfig.Init(context.TODO())
+		_ = certConfig.Init(context.Background())
 		certConfig.CertData = nil
 		certConfig.KeyData = nil
 		certConfigs = append(certConfigs, certConfig)

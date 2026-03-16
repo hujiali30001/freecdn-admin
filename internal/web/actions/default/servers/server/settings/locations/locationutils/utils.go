@@ -32,7 +32,7 @@ func FindLocationConfig(parentAction *actionutils.ParentAction, locationId int64
 		return
 	}
 
-	err = locationConfig.Init(context.TODO())
+	err = locationConfig.Init(context.Background())
 	if err != nil {
 		parentAction.ErrorPage(err)
 		return

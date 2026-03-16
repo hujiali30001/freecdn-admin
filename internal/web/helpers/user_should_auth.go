@@ -15,6 +15,12 @@ type UserShouldAuth struct {
 }
 
 func (this *UserShouldAuth) BeforeAction(actionPtr actions.ActionWrapper, paramName string) (goNext bool) {
+	// 注入安全响应头（ORA-13）
+	w := actionPtr.Object().ResponseWriter
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Referrer-Policy", "same-origin")
+	w.Header().Set("X-DNS-Prefetch-Control", "off")
+
 	if teaconst.IsRecoverMode {
 		actionPtr.Object().RedirectURL("/recover")
 		return false

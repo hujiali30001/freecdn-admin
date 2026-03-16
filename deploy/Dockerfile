@@ -13,7 +13,7 @@
 #   构建时从 FreeCDN GitHub Releases 下载预编译包（已完成品牌替换）。
 #   国内环境会依次尝试 ghfast.top / mirror.ghproxy.com / gh.llkk.cc 等加速镜像。
 #   如需手动指定镜像前缀：
-#   docker build --build-arg MIRROR_PREFIX=https://你的镜像/https://github.com/... ...
+#   docker build --build-arg FREECDN_MIRROR=https://你的镜像 ...
 # ==============================================================
 
 # ---- 构建阶段：下载并解压 FreeCDN Release 包 ----
@@ -27,33 +27,50 @@ ARG GITHUB_REPO=hujiali30001/freecdn-admin
 RUN apt-get update -qq && apt-get install -y -qq wget ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # 下载 FreeCDN Release 包（含品牌替换后的 web/）
-# ARG MIRROR_PREFIX 可在 build 时覆盖
-ARG MIRROR_PREFIX=https://ghfast.top/https://github.com/${GITHUB_REPO}/releases/download
+# 可通过 --build-arg FREECDN_MIRROR=https://你的镜像 覆盖镜像前缀
+ARG FREECDN_MIRROR=https://ghfast.top
 WORKDIR /tmp
-RUN set -e; \
-    ARCH="${TARGETARCH}"; \
+RUN ARCH="${TARGETARCH}"; \
     TAR="freecdn-${FREECDN_VERSION}-linux-${ARCH}.tar.gz"; \
-    BASE_URL="https://github.com/${GITHUB_REPO}/releases/download/${FREECDN_VERSION}"; \
-    \
-    try_dl() { echo "  Trying: $1"; wget -q --timeout=120 "$1" -O freecdn.tar.gz && return 0; return 1; }; \
+    BASE="https://github.com/${GITHUB_REPO}/releases/download/${FREECDN_VERSION}"; \
     \
     echo "==> Downloading FreeCDN ${FREECDN_VERSION} (${ARCH})..."; \
-    try_dl "${MIRROR_PREFIX}/${FREECDN_VERSION}/${TAR}" \
-    || try_dl "https://mirror.ghproxy.com/${BASE_URL}/${TAR}" \
-    || try_dl "https://gh.llkk.cc/${BASE_URL}/${TAR}" \
-    || try_dl "${BASE_URL}/${TAR}" \
-    || ( echo "All download sources failed!" && exit 1 ); \
+    DOWNLOADED=0; \
+    for URL in \
+      "${FREECDN_MIRROR}/https://github.com/${GITHUB_REPO}/releases/download/${FREECDN_VERSION}/${TAR}" \
+      "https://gh.llkk.cc/https://github.com/${GITHUB_REPO}/releases/download/${FREECDN_VERSION}/${TAR}" \
+      "https://mirror.ghproxy.com/${BASE}/${TAR}" \
+      "${BASE}/${TAR}"; \
+    do \
+      echo "  Trying: ${URL}"; \
+      if wget -q --timeout=120 "${URL}" -O freecdn.tar.gz 2>/dev/null && [ -s freecdn.tar.gz ]; then \
+        SZ=$(wc -c < freecdn.tar.gz); \
+        echo "  OK (${SZ} bytes)"; \
+        DOWNLOADED=1; \
+        break; \
+      else \
+        rm -f freecdn.tar.gz; \
+        echo "  Failed, trying next..."; \
+      fi; \
+    done; \
+    if [ "${DOWNLOADED}" != "1" ]; then echo "All download sources failed!" && exit 1; fi; \
     \
     echo "==> Extracting..."; \
     mkdir -p /tmp/freecdn-src; \
     tar -xzf freecdn.tar.gz -C /tmp/freecdn-src; \
     rm freecdn.tar.gz; \
     \
-    # 包解压后根目录是 edge-admin/
-    if [ -d /tmp/freecdn-src/edge-admin ]; then \
-      mv /tmp/freecdn-src/edge-admin /tmp/freecdn; \
-    else \
-      mv /tmp/freecdn-src /tmp/freecdn; \
+    # 包解压后根目录是 freecdn-VERSION-linux-ARCH/
+    # 找到该目录并重命名为 /tmp/freecdn
+    EXTRACTED=$(ls /tmp/freecdn-src/ | head -1); \
+    echo "Extracted root: ${EXTRACTED}"; \
+    mv "/tmp/freecdn-src/${EXTRACTED}" /tmp/freecdn; \
+    \
+    # edge-admin 二进制在根目录（不在 bin/ 子目录）
+    # 为了让 COPY 指令路径统一，创建 bin/ 目录并移动过去
+    mkdir -p /tmp/freecdn/bin; \
+    if [ -f /tmp/freecdn/edge-admin ]; then \
+      mv /tmp/freecdn/edge-admin /tmp/freecdn/bin/edge-admin; \
     fi; \
     \
     chmod +x /tmp/freecdn/bin/edge-admin; \
@@ -67,12 +84,15 @@ FROM debian:bookworm-slim
 # 安装运行时依赖
 # netcat-openbsd：entrypoint 用于等待 MySQL 就绪
 # default-mysql-client：entrypoint 用于数据库初始化
+# curl + python3：entrypoint auto-setup 和健康检查使用
 # ca-certificates + tzdata：标准依赖
 RUN apt-get update -qq && apt-get install -y -qq \
     ca-certificates \
     tzdata \
     netcat-openbsd \
     default-mysql-client \
+    curl \
+    python3 \
     && rm -rf /var/lib/apt/lists/*
 
 # 工作目录
@@ -107,8 +127,9 @@ ENV TZ=Asia/Shanghai
 EXPOSE 7788 8003
 
 # 健康检查
+# 必须加浏览器 User-Agent，否则 GoEdge 安全中间件会返回 403
 HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
-  CMD wget -qO- http://localhost:7788/ > /dev/null 2>&1 || exit 1
+  CMD curl -sf -A "Mozilla/5.0 (compatible; HealthCheck)" http://localhost:7788/ > /dev/null 2>&1 || exit 1
 
 LABEL org.opencontainers.image.title="FreeCDN Admin" \
       org.opencontainers.image.description="FreeCDN management panel with EdgeAPI" \

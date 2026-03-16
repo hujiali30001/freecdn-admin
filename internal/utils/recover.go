@@ -15,6 +15,7 @@ func Recover() {
 		stack := debug.Stack()
 		// 同时写入结构化日志和标准错误，方便容器环境的日志收集
 		msg := fmt.Sprintf("[PANIC] %v\n%s", e, string(stack))
-		logs.Error("[RECOVER]" + msg)
+		logs.Println("[RECOVER]", msg)
 	}
 }
+

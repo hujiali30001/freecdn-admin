@@ -75,6 +75,7 @@ MySQL：`freecdn:****@tcp(127.0.0.1:3306)/freecdn`（密码已从文档移除，
 - [x] **P3 HTTPS 链路验证**：DuckDNS + Let's Encrypt DNS-01 + TLS 1.3/HTTP2 全链路跑通，freecdntest.duckdns.org（2026-03-16）
 - [x] **文档完善（v0.2.0）**：install.md 补 HTTPS 申请流程（DuckDNS + certbot DNS-01）；faq.md 扩充 HTTPS FAQ（9 个 Q&A）；README「为什么不用 GoEdge 官方」段落展开；推广帖草稿（docs/promo_post_draft.md）（2026-03-16）
 - [x] **源码安全审计**：全量扫描（500+ Go 文件、321 JS 文件、441 HTML 文件、130+ 脚本），发现 51 项问题（🔴 8 / 🟠 22 / 🟡 21），输出 `research_report_source_code_audit.md`（2026-03-16）
+- [x] **安全加固 v0.3.0**：完成审计 51 项中的 41 项代码修复，发布 v0.3.0（2026-03-16）
 
 ---
 

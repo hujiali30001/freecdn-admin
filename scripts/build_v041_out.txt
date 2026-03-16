@@ -1,0 +1,98 @@
+[build] Using Go: go version go1.22.10 windows/amd64
+[build] 
+============================================================
+[build] Building amd64 ...
+[build] ============================================================
+[build] Using local admin repo: C:\Users\Administrator\.workbuddy\FreeCDN
+[build] Updating api (branch: master) ...
+[build] $ git fetch origin master
+  From https://github.com/hujiali30001/freecdn-api
+   * branch              master     -> FETCH_HEAD
+[build] $ git reset --hard FETCH_HEAD
+  HEAD is now at d81e11cc fix: expand edgeAdmins.password to varchar64 for bcrypt
+[build] Updating node (branch: master) ...
+[build] $ git fetch origin master
+  From https://github.com/hujiali30001/freecdn-node
+   * branch            master     -> FETCH_HEAD
+[build] $ git reset --hard FETCH_HEAD
+  HEAD is now at 0af2fcd chore: point EdgeCommon replace to remote fork (v1.3.9 baseline)
+[build] 
+-- Compiling edge-admin (amd64) --
+[build] $ C:\Go_temp\go\bin\go.exe mod download
+[build] $ C:\Go_temp\go\bin\go.exe build -trimpath -ldflags=-s -w -o C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\amd64\bin\edge-admin ./cmd/edge-admin
+[build]   -> C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\amd64\bin\edge-admin (40.0 MB)
+[build] 
+-- Compiling edge-api (amd64) --
+[build] $ C:\Go_temp\go\bin\go.exe mod download
+[build] $ C:\Go_temp\go\bin\go.exe build -trimpath -ldflags=-s -w -o C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\amd64\bin\edge-api ./cmd/edge-api
+[build]   -> C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\amd64\bin\edge-api (49.2 MB)
+[build] 
+-- Compiling edge-node (amd64) via WSL (CGO) --
+[build] [WSL] Updating node in /tmp/freecdn-src/node ...
+  From https://github.com/hujiali30001/freecdn-node
+   * branch            master     -> FETCH_HEAD
+  HEAD is now at 0af2fcd chore: point EdgeCommon replace to remote fork (v1.3.9 baseline)
+[build] [WSL] $ export PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; export HTTPS_PROXY=http://172.24.208.1:4780 HTTP_PROXY=http://172.24.208.1:4780; export GOPROXY=https://proxy.golang.org,direct; export GOFLAGS=-mod=mod; export GOOS=linux GOARCH=amd64 CGO_ENABLED=1;  cd '/tmp/freecdn-src/node' && go mod download && go build -trimpath -ldflags='-s -w' -o '/mnt/c/Users/Administrator/.workbuddy/FreeCDN/dist/build/amd64/bin/edge-node' ./cmd/edge-node
+[build]   -> C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\amd64\bin\edge-node (36.3 MB)
+[build] 
+-- Assembling package freecdn-v0.4.1-linux-amd64 --
+[build]   Copied web/
+[build]   edge-node zip: edge-node-linux-amd64-v0.4.1.zip
+[build] 
+Creating C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\freecdn-v0.4.1-linux-amd64.tar.gz
+[build] Done: freecdn-v0.4.1-linux-amd64.tar.gz (43.0 MB)
+[build] 
+============================================================
+[build] Building arm64 ...
+[build] ============================================================
+[build] Using local admin repo: C:\Users\Administrator\.workbuddy\FreeCDN
+[build] Updating api (branch: master) ...
+[build] $ git fetch origin master
+  From https://github.com/hujiali30001/freecdn-api
+   * branch              master     -> FETCH_HEAD
+[build] $ git reset --hard FETCH_HEAD
+  HEAD is now at d81e11cc fix: expand edgeAdmins.password to varchar64 for bcrypt
+[build] Updating node (branch: master) ...
+[build] $ git fetch origin master
+  From https://github.com/hujiali30001/freecdn-node
+   * branch            master     -> FETCH_HEAD
+[build] $ git reset --hard FETCH_HEAD
+  HEAD is now at 0af2fcd chore: point EdgeCommon replace to remote fork (v1.3.9 baseline)
+[build] 
+-- Compiling edge-admin (arm64) --
+[build] $ C:\Go_temp\go\bin\go.exe mod download
+[build] $ C:\Go_temp\go\bin\go.exe build -trimpath -ldflags=-s -w -o C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\arm64\bin\edge-admin ./cmd/edge-admin
+[build]   -> C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\arm64\bin\edge-admin (39.4 MB)
+[build] 
+-- Compiling edge-api (arm64) --
+[build] $ C:\Go_temp\go\bin\go.exe mod download
+[build] $ C:\Go_temp\go\bin\go.exe build -trimpath -ldflags=-s -w -o C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\arm64\bin\edge-api ./cmd/edge-api
+[build]   -> C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\arm64\bin\edge-api (48.3 MB)
+[build] 
+-- Compiling edge-node (arm64) via WSL (CGO) --
+[build] [WSL] Updating node in /tmp/freecdn-src/node ...
+  From https://github.com/hujiali30001/freecdn-node
+   * branch            master     -> FETCH_HEAD
+  HEAD is now at 0af2fcd chore: point EdgeCommon replace to remote fork (v1.3.9 baseline)
+[build] [WSL] $ export PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; export HTTPS_PROXY=http://172.24.208.1:4780 HTTP_PROXY=http://172.24.208.1:4780; export GOPROXY=https://proxy.golang.org,direct; export GOFLAGS=-mod=mod; export GOOS=linux GOARCH=arm64 CGO_ENABLED=1; export CC=aarch64-linux-gnu-gcc; cd '/tmp/freecdn-src/node' && go mod download && go build -trimpath -ldflags='-s -w' -o '/mnt/c/Users/Administrator/.workbuddy/FreeCDN/dist/build/arm64/bin/edge-node' ./cmd/edge-node
+[build]   -> C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\arm64\bin\edge-node (35.1 MB)
+[build] 
+-- Assembling package freecdn-v0.4.1-linux-arm64 --
+[build]   Copied web/
+[build]   edge-node zip: edge-node-linux-arm64-v0.4.1.zip
+[build] 
+Creating C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\freecdn-v0.4.1-linux-arm64.tar.gz
+[build] Done: freecdn-v0.4.1-linux-arm64.tar.gz (40.6 MB)
+[build] SHA256 freecdn-v0.4.1-linux-amd64.tar.gz: 7685d646e36cfb0e5b0066614a933f420c2b2fe907b05c5df431deb38de87c15
+[build] SHA256 freecdn-v0.4.1-linux-arm64.tar.gz: 6749f425dd536417d4539f4244fcbfbbee1cbff16440eafd735402eb257d0d2b
+[build] Creating release v0.4.1 ...
+[build] Created release: 297519804
+[build] Uploading freecdn-v0.4.1-linux-amd64.tar.gz (43.0 MB)
+[build]   -> https://github.com/hujiali30001/freecdn-admin/releases/download/v0.4.1/freecdn-v0.4.1-linux-amd64.tar.gz
+[build] Uploading freecdn-v0.4.1-linux-arm64.tar.gz (40.6 MB)
+[build]   -> https://github.com/hujiali30001/freecdn-admin/releases/download/v0.4.1/freecdn-v0.4.1-linux-arm64.tar.gz
+[build] Uploading SHA256SUMS (0.0 MB)
+[build]   -> https://github.com/hujiali30001/freecdn-admin/releases/download/v0.4.1/SHA256SUMS
+[build] 
+=== All done! ===
+[build] Release: https://github.com/hujiali30001/freecdn-admin/releases/tag/v0.4.1

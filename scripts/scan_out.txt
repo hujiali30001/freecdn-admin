@@ -1,0 +1,48 @@
+[1] GET 首页拿 token + cookie...
+    GET /: 200
+    token (from script): ba448b132a7caec96e178911e6282ead1773668928
+    cookies: []
+
+[2] POST 登录...
+    POST /: 403
+    [WARN] 可能登录失败: 表单已失效，请刷新页面后重试(001)
+    cookies after login: []
+
+[3] 扫描 32 个页面...
+---------------------------------------------------------------------------
+  [>>>] Dashboard                    /dashboard                                 # 重定向到登录页(未认证)
+  [>>>] 集群列表                         /clusters                                  # 重定向到登录页(未认证)
+  [>>>] 节点列表                         /clusters/nodes?clusterId=1                # 重定向到登录页(未认证)
+  [404] 集群缓存策略                       /clusters/cluster/cache?clusterId=1        # 页面不存在
+  [404] 集群WAF配置                      /clusters/cluster/waf?clusterId=1          # 页面不存在
+  [>>>] 访问日志                         /clusters/logs                             # 重定向到登录页(未认证)
+  [404] 定时任务                         /clusters/tasks                            # 页面不存在
+  [>>>] 地区管理                         /clusters/regions                          # 重定向到登录页(未认证)
+  [>>>] 服务列表                         /servers                                   # 重定向到登录页(未认证)
+  [>>>] 创建服务                         /servers/create                            # 重定向到登录页(未认证)
+  [>>>] IP黑名单                        /servers/iplists                           # 重定向到登录页(未认证)
+  [>>>] 服务分组                         /servers/groups                            # 重定向到登录页(未认证)
+  [>>>] 指标监控                         /servers/metrics                           # 重定向到登录页(未认证)
+  [>>>] 访问日志查询                       /servers/logs                              # 重定向到登录页(未认证)
+  [>>>] 证书列表                         /servers/certs                             # 重定向到登录页(未认证)
+  [404] 申请证书                         /servers/certs/apply                       # 页面不存在
+  [404] 上传证书                         /servers/certs/upload                      # 页面不存在
+  [>>>] DNS域名列表                      /dns                                       # 重定向到登录页(未认证)
+  [404] 添加DNS域名                      /dns/create                                # 页面不存在
+  [>>>] 管理员列表                        /admins                                    # 重定向到登录页(未认证)
+  [404] 创建管理员                        /admins/create                             # 页面不存在
+  [404] 权限组                          /admins/grants                             # 页面不存在
+  [404] 个人信息                         /admins/profile                            # 页面不存在
+  [>>>] 用户列表                         /users                                     # 重定向到登录页(未认证)
+  [>>>] 基本设置                         /settings                                  # 重定向到登录页(未认证)
+  [404] 安全设置                         /settings/safety                           # 页面不存在
+  [404] 通知设置                         /settings/notifications                    # 页面不存在
+  [404] IP库配置                        /settings/ip-library                       # 页面不存在
+  [404] NS配置                         /settings/ns                               # 页面不存在
+  [>>>] 数据库状态                        /db                                        # 重定向到登录页(未认证)
+  [>>>] 操作日志                         /log                                       # 重定向到登录页(未认证)
+  [404] 登录日志                         /log/login                                 # 页面不存在
+---------------------------------------------------------------------------
+OK=0  redirect/unauth=18  error=14
+
+Saved to C:\Users\Administrator\.workbuddy\FreeCDN\scripts\scan_results.txt

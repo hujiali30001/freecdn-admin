@@ -6,8 +6,11 @@
 #   1. 根据环境变量生成配置文件（configs/）
 #   2. 等待 MySQL 就绪
 #   3. 运行 edge-api upgrade 初始化数据库表
-#   4. 自动插入初始数据（API 节点记录、管理员 Token、管理员账号）
-#   5. 前台运行 edge-admin
+#   4. 运行 edge-api setup 自动初始化（API 节点 + Token + SysSettings）
+#   5. 解析 setup 输出，生成 api_admin.yaml
+#   6. 创建管理员账号
+#   7. 前台运行 edge-admin（edge-api 由 edge-admin 自动 fork）
+#   8. 后台监测 edge-api RPC 就绪后执行 setup/confirm 激活 API 连接
 #
 # 环境变量：
 #   MYSQL_HOST        MySQL 主机名（默认：mysql）
@@ -88,7 +91,6 @@ until check_mysql; do
 done
 
 # TCP 就绪后，还需等待 MySQL 服务完全初始化（能执行真实 SQL）
-# 直接运行 mysql 命令验证，最多再等 30 秒
 MYSQL_CMD="mysql -h${MYSQL_HOST} -P${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DATABASE}"
 COUNT=0
 MAX_SQL_WAIT=30
@@ -102,34 +104,6 @@ until $MYSQL_CMD -e "SELECT 1;" >/dev/null 2>&1; do
   sleep 1
 done
 info "MySQL 连接就绪（TCP + SQL 均已就绪）"
-
-# ---- 运行 edge-api upgrade 初始化数据库表 ----
-# edge-api upgrade 需要 api.yaml 才能运行（读取 nodeId/secret）
-# 若不存在则先生成一个临时文件（之后首次初始化会覆盖它）
-if [ ! -f "${API_DIR}/configs/api.yaml" ]; then
-  TEMP_UUID=$(openssl rand -hex 16 2>/dev/null || cat /proc/sys/kernel/random/uuid 2>/dev/null | tr -d '-' || echo "tmp$(date +%s)")
-  cat > "${API_DIR}/configs/api.yaml" << EOF
-nodeId: "${TEMP_UUID}"
-secret: "${TEMP_UUID}"
-EOF
-  info "生成临时 edge-api/configs/api.yaml（供 upgrade 使用）"
-fi
-
-info "运行数据库迁移 (edge-api upgrade)..."
-# 必须在 API_DIR 下运行，TeaGo 框架用当前目录定位 configs/db.yaml
-( cd "${API_DIR}" && ./bin/edge-api upgrade > /tmp/upgrade.log 2>&1 ) || {
-  UPGRADE_OUTPUT=$(cat /tmp/upgrade.log 2>/dev/null || true)
-  if echo "$UPGRADE_OUTPUT" | grep -qi 'finished\|already\|exist'; then
-    info "数据库迁移已完成（表已存在）"
-  else
-    warn "edge-api upgrade 返回非零，日志如下："
-    cat /tmp/upgrade.log >&2 || true
-    warn "继续尝试启动..."
-  fi
-}
-if grep -q 'finished' /tmp/upgrade.log 2>/dev/null; then
-  info "数据库迁移完成（upgrade finished）"
-fi
 
 # ---- 检查是否需要初始化数据（首次启动）----
 # 判断依据：api_admin.yaml 里 nodeId 是否已填入
@@ -145,89 +119,98 @@ fi
 if [ "$NEEDS_INIT" = "true" ]; then
   info "首次启动，执行数据库初始化..."
 
-  # MySQL 客户端连接参数（容器内通过 TCP 连接，不走 socket）
-  MYSQL_CMD="mysql -h${MYSQL_HOST} -P${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DATABASE}"
-
-  # edge-api upgrade 会自动在 edgeAPITokens 表中插入 admin/cluster/user 三个 token
-  # 我们直接读取 upgrade 生成的 admin token，不另外生成
-  ADMIN_TOKEN_NODE_ID=$($MYSQL_CMD -sNe "SELECT nodeId FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
-  ADMIN_TOKEN_SECRET=$($MYSQL_CMD -sNe "SELECT secret FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
-
-  if [ -z "$ADMIN_TOKEN_NODE_ID" ]; then
-    warn "无法从 edgeAPITokens 读取 admin token，将使用随机生成的 token"
-    gen_uuid() {
-      if [ -f /proc/sys/kernel/random/uuid ]; then
-        cat /proc/sys/kernel/random/uuid | tr -d '-'
-      elif command -v openssl &>/dev/null; then
-        openssl rand -hex 16
-      else
-        echo "$(date +%s)$(cat /dev/urandom | od -An -N4 -tx4 | tr -d ' \n')" | md5sum | cut -c1-32
-      fi
-    }
-    ADMIN_TOKEN_NODE_ID=$(gen_uuid)
-    ADMIN_TOKEN_SECRET=$(gen_uuid)
-    $MYSQL_CMD 2>/dev/null <<SQL || warn "edgeAPITokens 插入失败"
-INSERT IGNORE INTO edgeAPITokens (nodeId, secret, role, state)
-VALUES ('${ADMIN_TOKEN_NODE_ID}', '${ADMIN_TOKEN_SECRET}', 'admin', 1);
-SQL
+  # ---- Step 1：edge-api upgrade 建表 ----
+  # edge-api upgrade 需要 api.yaml 才能运行（读取 nodeId/secret）
+  # 若不存在则先生成一个临时文件（setup 完成后会覆盖）
+  if [ ! -f "${API_DIR}/configs/api.yaml" ]; then
+    TEMP_UUID=$(openssl rand -hex 16 2>/dev/null || cat /proc/sys/kernel/random/uuid 2>/dev/null | tr -d '-' || echo "tmp$(date +%s)")
+    cat > "${API_DIR}/configs/api.yaml" << EOF
+nodeId: "${TEMP_UUID}"
+secret: "${TEMP_UUID}"
+EOF
+    info "生成临时 edge-api/configs/api.yaml（供 upgrade 使用）"
   fi
-  info "Admin token nodeId: ${ADMIN_TOKEN_NODE_ID:0:8}..."
 
+  info "运行数据库迁移 (edge-api upgrade)..."
+  ( cd "${API_DIR}" && ./bin/edge-api upgrade > /tmp/upgrade.log 2>&1 ) || {
+    UPGRADE_OUTPUT=$(cat /tmp/upgrade.log 2>/dev/null || true)
+    if echo "$UPGRADE_OUTPUT" | grep -qi 'finished\|already\|exist'; then
+      info "数据库迁移已完成（表已存在）"
+    else
+      warn "edge-api upgrade 返回非零，日志如下："
+      cat /tmp/upgrade.log >&2 || true
+      warn "继续尝试启动..."
+    fi
+  }
+  if grep -q 'finished' /tmp/upgrade.log 2>/dev/null; then
+    info "数据库迁移完成（upgrade finished）"
+  fi
+
+  # ---- Step 2：edge-api setup 自动初始化 ----
+  # setup 命令创建 APINode + Token + SysSettings，输出 JSON：
+  # {"isOk":true,"adminNodeId":"...","adminNodeSecret":"..."}
+  # 这是正确的初始化入口，完全替代手工 SQL INSERT
+  info "运行 edge-api setup 初始化..."
   # 获取容器 IP（用于 accessAddrs）
   SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "127.0.0.1")
   [ -z "$SERVER_IP" ] && SERVER_IP="127.0.0.1"
-  info "服务器 IP: ${SERVER_IP}"
+  info "容器 IP: ${SERVER_IP}"
 
-  # 读取临时 api.yaml 中的 nodeId/secret（upgrade 前生成的），用于注册 API 节点
-  API_NODE_ID=$(grep "^nodeId:" "${API_DIR}/configs/api.yaml" 2>/dev/null | awk '{print $2}' | tr -d '"' | tr -d "'" | xargs || true)
-  API_NODE_SECRET_VAL=$(grep "^secret:" "${API_DIR}/configs/api.yaml" 2>/dev/null | awk '{print $2}' | tr -d '"' | tr -d "'" | xargs || true)
+  SETUP_OK=false
+  SETUP_JSON=""
+  for _retry in 1 2 3; do
+    SETUP_JSON=$(cd "${API_DIR}" && ./bin/edge-api setup \
+      -api-node-protocol=http \
+      -api-node-host="${SERVER_IP}" \
+      -api-node-port="${API_RPC_PORT}" \
+      2>/tmp/setup.log) || true
+    if [ -n "$SETUP_JSON" ]; then
+      SETUP_OK=true
+      break
+    fi
+    warn "edge-api setup 第 ${_retry} 次失败（$(cat /tmp/setup.log 2>/dev/null | head -1)），1秒后重试..."
+    sleep 1
+  done
 
-  # 如果 api.yaml 里的 ID 是临时的（upgrade 前生成），重新生成正式的
-  if [ -z "$API_NODE_ID" ]; then
-    API_NODE_ID=$(openssl rand -hex 16 2>/dev/null || echo "$(date +%s)api")
-    API_NODE_SECRET_VAL=$(openssl rand -hex 16 2>/dev/null || echo "$(date +%s)sec")
+  # ---- Step 3：解析 setup 输出，获取 adminNodeId + adminNodeSecret ----
+  ADMIN_TOKEN_NODE_ID=""
+  ADMIN_TOKEN_SECRET=""
+  if [ "$SETUP_OK" = "true" ] && [ -n "$SETUP_JSON" ]; then
+    ADMIN_TOKEN_NODE_ID=$(echo "$SETUP_JSON" | python3 -c \
+      "import sys,json; d=json.loads(sys.stdin.read()); print(d.get('adminNodeId',''))" 2>/dev/null || true)
+    ADMIN_TOKEN_SECRET=$(echo "$SETUP_JSON" | python3 -c \
+      "import sys,json; d=json.loads(sys.stdin.read()); print(d.get('adminNodeSecret',''))" 2>/dev/null || true)
+    info "setup 成功，adminNodeId: ${ADMIN_TOKEN_NODE_ID:0:8}..."
   fi
-  info "API 节点 ID: ${API_NODE_ID:0:8}..."
 
-  # 插入 edgeAPINodes 记录
-  # 注意：edgeAPINodes 表没有 updatedAt 列（与 edgeAdmins 不同）
-  info "写入 edgeAPINodes..."
-  $MYSQL_CMD 2>/dev/null <<SQL || warn "edgeAPINodes 插入失败（可能已存在，跳过）"
-INSERT IGNORE INTO edgeAPINodes (id, isOn, uniqueId, name, description, secret, clusterId, http, https, accessAddrs, state, createdAt)
-VALUES (
-  1, 1,
-  '${API_NODE_ID}',
-  'Primary API Node',
-  'Auto created by FreeCDN Docker',
-  '${API_NODE_SECRET_VAL}',
-  0,
-  '{"isOn":true,"listen":[{"protocol":"http","host":"","portRange":"${API_RPC_PORT}","description":""}]}',
-  '{}',
-  '[{"protocol":"http","host":"${SERVER_IP}","portRange":"${API_RPC_PORT}","description":""}]',
-  1,
-  UNIX_TIMESTAMP()
-);
-SQL
+  # 若 setup 解析失败，从数据库读取（兜底）
+  if [ -z "$ADMIN_TOKEN_NODE_ID" ] || [ -z "$ADMIN_TOKEN_SECRET" ]; then
+    warn "setup 解析失败，从数据库读取 admin token..."
+    ADMIN_TOKEN_NODE_ID=$($MYSQL_CMD -sNe "SELECT nodeId FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
+    ADMIN_TOKEN_SECRET=$($MYSQL_CMD -sNe "SELECT secret FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
+  fi
 
-  # 生成管理员密码 MD5（GoEdge 使用 MD5，非 bcrypt）
-  ADMIN_PASSWORD_MD5=$(echo -n "${ADMIN_PASSWORD}" | md5sum | cut -d' ' -f1)
+  if [ -z "$ADMIN_TOKEN_NODE_ID" ] || [ -z "$ADMIN_TOKEN_SECRET" ]; then
+    error "无法获取 admin token，数据库初始化失败！请检查 edge-api 日志：/tmp/setup.log"
+  fi
+  info "Admin token nodeId: ${ADMIN_TOKEN_NODE_ID:0:8}..."
 
-  # 插入管理员账号（注意 edgeAdmins 有 updatedAt 列）
-  info "写入 edgeAdmins（用户名: ${ADMIN_USERNAME}）..."
-  $MYSQL_CMD 2>/dev/null <<SQL || warn "edgeAdmins 插入失败（可能已存在，跳过）"
-INSERT IGNORE INTO edgeAdmins (id, isOn, username, password, isSuper, state, createdAt, updatedAt, canLogin)
-VALUES (1, 1, '${ADMIN_USERNAME}', '${ADMIN_PASSWORD_MD5}', 1, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 1);
-SQL
+  # ---- Step 4：从数据库同步 API 节点 uniqueId/secret 到 api.yaml ----
+  API_UNIQUE_ID=$($MYSQL_CMD -sNe "SELECT uniqueId FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
+  API_NODE_SECRET=$($MYSQL_CMD -sNe "SELECT secret FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
 
-  # 写入 edge-api/configs/api.yaml（最终版本，覆盖临时文件）
-  cat > "${API_DIR}/configs/api.yaml" << EOF
-nodeId: "${API_NODE_ID}"
-secret: "${API_NODE_SECRET_VAL}"
+  if [ -n "$API_UNIQUE_ID" ] && [ -n "$API_NODE_SECRET" ]; then
+    cat > "${API_DIR}/configs/api.yaml" << EOF
+nodeId: "${API_UNIQUE_ID}"
+secret: "${API_NODE_SECRET}"
 EOF
-  info "生成 edge-api/configs/api.yaml（nodeId=${API_NODE_ID:0:8}...）"
+    info "生成 edge-api/configs/api.yaml（nodeId=${API_UNIQUE_ID:0:8}...）"
+  else
+    warn "无法从 edgeAPINodes 读取 nodeId，api.yaml 保留临时值"
+  fi
 
-  # 生成 edge-admin/configs/api_admin.yaml（admin 连接 api 的认证）
-  # 使用 upgrade 自动生成的 admin token（或上面手动插入的）
+  # ---- Step 5：生成 api_admin.yaml（严格嵌套 YAML 格式）----
+  # 必须用嵌套格式，点号格式会导致 edge-admin "wrong token role" 错误
   cat > "${WORKDIR}/configs/api_admin.yaml" << EOF
 rpc:
   endpoints:
@@ -235,7 +218,16 @@ rpc:
 nodeId: "${ADMIN_TOKEN_NODE_ID}"
 secret: "${ADMIN_TOKEN_SECRET}"
 EOF
+  chmod 600 "${WORKDIR}/configs/api_admin.yaml"
   info "生成 configs/api_admin.yaml（token=${ADMIN_TOKEN_NODE_ID:0:8}...）"
+
+  # ---- Step 6：创建管理员账号（MD5，首次登录自动升级为 bcrypt）----
+  ADMIN_PASSWORD_MD5=$(echo -n "${ADMIN_PASSWORD}" | md5sum | cut -d' ' -f1)
+  $MYSQL_CMD 2>/dev/null <<SQL || warn "edgeAdmins 插入失败（可能已存在，跳过）"
+INSERT IGNORE INTO edgeAdmins (id, isOn, username, password, isSuper, state, createdAt, updatedAt, canLogin)
+VALUES (1, 1, '${ADMIN_USERNAME}', '${ADMIN_PASSWORD_MD5}', 1, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 1);
+SQL
+  info "管理员账号就绪（用户名: ${ADMIN_USERNAME}）"
 
   info "============================================"
   info "初始化完成！"
@@ -255,13 +247,12 @@ rpc:
 nodeId: "${EXIST_NODE_ID}"
 secret: "${EXIST_SECRET}"
 EOF
+  chmod 600 "${WORKDIR}/configs/api_admin.yaml"
   info "更新 configs/api_admin.yaml（保留原有 nodeId/secret）"
 
   # 确保 edge-api/configs/api.yaml 存在（容器重建后可能丢失）
-  # edge-api 没有 api.yaml 时不会被 edge-admin fork 启动
   if [ ! -f "${API_DIR}/configs/api.yaml" ]; then
     warn "edge-api/configs/api.yaml 不存在，从数据库重建..."
-    MYSQL_CMD="mysql -h${MYSQL_HOST} -P${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DATABASE}"
     API_UNIQUE_ID=$($MYSQL_CMD -sNe "SELECT uniqueId FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null || true)
     API_NODE_SECRET=$($MYSQL_CMD -sNe "SELECT secret FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null || true)
     if [ -n "$API_UNIQUE_ID" ] && [ -n "$API_NODE_SECRET" ]; then
@@ -274,40 +265,49 @@ EOF
       warn "无法从数据库获取 edge-api 节点信息，edge-api 可能无法启动"
     fi
   fi
+
+  # 确保 edge-api upgrade 已运行（容器更新时可能有新迁移）
+  info "运行 edge-api upgrade（增量迁移检查）..."
+  ( cd "${API_DIR}" && ./bin/edge-api upgrade > /dev/null 2>&1 ) || true
 fi
 
-# ---- 前台运行 edge-admin ----
-# edge-admin 启动后会自动检测 edge-api/ 子目录并 fork edge-api 子进程
-# 不需要在 entrypoint 里单独启动 edge-api
-cd "${WORKDIR}"
-info "启动 edge-admin（前台模式，edge-api 将由 edge-admin 自动 fork）..."
+# ---- 同步 api_admin.yaml 到 HOME 目录 ----
+# GoEdge 以 ~/.edge-admin/api_admin.yaml 是否存在来判断是否首次安装
+ADMIN_HOME_DIR="${HOME:-/root}/.edge-admin"
+if [ -f "${WORKDIR}/configs/api_admin.yaml" ]; then
+  mkdir -p "${ADMIN_HOME_DIR}"
+  cp -f "${WORKDIR}/configs/api_admin.yaml" "${ADMIN_HOME_DIR}/api_admin.yaml"
+  info "已同步 api_admin.yaml 到 ${ADMIN_HOME_DIR}/"
+fi
 
 # ---- 后台自动完成 setup/confirm 激活 API 连接 ----
 # GoEdge 每次启动后需要通过 /setup/confirm 重新激活内存中的 RPC 连接
-# 用 User-Agent 绕过 GoEdge 的安全中间件，等待 edge-admin + edge-api 完全启动后自动提交
+# 改进：不用固定 sleep，而是轮询等待 edge-api RPC 端口真正就绪后立即提交
 _auto_setup_confirm() {
   local PORT="${ADMIN_HTTP_PORT:-7788}"
   local API_PORT="${API_RPC_PORT:-8003}"
   local ENDPOINT="http://127.0.0.1:${API_PORT}"
   local UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-  local MAX_WAIT=90
+  local MAX_WAIT=120
 
   # 等待 edge-admin HTTP 端口就绪
   local count=0
   until bash -c "echo > /dev/tcp/127.0.0.1/${PORT}" 2>/dev/null; do
     count=$((count+1))
-    [ $count -ge $MAX_WAIT ] && { warn "auto setup: edge-admin 启动超时"; return 1; }
+    [ $count -ge $MAX_WAIT ] && { warn "auto setup: edge-admin 启动超时（${MAX_WAIT}s）"; return 1; }
     sleep 1
   done
+  info "auto setup: edge-admin HTTP 已就绪（${count}s）"
 
   # 等待 edge-api RPC 端口就绪（edge-admin fork edge-api 需要额外时间）
+  # 不再使用 sleep 固定等待，而是主动轮询
   count=0
   until bash -c "echo > /dev/tcp/127.0.0.1/${API_PORT}" 2>/dev/null; do
     count=$((count+1))
-    [ $count -ge $MAX_WAIT ] && { warn "auto setup: edge-api 启动超时"; return 1; }
+    [ $count -ge $MAX_WAIT ] && { warn "auto setup: edge-api RPC 启动超时（${MAX_WAIT}s）"; return 1; }
     sleep 1
   done
-  sleep 3  # 额外等待确保 edge-api 完全就绪
+  info "auto setup: edge-api RPC 已就绪（${count}s），立即提交 setup/confirm"
 
   # 读取当前 api_admin.yaml 中的 nodeId 和 secret
   local NODE_ID_VAL SECRET_VAL
@@ -337,17 +337,11 @@ _auto_setup_confirm() {
   fi
 }
 
-# ---- 确保 ~/.edge-admin/ 存在（防止 IsNewInstalled() 每次都返回 true）----
-# GoEdge 以 ~/.edge-admin/api_admin.yaml 是否存在来判断是否首次安装
-# 容器内此文件在非 volume 目录，必须每次启动时同步
-ADMIN_HOME_DIR="${HOME:-/root}/.edge-admin"
-if [ -f "${WORKDIR}/configs/api_admin.yaml" ]; then
-  mkdir -p "${ADMIN_HOME_DIR}"
-  cp -f "${WORKDIR}/configs/api_admin.yaml" "${ADMIN_HOME_DIR}/api_admin.yaml"
-  info "已同步 api_admin.yaml 到 ${ADMIN_HOME_DIR}/"
-fi
-
 # 在后台运行 setup/confirm 激活任务
 _auto_setup_confirm &
 
+# ---- 前台运行 edge-admin ----
+# edge-admin 启动后会自动检测 edge-api/ 子目录并 fork edge-api 子进程
+cd "${WORKDIR}"
+info "启动 edge-admin（前台模式，edge-api 将由 edge-admin 自动 fork）..."
 exec ./bin/edge-admin

@@ -453,6 +453,55 @@ def get_or_create_release(token, version):
     return None
 
 
+def check_version_consistency(version_tag, repo_root, src_dir, token):
+    """
+    检查三个仓库的 internal/const/const.go 中 Version 字段是否与 version_tag 一致。
+    version_tag 形如 "v0.6.0"，const.go 中应为 "0.6.0"。
+    失败时打印详情并返回 False。
+    """
+    expected = version_tag.lstrip("v")  # "v0.6.0" -> "0.6.0"
+    log(f"\n{'='*60}")
+    log(f"版本号一致性检查（期望: {expected}）")
+    log(f"{'='*60}")
+
+    # 确保 api/node 仓库已 clone
+    api_dir  = ensure_repo("api",  REPOS["api"],  src_dir, token)
+    node_dir = ensure_repo("node", REPOS["node"], src_dir, token)
+
+    repos_to_check = {
+        "freecdn-admin": os.path.join(repo_root, "internal", "const", "const.go"),
+        "freecdn-api":   os.path.join(api_dir,   "internal", "const", "const.go"),
+        "freecdn-node":  os.path.join(node_dir,  "internal", "const", "const.go"),
+    }
+
+    import re
+    all_ok = True
+    for repo_name, const_path in repos_to_check.items():
+        if not os.path.isfile(const_path):
+            log(f"  [WARN] {repo_name}: const.go 不存在 ({const_path})，跳过检查")
+            continue
+        content = open(const_path, encoding="utf-8").read()
+        m = re.search(r'Version\s*=\s*"([^"]+)"', content)
+        if not m:
+            log(f"  [WARN] {repo_name}: 未找到 Version 字段，跳过")
+            continue
+        found = m.group(1)
+        if found == expected:
+            log(f"  [OK]  {repo_name}: Version = \"{found}\" ✓")
+        else:
+            log(f"  [FAIL] {repo_name}: Version = \"{found}\"，期望 \"{expected}\"")
+            all_ok = False
+
+    if not all_ok:
+        log("")
+        log("ERROR: 版本号不一致！请先更新各仓库 internal/const/const.go 中的 Version 字段")
+        log("  freecdn-admin: internal/const/const.go")
+        log(f"  freecdn-api:  {os.path.join(api_dir, 'internal', 'const', 'const.go')}")
+        log(f"  freecdn-node: {os.path.join(node_dir, 'internal', 'const', 'const.go')}")
+        log("  然后 commit + push，再重新运行构建脚本")
+    return all_ok
+
+
 # ── 主入口 ────────────────────────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser(description="FreeCDN full-source build & GitHub Release upload")
@@ -462,6 +511,8 @@ def main():
     parser.add_argument("--work-dir", default=None,   help="Build output directory")
     parser.add_argument("--src-dir",  default=None,   help="Directory for cloned source repos")
     parser.add_argument("--no-upload", action="store_true", help="Build only, skip GitHub upload")
+    parser.add_argument("--skip-version-check", action="store_true",
+                        help="跳过版本号一致性检查（不推荐）")
     args = parser.parse_args()
 
     # 找 go
@@ -477,6 +528,14 @@ def main():
     src_dir   = args.src_dir  or os.path.join(repo_root, "dist", "src")
     os.makedirs(work_dir, exist_ok=True)
     os.makedirs(src_dir,  exist_ok=True)
+
+    # ── 版本号一致性检查（构建前强制执行）────────────────────────────────────
+    if not args.skip_version_check:
+        if not check_version_consistency(args.version, repo_root, src_dir, args.token):
+            sys.exit(1)
+        log("版本号一致性检查通过 ✓")
+    else:
+        log("WARNING: 跳过版本号一致性检查（--skip-version-check）")
 
     archs = ARCHS if args.arch == "all" else [args.arch]
 

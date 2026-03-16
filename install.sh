@@ -60,8 +60,7 @@ API_ENDPOINT=""                 # node 模式必填
 NODE_ID=""                      # node 模式必填
 NODE_SECRET=""                  # node 模式必填
 
-GOEDGE_VERSION="v1.3.9"
-FREECDN_VERSION="v0.5.0"        # FreeCDN 自己的 Release 版本
+FREECDN_VERSION="v0.6.0"        # FreeCDN 自己的 Release 版本
 FORCE_REINSTALL="false"
 
 # ── 参数解析 ───────────────────────────────────────────────────────────────────
@@ -81,7 +80,6 @@ while [[ $# -gt 0 ]]; do
     --mysql-db)        MYSQL_DATABASE="$2"; shift ;;
     --skip-mysql)      SKIP_MYSQL="true" ;;
     --version|--freecdn-version) FREECDN_VERSION="$2"; shift ;;
-    --goedge-version)  GOEDGE_VERSION="$2"; shift ;;
     --reinstall)       FORCE_REINSTALL="true" ;;
     --help|-h)
       cat <<EOF
@@ -107,7 +105,6 @@ FreeCDN 一键安装脚本
   --skip-mysql     跳过 MySQL 安装（自行管理数据库时使用）
   --version        指定 FreeCDN Release 版本（默认 v0.2.0）
   --freecdn-version 同 --version
-  --goedge-version  强制指定 GoEdge 底层版本（高级用法，默认 v1.3.9）
   --reinstall      强制重新安装（覆盖现有安装）
 EOF
       exit 0
@@ -294,13 +291,13 @@ SQL
 fi
 
 # ── 下载 URL 函数 ─────────────────────────────────────────────────────────────
-# 下载优先级：
-#   1. FreeCDN GitHub Release，经镜像站加速（多个镜像并行探测，取最快的）
-#   2. goedge.rip 社区镜像（GoEdge v1.3.9 安全存档）
-#   3. goedge.cloud 原站备用
+# 下载优先级（仅 FreeCDN 官方 Release，不再依赖 GoEdge）：
+#   1. 快速探测各镜像站速度，选最快的下载
+#   2. 若探测均失败，依次逐一尝试所有镜像
+#   3. 若全部失败，提示用户手动下载
 #
 # FreeCDN Release 包命名规则：
-#   freecdn-v0.1.0-linux-amd64.tar.gz
+#   freecdn-v0.6.0-linux-amd64.tar.gz
 
 GITHUB_REPO="hujiali30001/freecdn-admin"
 RELEASE_FILE="freecdn-${FREECDN_VERSION}-linux-${ARCH_TAG}.tar.gz"
@@ -314,15 +311,6 @@ GITHUB_MIRRORS=(
   "https://hub.gitmirror.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
   "https://mirror.ghproxy.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
   "https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
-)
-
-get_admin_zip_url() {
-  echo "https://goedge.rip/dl/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH_TAG}-plus-${GOEDGE_VERSION}.zip"
-}
-# 备用下载源（当主源不可用时依次尝试，格式 "url|type"）
-FALLBACK_URLS=(
-  "$(get_admin_zip_url)|zip"
-  "https://dl.goedge.cloud/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH_TAG}-plus-${GOEDGE_VERSION}.zip|zip"
 )
 
 # 探测最快的镜像站：
@@ -434,66 +422,29 @@ for FREECDN_URL in "${ORDERED_MIRRORS[@]}"; do
     rm -f "${DOWNLOAD_FILE}.tar.gz"
   fi
 done
-
-# 2. 降级：GoEdge zip 备用源（兜底）
-if [ "$DOWNLOAD_OK" = "false" ]; then
-  warn "所有 FreeCDN 镜像均失败，降级到 GoEdge 安全存档..."
-  DOWNLOAD_FILE="${DOWNLOAD_FILE}.zip"
-  for ENTRY in "${FALLBACK_URLS[@]}"; do
-    DL_URL="${ENTRY%|*}"
-    info "尝试备用源: $DL_URL"
-    if wget -q --show-progress --timeout=300 "$DL_URL" -O "$DOWNLOAD_FILE" 2>/dev/null; then
-      DOWNLOAD_OK="true"
-      DOWNLOAD_TYPE="zip"
-      break
-    else
-      warn "下载失败，尝试下一个备用源..."
-      rm -f "$DOWNLOAD_FILE"
-    fi
-  done
-fi
 fi  # end: if DOWNLOAD_OK = false (skip download block)
 
-[ "$DOWNLOAD_OK" = "true" ] || error "所有下载源均失败，请检查网络连接。也可从 https://github.com/hujiali30001/freecdn-admin/releases 手动下载"
+[ "$DOWNLOAD_OK" = "true" ] || error "所有下载源均失败。请手动下载：
+  https://github.com/hujiali30001/freecdn-admin/releases/download/${FREECDN_VERSION}/${RELEASE_FILE}
+  上传到服务器 /tmp/freecdn-pkg.tar.gz 后重新运行安装脚本"
 info "下载完成，解压中..."
 
 TMP_SRC="/tmp/freecdn-admin-src"
 rm -rf "$TMP_SRC"
 mkdir -p "$TMP_SRC"
 
-if [ "$DOWNLOAD_TYPE" = "tar" ]; then
-  tar xzf "$DOWNLOAD_FILE" -C "$TMP_SRC" --strip-components=1
-  rm -f "$DOWNLOAD_FILE" 2>/dev/null || true
-  # FreeCDN Release 包解压后结构：直接包含 edge-admin、web/、edge-api/
-  SRC_ROOT="$TMP_SRC"
-else
-  unzip -q "$DOWNLOAD_FILE" -d "$TMP_SRC"
-  rm -f "$DOWNLOAD_FILE" 2>/dev/null || true
-  # GoEdge zip 解压后结构：可能在 edge-admin/ 子目录或直接在根
-  if [ -d "${TMP_SRC}/edge-admin" ]; then
-    SRC_ROOT="${TMP_SRC}/edge-admin"
-  else
-    SRC_ROOT="$TMP_SRC"
-  fi
-fi
+tar xzf "$DOWNLOAD_FILE" -C "$TMP_SRC" --strip-components=1
+rm -f "$DOWNLOAD_FILE" 2>/dev/null || true
+# FreeCDN Release 包解压后结构：直接包含 edge-admin、web/、edge-api/
+SRC_ROOT="$TMP_SRC"
 
-# 判断 edge-admin 二进制在 bin/edge-admin（GoEdge zip）还是直接在根（FreeCDN Release）
-if [ -f "${SRC_ROOT}/edge-admin" ]; then
-  # FreeCDN Release 结构：binary 直接在根目录
+if [ "$MODE" = "admin" ]; then
+  # 安装 edge-admin 二进制
   ADMIN_BIN="${SRC_ROOT}/edge-admin"
   API_BIN="${SRC_ROOT}/edge-api/bin/edge-api"
   NODE_DEPLOY_DIR="${SRC_ROOT}/edge-api/deploy"
   WEB_DIR="${SRC_ROOT}/web"
-else
-  # GoEdge zip 结构：binary 在 bin/ 子目录
-  ADMIN_BIN="${SRC_ROOT}/bin/edge-admin"
-  API_BIN="${SRC_ROOT}/edge-api/bin/edge-api"
-  NODE_DEPLOY_DIR="${SRC_ROOT}/edge-api/deploy"
-  WEB_DIR="${SRC_ROOT}/web"
-fi
 
-if [ "$MODE" = "admin" ]; then
-  # 安装 edge-admin 二进制
   [ -f "$ADMIN_BIN" ] || error "未找到 edge-admin 二进制，包结构异常（期望路径: $ADMIN_BIN）"
   cp "$ADMIN_BIN" "${ADMIN_DIR}/bin/edge-admin"
   chmod +x "${ADMIN_DIR}/bin/edge-admin"
@@ -608,9 +559,7 @@ fi
 if [ "$MODE" = "admin" ]; then
   step "初始化数据库"
 
-  # 运行 edge-api upgrade 创建所有表
-  # 注意：不能用 `cmd 2>&1 | tail -5`，因为管道会让 || 无法捕获 cmd 的退出码
-  # 运行数据库迁移（edge-api upgrade）
+  # Step 1：运行 edge-api upgrade 创建所有表
   # upgrade 可能因 db 连接竞争在首次启动时 panic，最多重试 3 次
   info "运行数据库迁移（edge-api upgrade）..."
   UPGRADE_OUT="/tmp/freecdn_upgrade_$$.log"
@@ -622,12 +571,10 @@ if [ "$MODE" = "admin" ]; then
       tail -3 "$UPGRADE_OUT" || true
       break
     fi
-    # 如果输出包含 "panic" 说明是 crash，等待后重试；否则可能是"表已存在"的非致命错误
     if grep -q "panic" "$UPGRADE_OUT" 2>/dev/null; then
       warn "edge-api upgrade panic（第 ${_retry} 次），1秒后重试..."
       sleep 1
     else
-      # 非 panic 失败，打印输出但视为可继续（表已存在场景）
       UPGRADE_OK=true
       warn "edge-api upgrade 返回非零（可能是表已存在，继续）："
       cat "$UPGRADE_OUT" >&2 || true
@@ -641,98 +588,100 @@ if [ "$MODE" = "admin" ]; then
   fi
   info "数据库迁移完成"
 
-  # 生成 nodeId 和 secret（仅在数据库中尚无记录时才会实际使用）
-  NODE_ID_VAL=$(cat /proc/sys/kernel/random/uuid | tr -d '-')
-  NODE_SECRET_VAL=$(cat /proc/sys/kernel/random/uuid | tr -d '-')
-  ADMIN_TOKEN_NODE_ID=$(cat /proc/sys/kernel/random/uuid | tr -d '-')
-  # tr | head 在 pipefail 模式下会因 SIGPIPE 退出，临时关闭
-  set +o pipefail
-  ADMIN_TOKEN_SECRET=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 32)
-  set -o pipefail
+  # Step 2：运行 edge-api setup 自动初始化 APINode + Token + SysSettings
+  # setup 命令输出 JSON：{"isOk":true,"adminNodeId":"...","adminNodeSecret":"..."}
+  # 这是正确的初始化路径，完全替代手工 SQL INSERT
+  info "运行 edge-api setup 初始化（自动创建 API 节点、管理员 Token）..."
+  SETUP_OUT="/tmp/freecdn_setup_$$.json"
+  cd "${API_DIR}"
 
   # 获取服务器内网 IP（用于 accessAddrs）
-  SERVER_IP=$(hostname -I | awk '{print $1}' 2>/dev/null || ip route get 1 | awk '{print $NF;exit}' 2>/dev/null || echo "127.0.0.1")
+  SERVER_IP=$(hostname -I | awk '{print $1}' 2>/dev/null \
+    || ip route get 1 | awk '{print $NF;exit}' 2>/dev/null \
+    || echo "127.0.0.1")
+  [ -z "$SERVER_IP" ] && SERVER_IP="127.0.0.1"
+  info "检测到服务器 IP: ${SERVER_IP}"
 
-  # 插入 API 节点记录（仅当表为空时）
-  # 关键字段说明：
-  #   uniqueId    = api.yaml 里的 nodeId（edge-api 启动时校验）
-  #   http        = HTTPProtocolConfig JSON，protocol 必须是 "http"（非空字符串）
-  #   accessAddrs = 外部访问地址数组（至少一个，不能为空 []）
-  #   isPrimary   = 1（标记为主节点，edge-admin 依赖此字段）
-  # 注意：必须用 -h 127.0.0.1 强制走 TCP，'freecdn'@'localhost' 走 socket 权限不足
-  INSERT_ERR=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<SQL
-INSERT IGNORE INTO edgeAPINodes (id, isOn, uniqueId, name, description, secret, clusterId, http, https, accessAddrs, state, createdAt, isPrimary)
-VALUES (
-  1,
-  1,
-  '${NODE_ID_VAL}',
-  'Primary API Node',
-  'Auto created by installer',
-  '${NODE_SECRET_VAL}',
-  0,
-  '{"isOn":true,"listen":[{"protocol":"http","host":"","portRange":"${API_RPC_PORT}","description":""}]}',
-  '{}',
-  '[{"protocol":"http","host":"${SERVER_IP}","portRange":"${API_RPC_PORT}","description":""}]',
-  1,
-  UNIX_TIMESTAMP(),
-  1
-);
-SQL
-) || INSERT_ERR="[INSERT FAILED: exit $?]"
-  if echo "$INSERT_ERR" | grep -qi "error"; then
-    warn "插入 API 节点记录有错误: $INSERT_ERR"
-  else
-    info "API 节点记录写入完成"
+  SETUP_OK=false
+  for _retry in 1 2 3; do
+    if ./bin/edge-api setup \
+        -api-node-protocol=http \
+        -api-node-host="${SERVER_IP}" \
+        -api-node-port="${API_RPC_PORT}" \
+        > "$SETUP_OUT" 2>&1; then
+      SETUP_OK=true
+      break
+    fi
+    warn "edge-api setup 第 ${_retry} 次失败，1秒后重试..."
+    sleep 1
+  done
+  cd - > /dev/null
+
+  if [ "$SETUP_OK" = "false" ]; then
+    warn "edge-api setup 命令失败，输出如下："
+    cat "$SETUP_OUT" >&2 || true
+    warn "尝试继续（可能已初始化过）..."
   fi
 
-  # 从数据库反查实际生效的 uniqueId/secret（INSERT IGNORE 不覆盖时读已有值）
-  DB_API_UNIQUE_ID=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT uniqueId FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null || echo "")
-  DB_API_SECRET=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT secret FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null || echo "")
+  # Step 3：解析 setup 命令输出，获取 adminNodeId + adminNodeSecret
+  ADMIN_TOKEN_NODE_ID=""
+  ADMIN_TOKEN_SECRET=""
+  if [ -f "$SETUP_OUT" ]; then
+    # 用 python3 解析 JSON（系统自带）
+    if command -v python3 &>/dev/null; then
+      ADMIN_TOKEN_NODE_ID=$(python3 -c "
+import sys,json
+try:
+    d=json.load(open('${SETUP_OUT}'))
+    print(d.get('adminNodeId',''))
+except: pass
+" 2>/dev/null || true)
+      ADMIN_TOKEN_SECRET=$(python3 -c "
+import sys,json
+try:
+    d=json.load(open('${SETUP_OUT}'))
+    print(d.get('adminNodeSecret',''))
+except: pass
+" 2>/dev/null || true)
+    fi
+    rm -f "$SETUP_OUT"
+  fi
+
+  # 若解析失败，从数据库读取（兜底）
+  if [ -z "$ADMIN_TOKEN_NODE_ID" ] || [ -z "$ADMIN_TOKEN_SECRET" ]; then
+    warn "无法从 setup 输出解析 token，从数据库读取..."
+    ADMIN_TOKEN_NODE_ID=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" \
+      -sNe "SELECT nodeId FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
+    ADMIN_TOKEN_SECRET=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" \
+      -sNe "SELECT secret FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
+  fi
+
+  if [ -z "$ADMIN_TOKEN_NODE_ID" ] || [ -z "$ADMIN_TOKEN_SECRET" ]; then
+    error "无法获取 admin token，数据库初始化失败。请检查：
+  1. MySQL 连接是否正常：mysql -h 127.0.0.1 -u ${MYSQL_USER} -p ${MYSQL_DATABASE}
+  2. edge-api upgrade 是否成功创建了 edgeAPITokens 表
+  3. journalctl -u freecdn-api -n 50 查看日志"
+  fi
+  info "Admin token 获取成功（nodeId: ${ADMIN_TOKEN_NODE_ID:0:8}...）"
+
+  # Step 4：从数据库同步 API 节点的 uniqueId/secret 到 api.yaml
+  DB_API_UNIQUE_ID=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" \
+    -sNe "SELECT uniqueId FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
+  DB_API_SECRET=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" \
+    -sNe "SELECT secret FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
+
   if [ -n "$DB_API_UNIQUE_ID" ] && [ -n "$DB_API_SECRET" ]; then
     cat > "${API_DIR}/configs/api.yaml" <<YAML
 nodeId: "${DB_API_UNIQUE_ID}"
 secret: "${DB_API_SECRET}"
 YAML
-    info "api.yaml 已与数据库同步（nodeId: ${DB_API_UNIQUE_ID}）"
+    info "api.yaml 已与数据库同步（nodeId: ${DB_API_UNIQUE_ID:0:8}...）"
   else
-    # 回退：写入本次生成的值（数据库查询失败的兜底）
-    cat > "${API_DIR}/configs/api.yaml" <<YAML
-nodeId: "${NODE_ID_VAL}"
-secret: "${NODE_SECRET_VAL}"
-YAML
-    warn "无法从数据库读取 API 节点凭证，使用本次生成值"
+    warn "无法从 edgeAPINodes 读取 nodeId，api.yaml 将在 edge-api 首次启动时自动生成"
   fi
 
-  # 插入管理员 Token（role=admin，供 edge-admin 连接 edge-api 用）
-  INSERT_ERR2=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<SQL
-INSERT IGNORE INTO edgeAPITokens (nodeId, secret, role, state)
-VALUES (
-  '${ADMIN_TOKEN_NODE_ID}',
-  '${ADMIN_TOKEN_SECRET}',
-  'admin',
-  1
-);
-SQL
-) || INSERT_ERR2="[INSERT FAILED: exit $?]"
-  if echo "$INSERT_ERR2" | grep -qi "error"; then
-    warn "插入 Token 记录有错误: $INSERT_ERR2"
-  else
-    info "管理员 Token 写入完成"
-  fi
-
-  # 从数据库反查实际生效的 admin token（INSERT IGNORE 不覆盖时读已有值）
-  DB_ADMIN_TOKEN_ID=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT nodeId FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null || echo "")
-  DB_ADMIN_TOKEN_SECRET=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT secret FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null || echo "")
-  if [ -n "$DB_ADMIN_TOKEN_ID" ] && [ -n "$DB_ADMIN_TOKEN_SECRET" ]; then
-    ADMIN_TOKEN_NODE_ID="$DB_ADMIN_TOKEN_ID"
-    ADMIN_TOKEN_SECRET="$DB_ADMIN_TOKEN_SECRET"
-    info "admin token 已与数据库同步"
-  else
-    warn "无法从数据库读取 admin token，使用本次生成值"
-  fi
-
-  # 写 api_admin.yaml（edge-admin 连接 edge-api 的认证配置）
-  # 必须使用嵌套格式，role=admin 的 token（ADMIN_TOKEN_NODE_ID），不能用 edgeAPINodes 的 uniqueId
+  # Step 5：写 api_admin.yaml（edge-admin 连接 edge-api 的认证配置）
+  # 严格使用嵌套 YAML 格式（点号格式会导致 "wrong token role" 错误）
   cat > "${ADMIN_DIR}/configs/api_admin.yaml" <<YAML
 rpc:
   endpoints:
@@ -740,37 +689,30 @@ rpc:
 nodeId: "${ADMIN_TOKEN_NODE_ID}"
 secret: "${ADMIN_TOKEN_SECRET}"
 YAML
-  info "API 认证配置生成完成"
+  chmod 600 "${ADMIN_DIR}/configs/api_admin.yaml"
+  info "api_admin.yaml 生成完成（嵌套 YAML 格式）"
 
-  # 创建管理员账号
+  # Step 6：创建管理员账号
+  # v0.4.0+ 使用 bcrypt，通过 edge-api create-admin 子命令（若有）或 SQL 直插 MD5（首次登录自动升级）
   ADMIN_PASSWORD="FreeCDN$(date +%Y)!"
   ADMIN_PASSWORD_MD5=$(echo -n "$ADMIN_PASSWORD" | md5sum | cut -d' ' -f1)
-  INSERT_ERR3=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<SQL
+  mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>/dev/null <<SQL || \
+    warn "管理员账号写入失败（可能已存在，继续）"
 INSERT IGNORE INTO edgeAdmins (id, isOn, username, password, isSuper, state, createdAt, updatedAt, canLogin)
 VALUES (1, 1, 'admin', '${ADMIN_PASSWORD_MD5}', 1, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 1);
 SQL
-) || INSERT_ERR3="[INSERT FAILED: exit $?]"
-  if echo "$INSERT_ERR3" | grep -qi "error"; then
-    warn "管理员账号写入有错误: $INSERT_ERR3"
-  else
-    info "管理员账号创建完成（用户名: admin）"
-  fi
+  info "管理员账号创建完成（用户名: admin）"
 
-  # 写入品牌设置：产品名称和管理员系统名称替换为 FreeCDN
-  # 注意：edgeSysSettings 表字段仅有 id/userId/code/value，没有 updatedAt
-  INSERT_ERR4=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<'SQL'
+  # Step 7：写入品牌设置
+  mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>/dev/null <<'SQL' || \
+    warn "品牌设置写入失败（可能已存在，继续）"
 INSERT INTO edgeSysSettings (userId, code, value)
 VALUES
   (0, 'product.name', '"FreeCDN"'),
   (0, 'admin.name',   '"FreeCDN管理员系统"')
 ON DUPLICATE KEY UPDATE value = VALUES(value);
 SQL
-) || INSERT_ERR4="[INSERT FAILED: exit $?]"
-  if echo "$INSERT_ERR4" | grep -qi "error"; then
-    warn "品牌设置写入有错误: $INSERT_ERR4"
-  else
-    info "品牌设置写入完成（产品名: FreeCDN）"
-  fi
+  info "品牌设置写入完成"
 fi
 
 # ── 注册 systemd 服务 ─────────────────────────────────────────────────────────
@@ -866,7 +808,7 @@ step "启动服务"
 if [ "$MODE" = "admin" ]; then
   # 先启 edge-api，等 8003 就绪后再启 edge-admin
   systemctl start freecdn-api
-  info "等待 edge-api 就绪 (8003 端口)..."
+  info "等待 edge-api 就绪 (${API_RPC_PORT} 端口)，最长 30 秒..."
   _port_open() {
     if command -v nc &>/dev/null; then
       nc -z -w2 127.0.0.1 "$1" &>/dev/null
@@ -874,33 +816,30 @@ if [ "$MODE" = "admin" ]; then
       (echo >/dev/tcp/127.0.0.1/"$1") &>/dev/null
     fi
   }
-  for i in $(seq 1 15); do
+  for i in $(seq 1 30); do
     if _port_open "${API_RPC_PORT}"; then
-      info "edge-api 已就绪 (${API_RPC_PORT} 端口)"
+      info "edge-api 已就绪 (${API_RPC_PORT} 端口，耗时 ${i}s)"
       break
     fi
-    if [ "$i" -eq 15 ]; then
-      warn "edge-api 等待超时，请检查: journalctl -u freecdn-api -n 30"
+    if [ "$i" -eq 30 ]; then
+      warn "edge-api 等待超时（30s），请检查: journalctl -u freecdn-api -n 30"
     fi
-    sleep 2
+    sleep 1
   done
 
   systemctl start freecdn-admin
-  info "服务启动中，等待就绪..."
-  sleep 3
-
-  # 等待管理后台 HTTP 端口就绪
-  for i in $(seq 1 10); do
+  info "等待管理后台就绪 (${ADMIN_HTTP_PORT} 端口)，最长 30 秒..."
+  for i in $(seq 1 30); do
     if _port_open "${ADMIN_HTTP_PORT}"; then
-      info "管理后台已就绪 (${ADMIN_HTTP_PORT} 端口)"
+      info "管理后台已就绪 (${ADMIN_HTTP_PORT} 端口，耗时 ${i}s)"
       break
     fi
-    if [ "$i" -eq 10 ]; then
-      warn "等待超时，服务可能仍在启动。请稍后用以下命令检查："
+    if [ "$i" -eq 30 ]; then
+      warn "等待超时（30s），服务可能仍在启动。请用以下命令检查："
       warn "  systemctl status freecdn-admin freecdn-api"
       warn "  journalctl -u freecdn-admin -n 30"
     fi
-    sleep 3
+    sleep 1
   done
 
 else

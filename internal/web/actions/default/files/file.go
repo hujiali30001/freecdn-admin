@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/pb"
 	"github.com/iwind/TeaGo/types"
 )
 

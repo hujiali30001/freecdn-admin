@@ -4,8 +4,8 @@
 package nodelogutils
 
 import (
-	"github.com/TeaOSLab/EdgeCommon/pkg/langs"
-	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
+	"github.com/hujiali30001/freecdn-common/pkg/langs"
+	"github.com/hujiali30001/freecdn-common/pkg/langs/codes"
 	"github.com/iwind/TeaGo/maps"
 )
 

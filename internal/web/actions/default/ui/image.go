@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/pb"
 )
 
 // 公开的图片，不需要检查用户权限

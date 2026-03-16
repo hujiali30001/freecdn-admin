@@ -5,10 +5,10 @@ import (
 
 	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/dao"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
-	"github.com/TeaOSLab/EdgeCommon/pkg/serverconfigs"
+	"github.com/hujiali30001/freecdn-common/pkg/langs/codes"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/dao"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/pb"
+	"github.com/hujiali30001/freecdn-common/pkg/serverconfigs"
 	"github.com/iwind/TeaGo/actions"
 	"github.com/iwind/TeaGo/lists"
 )

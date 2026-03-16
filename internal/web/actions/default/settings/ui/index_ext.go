@@ -3,7 +3,7 @@
 
 package ui
 
-import "github.com/TeaOSLab/EdgeCommon/pkg/systemconfigs"
+import "github.com/hujiali30001/freecdn-common/pkg/systemconfigs"
 
 func (this *IndexAction) filterConfig(config *systemconfigs.AdminUIConfig) {
 	this.Data["supportModuleCDN"] = true

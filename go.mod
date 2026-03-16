@@ -2,10 +2,10 @@ module github.com/hujiali30001/freecdn-admin
 
 go 1.22
 
-replace github.com/TeaOSLab/EdgeCommon => github.com/hujiali30001/EdgeCommon v1.3.10-0.20260315182923-7ed7574dde08
+replace github.com/hujiali30001/freecdn-common => github.com/hujiali30001/EdgeCommon v1.3.10-0.20260316193426-45be148915e8
 
 require (
-	github.com/TeaOSLab/EdgeCommon v0.0.0-00010101000000-000000000000
+	github.com/hujiali30001/freecdn-common v0.0.0-00010101000000-000000000000
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/iwind/TeaGo v0.0.0-20240508072741-7647e70b7070

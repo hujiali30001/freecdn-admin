@@ -15,8 +15,8 @@ import (
 
 	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
 	"github.com/hujiali30001/freecdn-admin/internal/configs"
-	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
-	rpcerrors "github.com/TeaOSLab/EdgeCommon/pkg/rpc/errors"
+	"github.com/hujiali30001/freecdn-common/pkg/langs/codes"
+	rpcerrors "github.com/hujiali30001/freecdn-common/pkg/rpc/errors"
 	"github.com/iwind/TeaGo/Tea"
 	"github.com/iwind/TeaGo/actions"
 	"github.com/iwind/TeaGo/logs"

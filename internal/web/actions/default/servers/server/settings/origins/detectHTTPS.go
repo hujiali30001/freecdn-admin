@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/configutils"
+	"github.com/hujiali30001/freecdn-common/pkg/configutils"
 )
 
 type DetectHTTPSAction struct {

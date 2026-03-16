@@ -6,7 +6,7 @@ import (
 	"github.com/hujiali30001/freecdn-admin/internal/utils"
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
 	adminserverutils "github.com/hujiali30001/freecdn-admin/internal/web/actions/default/settings/server/admin-server-utils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
+	"github.com/hujiali30001/freecdn-common/pkg/langs/codes"
 	"github.com/iwind/TeaGo/actions"
 )
 

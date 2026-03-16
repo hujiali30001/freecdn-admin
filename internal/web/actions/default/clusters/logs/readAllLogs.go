@@ -5,7 +5,7 @@ package logs
 import (
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
 	"github.com/hujiali30001/freecdn-admin/internal/web/helpers"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/pb"
 )
 
 type ReadAllLogsAction struct {

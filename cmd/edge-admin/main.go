@@ -19,7 +19,7 @@ import (
 	executils "github.com/hujiali30001/freecdn-admin/internal/utils/exec"
 	_ "github.com/hujiali30001/freecdn-admin/internal/web"
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/settings/updates/updateutils"
-	_ "github.com/TeaOSLab/EdgeCommon/pkg/langs/messages"
+	_ "github.com/hujiali30001/freecdn-common/pkg/langs/messages"
 	"github.com/iwind/TeaGo/Tea"
 	_ "github.com/iwind/TeaGo/bootstrap"
 	"github.com/iwind/TeaGo/maps"

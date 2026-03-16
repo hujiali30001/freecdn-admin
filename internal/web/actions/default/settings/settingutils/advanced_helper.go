@@ -7,7 +7,7 @@ import (
 	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
 	"github.com/hujiali30001/freecdn-admin/internal/web/helpers"
-	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
+	"github.com/hujiali30001/freecdn-common/pkg/langs/codes"
 	"github.com/iwind/TeaGo/actions"
 )
 

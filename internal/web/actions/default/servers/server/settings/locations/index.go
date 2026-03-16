@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/dao"
-	"github.com/TeaOSLab/EdgeCommon/pkg/serverconfigs"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/dao"
+	"github.com/hujiali30001/freecdn-common/pkg/serverconfigs"
 	"github.com/iwind/TeaGo/maps"
 )
 

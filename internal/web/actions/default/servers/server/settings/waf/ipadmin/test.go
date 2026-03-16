@@ -2,9 +2,9 @@ package ipadmin
 
 import (
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/dao"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
-	"github.com/TeaOSLab/EdgeCommon/pkg/serverconfigs/firewallconfigs"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/dao"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/pb"
+	"github.com/hujiali30001/freecdn-common/pkg/serverconfigs/firewallconfigs"
 	"github.com/iwind/TeaGo/actions"
 	"github.com/iwind/TeaGo/maps"
 	timeutil "github.com/iwind/TeaGo/utils/time"

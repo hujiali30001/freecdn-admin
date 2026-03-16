@@ -9,8 +9,8 @@ import (
 
 	"github.com/hujiali30001/freecdn-admin/internal/configs"
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/configutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
+	"github.com/hujiali30001/freecdn-common/pkg/configutils"
+	"github.com/hujiali30001/freecdn-common/pkg/langs/codes"
 	"github.com/go-sql-driver/mysql"
 	"github.com/iwind/TeaGo/Tea"
 	"github.com/iwind/TeaGo/actions"

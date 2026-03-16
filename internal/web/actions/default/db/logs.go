@@ -3,8 +3,8 @@ package db
 import (
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/db/dbnodeutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/nodeconfigs"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
+	"github.com/hujiali30001/freecdn-common/pkg/nodeconfigs"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/pb"
 	"github.com/iwind/TeaGo/maps"
 	timeutil "github.com/iwind/TeaGo/utils/time"
 )

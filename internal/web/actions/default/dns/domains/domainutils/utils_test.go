@@ -5,7 +5,7 @@ package domainutils
 import (
 	"testing"
 
-	"github.com/TeaOSLab/EdgeCommon/pkg/dnsconfigs"
+	"github.com/hujiali30001/freecdn-common/pkg/dnsconfigs"
 	"github.com/iwind/TeaGo/assert"
 )
 

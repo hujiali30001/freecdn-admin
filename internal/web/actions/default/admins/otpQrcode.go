@@ -6,7 +6,7 @@ import (
 	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
 	"github.com/hujiali30001/freecdn-admin/internal/utils/otputils"
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/pb"
 	"github.com/iwind/TeaGo/maps"
 	"github.com/iwind/TeaGo/types"
 	"github.com/skip2/go-qrcode"

@@ -1,1 +1,5 @@
-release: v0.4.1 fix edgeAdmins.password col width for bcrypt
+fix: replace Unicode symbols with ASCII in build script (Windows GBK compat)
+
+scripts/local_build_release.py check_version_consistency() 中的
+Unicode 符号（✓）在 Windows cmd GBK 编码下导致 UnicodeEncodeError，
+改为 ASCII 字符 [OK] / [FAIL] / [PASS]。

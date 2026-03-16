@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/serverconfigs/sslconfigs"
+	"github.com/hujiali30001/freecdn-common/pkg/serverconfigs/sslconfigs"
 )
 
 // 所有相关数据

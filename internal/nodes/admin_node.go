@@ -18,7 +18,7 @@ import (
 	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
 	"github.com/hujiali30001/freecdn-admin/internal/events"
 	"github.com/hujiali30001/freecdn-admin/internal/utils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/nodeconfigs"
+	"github.com/hujiali30001/freecdn-common/pkg/nodeconfigs"
 	"github.com/iwind/TeaGo"
 	"github.com/iwind/TeaGo/Tea"
 	"github.com/iwind/TeaGo/lists"

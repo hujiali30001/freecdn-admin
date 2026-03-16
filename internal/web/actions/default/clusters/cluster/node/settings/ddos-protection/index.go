@@ -8,10 +8,10 @@ import (
 
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/clusters/cluster/node/nodeutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
-	"github.com/TeaOSLab/EdgeCommon/pkg/nodeconfigs"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
-	"github.com/TeaOSLab/EdgeCommon/pkg/serverconfigs/ddosconfigs"
+	"github.com/hujiali30001/freecdn-common/pkg/langs/codes"
+	"github.com/hujiali30001/freecdn-common/pkg/nodeconfigs"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/pb"
+	"github.com/hujiali30001/freecdn-common/pkg/serverconfigs/ddosconfigs"
 	"github.com/iwind/TeaGo/actions"
 	"github.com/iwind/TeaGo/types"
 )

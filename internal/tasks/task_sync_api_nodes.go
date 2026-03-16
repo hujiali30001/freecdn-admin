@@ -15,7 +15,7 @@ import (
 	"github.com/hujiali30001/freecdn-admin/internal/goman"
 	"github.com/hujiali30001/freecdn-admin/internal/rpc"
 	"github.com/hujiali30001/freecdn-admin/internal/setup"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/pb"
 	"github.com/iwind/TeaGo/Tea"
 	"github.com/iwind/TeaGo/logs"
 	"google.golang.org/grpc"

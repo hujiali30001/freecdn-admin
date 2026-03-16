@@ -60,7 +60,7 @@ API_ENDPOINT=""                 # node 模式必填
 NODE_ID=""                      # node 模式必填
 NODE_SECRET=""                  # node 模式必填
 
-FREECDN_VERSION="v0.6.0"        # FreeCDN 自己的 Release 版本
+FREECDN_VERSION="v0.7.0"        # FreeCDN 自己的 Release 版本
 FORCE_REINSTALL="false"
 
 # ── 参数解析 ───────────────────────────────────────────────────────────────────

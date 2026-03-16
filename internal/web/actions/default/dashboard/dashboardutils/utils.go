@@ -14,8 +14,8 @@ import (
 
 	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
 	"github.com/hujiali30001/freecdn-admin/internal/rpc"
-	"github.com/TeaOSLab/EdgeCommon/pkg/nodeconfigs"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
+	"github.com/hujiali30001/freecdn-common/pkg/nodeconfigs"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/pb"
 	"github.com/iwind/TeaGo/lists"
 	"github.com/iwind/TeaGo/maps"
 	stringutil "github.com/iwind/TeaGo/utils/string"

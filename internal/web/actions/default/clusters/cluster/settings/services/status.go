@@ -3,7 +3,7 @@ package services
 import (
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/nodes/nodeutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/messageconfigs"
+	"github.com/hujiali30001/freecdn-common/pkg/messageconfigs"
 	"github.com/iwind/TeaGo/actions"
 )
 

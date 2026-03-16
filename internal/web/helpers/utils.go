@@ -11,10 +11,10 @@ import (
 
 	"github.com/hujiali30001/freecdn-admin/internal/events"
 	"github.com/hujiali30001/freecdn-admin/internal/utils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/configutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/iplibrary"
-	"github.com/TeaOSLab/EdgeCommon/pkg/serverconfigs/regionconfigs"
-	"github.com/TeaOSLab/EdgeCommon/pkg/systemconfigs"
+	"github.com/hujiali30001/freecdn-common/pkg/configutils"
+	"github.com/hujiali30001/freecdn-common/pkg/iplibrary"
+	"github.com/hujiali30001/freecdn-common/pkg/serverconfigs/regionconfigs"
+	"github.com/hujiali30001/freecdn-common/pkg/systemconfigs"
 	"github.com/iwind/TeaGo/lists"
 	"github.com/iwind/TeaGo/logs"
 )

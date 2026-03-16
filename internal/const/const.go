@@ -2,7 +2,7 @@ package teaconst
 
 const (
 	// FreeCDN 版本（基于 GoEdge v1.3.9 安全基线）
-	Version = "0.6.0"
+	Version = "0.7.0"
 
 	APINodeVersion = "1.3.9"
 

@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-17 | 当前版本 v0.5.0（已发布）| 当前阶段：**独立自主 + 一键部署** 重构启动
+> 更新于 2026-03-17 | 当前版本 v0.6.0（已发布）| 当前阶段：**阶段 B — Go module 名独立自主重命名**
 
 ---
 
@@ -296,12 +296,12 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 | v0.4.0 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | ORA-08 密码哈希升级（MD5 → bcrypt cost=12），透明迁移，存量账号首次登录自动升级 |
 | v0.4.1 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 修复 edgeAdmins.password varchar(32→64)，修复创建管理员 Data too long 错误（ORA-08 follow-up）|
 | v0.5.0 | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 安全加固全部完成：脚本密码改环境变量、清理133个调试脚本、git 历史明文密码清除、GitHub PAT 轮换、grpc.NewClient 迁移 |
-| **v0.6.0** | 待发布 | 目标：amd64/arm64 tar.gz | **阶段 A：版本号统一 + install.sh 彻底重构 + 移除 GoEdge 兜底** |
-| **v0.7.0** | 待规划 | — | **阶段 B：EdgeCommon module 名改为 freecdn-common** |
+| **v0.6.0** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段 A：版本号统一 + install.sh 彻底重构（edge-api setup）+ 移除 GoEdge 兜底 + Docker 竞态修复** |
+| **v0.7.0** | 待发布 | 目标：amd64/arm64 tar.gz | **阶段 B：EdgeCommon module 名改为 freecdn-common，freecdn-api/node 自身 module 名改为 hujiali30001 命名空间** |
 | **v0.8.0** | 待规划 | — | **阶段 C：一键部署终极版（freecdn-init 工具 + 健康检查端点）** |
 | **v1.0.0** | 待规划 | — | **完整重命名（三主仓库 module 名全部改为 freecdn-* 命名空间）** |
 
-**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.5.0"`
+**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.6.0"`
 
 > v0.1.6 起所有 Release 包均从**源码自主编译**（local_build_release.py），包含 edge-admin / edge-api / edge-node 三个组件，不依赖 GoEdge 官方二进制。
 
@@ -334,44 +334,95 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 - [x] **安全加固全部完成（v0.5.0）**：RED-01/02/03/07 + YEL-06/07/10 全部清零
 - [x] **阶段一功能操作验收（端到端）**：53/53 PASS（100%）
 - [x] **四仓库代码全面梳理（2026-03-17）**：完整分析 freecdn-admin/api/node/EdgeCommon 架构，识别所有独立自主障碍，制定路线图
+- [x] **阶段 A 完成（v0.6.0，2026-03-17）**：版本号统一（三仓库全改 0.6.0）、install.sh 彻底重构（edge-api setup 替代 7 步手工 SQL）、移除 GoEdge 兜底下载源、Docker entrypoint sleep 竞态修复、local_build_release.py 加版本一致性检查；amd64/arm64 Release 发布完成
 
 ---
 
-## v0.6.0 任务清单（阶段 A，当前目标）
+## v0.6.0 任务清单（阶段 A，**已完成**）
 
 ### A-1：版本号统一
 
-- [ ] **freecdn-admin** `internal/const/const.go`：`Version = "0.6.0"`
-- [ ] **freecdn-api** `internal/const/const.go`：`Version = "0.6.0"`，保留 `GoEdgeVersion = "1.3.9"` 备注
-- [ ] **freecdn-node** `internal/const/const.go`：`Version = "0.6.0"`，同上
-- [ ] **deploy/Dockerfile** ARG：`FREECDN_VERSION=v0.6.0`
-- [ ] **deploy/docker-compose.yml**：`FREECDN_VERSION:-v0.6.0`
-- [ ] **install.sh**：`FREECDN_VERSION="v0.6.0"`
-- [ ] **local_build_release.py**：加版本号一致性检查断言
+- [x] **freecdn-admin** `internal/const/const.go`：`Version = "0.6.0"`
+- [x] **freecdn-api** `internal/const/const.go`：`Version = "0.6.0"`，保留 `GoEdgeVersion = "1.3.9"` 备注
+- [x] **freecdn-node** `internal/const/const.go`：`Version = "0.6.0"`，同上
+- [x] **deploy/Dockerfile** ARG：`FREECDN_VERSION=v0.6.0`
+- [x] **deploy/docker-compose.yml**：`FREECDN_VERSION:-v0.6.0`
+- [x] **install.sh**：`FREECDN_VERSION="v0.6.0"`
+- [x] **local_build_release.py**：加版本号一致性检查断言
 
 ### A-2：install.sh 初始化重构
 
-- [ ] 重写 DB 初始化：用 `edge-api upgrade` + `edge-api setup` 替代手工 SQL
-- [ ] 解析 setup 命令 JSON 输出（`adminNodeId` + `adminNodeSecret`）
-- [ ] 用解析结果写 `api_admin.yaml`（heredoc 嵌套格式，0600 权限）
-- [ ] 三进程启动加 TCP 健康探测（轮询等待，超时 30 秒）
-- [ ] systemd Unit 文件加 `After=edge-api.service` 依赖
+- [x] 重写 DB 初始化：用 `edge-api upgrade` + `edge-api setup` 替代手工 SQL
+- [x] 解析 setup 命令 JSON 输出（`adminNodeId` + `adminNodeSecret`）
+- [x] 用解析结果写 `api_admin.yaml`（heredoc 嵌套格式，0600 权限）
+- [x] 三进程启动加 TCP 健康探测（轮询等待，超时 30 秒）
+- [x] systemd Unit 文件加 `After=edge-api.service` 依赖
 
 ### A-3：移除 GoEdge 兜底
 
-- [ ] install.sh：删除 `goedge.rip` 和 `dl.goedge.cloud` 所有引用
-- [ ] install.sh：下载策略改为 GitHub Release → ghfast.top → gh-proxy.com
-- [ ] 搜索全仓库 `goedge.rip` / `dl.goedge.cloud` 确保无遗漏
+- [x] install.sh：删除 `goedge.rip` 和 `dl.goedge.cloud` 所有引用
+- [x] install.sh：下载策略改为 GitHub Release → ghfast.top → gh-proxy.com
+- [x] 搜索全仓库 `goedge.rip` / `dl.goedge.cloud` 确保无遗漏
 
 ### A-4：Docker 升级
 
-- [ ] docker-entrypoint-admin.sh：移除 sleep 竞态，改为 api ready 后立即 setup
-- [ ] 验证 docker compose up -d 端到端通过
+- [x] docker-entrypoint-admin.sh：移除 sleep 竞态，改为 api ready 后立即 setup
+- [x] 验证 docker compose up -d 端到端通过
 
 ### A-5：local_build_release.py 版本一致性检查
 
-- [ ] 构建前读取三个仓库的 `internal/const/const.go`，断言 Version == 当前 Release tag
-- [ ] 不一致则打印错误，终止构建
+- [x] 构建前读取三个仓库的 `internal/const/const.go`，断言 Version == 当前 Release tag
+- [x] 不一致则打印错误，终止构建
+
+---
+
+## v0.7.0 任务清单（阶段 B，**当前目标**）
+
+### B-1：freecdn-common module 名重命名
+
+将 `github.com/hujiali30001/EdgeCommon` 仓库的 Go module 名改为 `github.com/hujiali30001/freecdn-common`：
+
+- [ ] `go.mod` module 声明改为 `github.com/hujiali30001/freecdn-common`
+- [ ] 所有 `.go` 文件中 `github.com/TeaOSLab/EdgeCommon` 批量替换为 `github.com/hujiali30001/freecdn-common`
+- [ ] `.proto` 文件 `option go_package` 更新
+- [ ] `go mod tidy`，确保编译通过
+- [ ] push 到 `hujiali30001/EdgeCommon` 仓库
+
+### B-2：三主仓库 go.mod replace 指令更新
+
+freecdn-admin、freecdn-api、freecdn-node 的 `go.mod` 中：
+
+- [ ] `replace github.com/TeaOSLab/EdgeCommon => ...` → `replace github.com/hujiali30001/freecdn-common => ...`
+- [ ] 所有 `.go` import 路径 `github.com/TeaOSLab/EdgeCommon` → `github.com/hujiali30001/freecdn-common`
+- [ ] `go mod tidy`，确保各仓库编译通过
+- [ ] 分别 push freecdn-api、freecdn-node
+
+### B-3：freecdn-api 自身 module 名重命名
+
+- [ ] `go.mod` module 声明：`github.com/TeaOSLab/EdgeAPI` → `github.com/hujiali30001/freecdn-api`
+- [ ] 所有 `.go` 文件自引用 `github.com/TeaOSLab/EdgeAPI/` → `github.com/hujiali30001/freecdn-api/`
+- [ ] `go mod tidy` + 编译验证
+- [ ] push freecdn-api
+
+### B-4：freecdn-node 自身 module 名重命名
+
+- [ ] `go.mod` module 声明：`github.com/TeaOSLab/EdgeNode` → `github.com/hujiali30001/freecdn-node`
+- [ ] 所有 `.go` 文件自引用 `github.com/TeaOSLab/EdgeNode/` → `github.com/hujiali30001/freecdn-node/`
+- [ ] `go mod tidy` + 编译验证
+- [ ] push freecdn-node
+
+### B-5：freecdn-admin 自身 module 名重命名
+
+- [ ] `go.mod` module 声明：`github.com/TeaOSLab/EdgeAdmin` → `github.com/hujiali30001/freecdn-admin`
+- [ ] 所有 `.go` 文件自引用 `github.com/TeaOSLab/EdgeAdmin/` → `github.com/hujiali30001/freecdn-admin/`
+- [ ] `go mod tidy` + 编译验证
+- [ ] commit + push freecdn-admin
+
+### B-6：版本号更新至 v0.7.0 + 构建发布
+
+- [ ] 三仓库 `internal/const/const.go`：`Version = "0.7.0"`
+- [ ] `deploy/Dockerfile`、`deploy/docker-compose.yml`、`install.sh`：版本号更新至 v0.7.0
+- [ ] 运行 `local_build_release.py --version v0.7.0` 构建并上传 Release
 
 ---
 

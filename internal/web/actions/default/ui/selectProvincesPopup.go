@@ -3,8 +3,8 @@ package ui
 import (
 	"github.com/hujiali30001/freecdn-admin/internal/utils"
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
-	"github.com/TeaOSLab/EdgeCommon/pkg/serverconfigs/regionconfigs"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/pb"
+	"github.com/hujiali30001/freecdn-common/pkg/serverconfigs/regionconfigs"
 	"github.com/iwind/TeaGo/actions"
 	"github.com/iwind/TeaGo/lists"
 	"github.com/iwind/TeaGo/maps"

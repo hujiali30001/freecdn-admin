@@ -9,7 +9,7 @@ import (
 
 	"github.com/hujiali30001/freecdn-admin/internal/configs"
 	"github.com/hujiali30001/freecdn-admin/internal/rpc"
-	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
+	"github.com/hujiali30001/freecdn-common/pkg/rpc/pb"
 )
 
 // MessageResult 和节点消息通讯结果定义

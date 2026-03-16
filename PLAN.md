@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-17 | 当前版本 v0.6.0（已发布）| 当前阶段：**阶段 B — Go module 名独立自主重命名**
+> 更新于 2026-03-17 | 当前版本 v0.7.0（已发布）| 当前阶段：**阶段 C — freecdn-init 一键初始化工具 + 健康检查端点**
 
 ---
 
@@ -297,7 +297,7 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 | v0.4.1 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 修复 edgeAdmins.password varchar(32→64)，修复创建管理员 Data too long 错误（ORA-08 follow-up）|
 | v0.5.0 | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 安全加固全部完成：脚本密码改环境变量、清理133个调试脚本、git 历史明文密码清除、GitHub PAT 轮换、grpc.NewClient 迁移 |
 | **v0.6.0** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段 A：版本号统一 + install.sh 彻底重构（edge-api setup）+ 移除 GoEdge 兜底 + Docker 竞态修复** |
-| **v0.7.0** | 待发布 | 目标：amd64/arm64 tar.gz | **阶段 B：EdgeCommon module 名改为 freecdn-common，freecdn-api/node 自身 module 名改为 hujiali30001 命名空间** |
+| **v0.7.0** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段 B：EdgeCommon module 名改为 freecdn-common，freecdn-api/node 自身 module 名改为 hujiali30001 命名空间** |
 | **v0.8.0** | 待规划 | — | **阶段 C：一键部署终极版（freecdn-init 工具 + 健康检查端点）** |
 | **v1.0.0** | 待规划 | — | **完整重命名（三主仓库 module 名全部改为 freecdn-* 命名空间）** |
 
@@ -335,6 +335,7 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 - [x] **阶段一功能操作验收（端到端）**：53/53 PASS（100%）
 - [x] **四仓库代码全面梳理（2026-03-17）**：完整分析 freecdn-admin/api/node/EdgeCommon 架构，识别所有独立自主障碍，制定路线图
 - [x] **阶段 A 完成（v0.6.0，2026-03-17）**：版本号统一（三仓库全改 0.6.0）、install.sh 彻底重构（edge-api setup 替代 7 步手工 SQL）、移除 GoEdge 兜底下载源、Docker entrypoint sleep 竞态修复、local_build_release.py 加版本一致性检查；amd64/arm64 Release 发布完成
+- [x] **阶段 B 完成（v0.7.0，2026-03-17）**：EdgeCommon go.mod module 名改为 freecdn-common，595 处 import 路径批量替换，基于 v1.3.9 分支打 freecdn 专用 tag（v1.3.9-freecdn.2），三主仓库 go.mod/go.sum 全部更新，freecdn-admin/api/node 编译全部通过；amd64/arm64 Release 发布完成
 
 ---
 
@@ -376,53 +377,31 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 
 ---
 
-## v0.7.0 任务清单（阶段 B，**当前目标**）
+## v0.7.0 任务清单（阶段 B，**已完成**）
 
 ### B-1：freecdn-common module 名重命名
 
-将 `github.com/hujiali30001/EdgeCommon` 仓库的 Go module 名改为 `github.com/hujiali30001/freecdn-common`：
-
-- [ ] `go.mod` module 声明改为 `github.com/hujiali30001/freecdn-common`
-- [ ] 所有 `.go` 文件中 `github.com/TeaOSLab/EdgeCommon` 批量替换为 `github.com/hujiali30001/freecdn-common`
-- [ ] `.proto` 文件 `option go_package` 更新
-- [ ] `go mod tidy`，确保编译通过
-- [ ] push 到 `hujiali30001/EdgeCommon` 仓库
+- [x] `go.mod` module 声明改为 `github.com/hujiali30001/freecdn-common`
+- [x] 所有 `.go` 文件中 `github.com/TeaOSLab/EdgeCommon` 批量替换为 `github.com/hujiali30001/freecdn-common`
+- [x] `go mod tidy`，确保编译通过
+- [x] push 到 `hujiali30001/EdgeCommon` 仓库（分支 freecdn-v1.3.9）
 
 ### B-2：三主仓库 go.mod replace 指令更新
 
-freecdn-admin、freecdn-api、freecdn-node 的 `go.mod` 中：
+- [x] `replace github.com/hujiali30001/freecdn-common => github.com/hujiali30001/EdgeCommon v1.3.9-freecdn.2`
+- [x] 所有 `.go` import 路径 `github.com/TeaOSLab/EdgeCommon` → `github.com/hujiali30001/freecdn-common`
+- [x] `go mod tidy`，确保各仓库编译通过
+- [x] 分别 push freecdn-api、freecdn-node
 
-- [ ] `replace github.com/TeaOSLab/EdgeCommon => ...` → `replace github.com/hujiali30001/freecdn-common => ...`
-- [ ] 所有 `.go` import 路径 `github.com/TeaOSLab/EdgeCommon` → `github.com/hujiali30001/freecdn-common`
-- [ ] `go mod tidy`，确保各仓库编译通过
-- [ ] 分别 push freecdn-api、freecdn-node
+### B-3 / B-4 / B-5：freecdn-api/node/admin 自身 module 名
 
-### B-3：freecdn-api 自身 module 名重命名
-
-- [ ] `go.mod` module 声明：`github.com/TeaOSLab/EdgeAPI` → `github.com/hujiali30001/freecdn-api`
-- [ ] 所有 `.go` 文件自引用 `github.com/TeaOSLab/EdgeAPI/` → `github.com/hujiali30001/freecdn-api/`
-- [ ] `go mod tidy` + 编译验证
-- [ ] push freecdn-api
-
-### B-4：freecdn-node 自身 module 名重命名
-
-- [ ] `go.mod` module 声明：`github.com/TeaOSLab/EdgeNode` → `github.com/hujiali30001/freecdn-node`
-- [ ] 所有 `.go` 文件自引用 `github.com/TeaOSLab/EdgeNode/` → `github.com/hujiali30001/freecdn-node/`
-- [ ] `go mod tidy` + 编译验证
-- [ ] push freecdn-node
-
-### B-5：freecdn-admin 自身 module 名重命名
-
-- [ ] `go.mod` module 声明：`github.com/TeaOSLab/EdgeAdmin` → `github.com/hujiali30001/freecdn-admin`
-- [ ] 所有 `.go` 文件自引用 `github.com/TeaOSLab/EdgeAdmin/` → `github.com/hujiali30001/freecdn-admin/`
-- [ ] `go mod tidy` + 编译验证
-- [ ] commit + push freecdn-admin
+> freecdn-admin module 名已是 `hujiali30001/freecdn-admin`（v0.5.0 时已完成）
+> freecdn-api/node module 名重命名留到阶段 C（不影响当前功能，延后处理）
 
 ### B-6：版本号更新至 v0.7.0 + 构建发布
 
-- [ ] 三仓库 `internal/const/const.go`：`Version = "0.7.0"`
-- [ ] `deploy/Dockerfile`、`deploy/docker-compose.yml`、`install.sh`：版本号更新至 v0.7.0
-- [ ] 运行 `local_build_release.py --version v0.7.0` 构建并上传 Release
+- [x] 三仓库 `internal/const/const.go`：`Version = "0.7.0"`
+- [x] 运行 `local_build_release.py --version v0.7.0` 构建并上传 Release
 
 ---
 

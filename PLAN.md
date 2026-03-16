@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-17 | 当前版本 v0.8.0（已发布）| 当前阶段：**阶段 C — 一键部署终极版（持续推进）**
+> 更新于 2026-03-17 | 当前版本 v0.9.0（已发布）| 当前阶段：**阶段 C — 一键部署终极版（持续推进）**
 
 ---
 
@@ -298,10 +298,11 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 | v0.5.0 | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 安全加固全部完成：脚本密码改环境变量、清理133个调试脚本、git 历史明文密码清除、GitHub PAT 轮换、grpc.NewClient 迁移 |
 | **v0.6.0** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段 A：版本号统一 + install.sh 彻底重构（edge-api setup）+ 移除 GoEdge 兜底 + Docker 竞态修复** |
 | **v0.7.0** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段 B：EdgeCommon module 名改为 freecdn-common，freecdn-api/node 自身 module 名改为 hujiali30001 命名空间** |
+| **v0.9.0** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段 C-2：freecdn-init Go 工具（替代 bash DB 初始化）；版本号统一 v0.9.0** |
 | **v0.8.0** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段 C：/health 端点（freecdn-admin:7788/health、freecdn-api:8004/health），freecdn-api/node module 名重命名确认完成，faq.md 版本更新** |
 | **v1.0.0** | 待规划 | — | **完整重命名（三主仓库 module 名全部改为 freecdn-* 命名空间）** |
 
-**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.8.0"`
+**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.9.0"`
 
 > v0.1.6 起所有 Release 包均从**源码自主编译**（local_build_release.py），包含 edge-admin / edge-api / edge-node 三个组件，不依赖 GoEdge 官方二进制。
 
@@ -337,6 +338,7 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 - [x] **阶段 A 完成（v0.6.0，2026-03-17）**：版本号统一（三仓库全改 0.6.0）、install.sh 彻底重构（edge-api setup 替代 7 步手工 SQL）、移除 GoEdge 兜底下载源、Docker entrypoint sleep 竞态修复、local_build_release.py 加版本一致性检查；amd64/arm64 Release 发布完成
 - [x] **阶段 B 完成（v0.7.0，2026-03-17）**：EdgeCommon go.mod module 名改为 freecdn-common，595 处 import 路径批量替换，基于 v1.3.9 分支打 freecdn 专用 tag（v1.3.9-freecdn.2），三主仓库 go.mod/go.sum 全部更新，freecdn-admin/api/node 编译全部通过；amd64/arm64 Release 发布完成
 - [x] **阶段 C-3 完成（v0.8.0，2026-03-17）**：freecdn-admin 在 7788 端口加 `/health` 端点，freecdn-api 在 8004 端口加 `/health` 端点，freecdn-api/node module 名确认重命名完成（B-3/B-4），faq.md 版本更新；amd64/arm64 Release 发布完成
+- [x] **阶段 C-2 完成（v0.9.0，2026-03-17）**：新增 `freecdn-init` Go 工具（cmd/freecdn-init + internal/initdb），替代 install.sh 中 7 步 bash 数据库初始化，支持 upgrade/setup/api_admin.yaml 写入/api.yaml 同步/管理员创建/品牌写入全流程，保留 bash 兜底路径；版本号统一至 v0.9.0；amd64/arm64 Release 发布完成
 
 ---
 
@@ -453,7 +455,7 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 | 参数 | 值 |
 |------|-----|
 | 版本基线（GoEdge 安全锁定） | GoEdge v1.3.9（v1.4.x+ 含恶意代码，永不合并） |
-| 当前 FreeCDN 版本 | v0.8.0（已发布）|
+| 当前 FreeCDN 版本 | v0.9.0（已发布）|
 | Go 最低版本 | 1.21 |
 | MySQL | 5.7.8+（推荐 8.0+），只能 TCP 连接（-h 127.0.0.1） |
 | EdgeAdmin 端口 | 7788 |

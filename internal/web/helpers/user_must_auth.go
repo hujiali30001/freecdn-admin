@@ -113,6 +113,13 @@ func NewUserMustAuth(module string) *userMustAuth {
 func (this *userMustAuth) BeforeAction(actionPtr actions.ActionWrapper, paramName string) (goNext bool) {
 	var action = actionPtr.Object()
 
+	// 注入安全响应头（ORA-13）
+	w := action.ResponseWriter
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Referrer-Policy", "same-origin")
+	w.Header().Set("X-DNS-Prefetch-Control", "off")
+	w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+
 	// 检查请求是否合法
 	if isEvilRequest(action.Request) {
 		action.ResponseWriter.WriteHeader(http.StatusForbidden)

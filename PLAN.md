@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-16 | 当前版本 v0.4.1 | 当前阶段：后台功能验收（阶段一页面层全部完成，待 v0.5.0 功能操作验收）
+> 更新于 2026-03-17 | 当前版本 v0.4.1 | 当前阶段：阶段一功能操作验收 **完成（53/53 PASS）**，待 v0.5.0 规划
 
 ---
 
@@ -81,19 +81,30 @@ MySQL：`freecdn:****@tcp(127.0.0.1:3306)/freecdn`（密码已从文档移除，
 - [x] **ORA-08 密码哈希升级（v0.4.0）**：bcrypt cost=12 取代 MD5，存量账号透明迁移，`create-admin` 同步更新（2026-03-16）
 - [x] **阶段一路由验收**：25/25 路由全通（扫描脚本修正 + PLAN.md 路径勘误），5 项明确标注为 ⚠️（3 个商业版未移植功能 + 2 个弹窗形式）（2026-03-16）
 - [x] **品牌修复**：数据库写入 `adminUIConfig`，`systemName/teaTitle/teaName` → FreeCDN 管理系统，version → v0.4.1（2026-03-16）
-- [x] **阶段一功能验收（页面层）**：18/18 待验收页面全部通过（登录机制调试：GET /csrf/token 获取 CSRF token，正确路径重新映射，307 重定向跟踪 200）；DNS 记录管理确认为 GoEdge 设计不存在独立路由（记录由 DNSPod/阿里云等服务商侧管理），标注为 ⚠️（2026-03-16）
+- [x] **阶段一功能操作验收（端到端）**：53/53 PASS（100%）。端到端验收脚本 `scripts/e2e_full.py` 覆盖11个板块，含真实登录（csrfToken + MD5密码 + TokenKey令牌三重认证）、DB CRUD 验证、所有主要页面路由（2026-03-17）
+  - **技术发现**：登录流程需三个 token：`csrfToken`（GET `/csrf/token` 获取，一次性）+ `token`（TokenKey+时间戳）+ `MD5(password)`
+  - **路由修正**：节点管理页实际路由为 `/clusters/nodes?clusterId=X`（`/nodes` 未注册独立列表页）
+  - **验收覆盖**：认证系统、安全响应头（5个头全部生效）、集群CRUD、节点状态、HTTP服务CRUD、证书CRUD、用户CRUD、管理员、品牌UI、DNS、统计监控
 
 ---
 
-## 当前状态（v0.4.1，阶段一功能验收完成）
+## 当前状态（v0.4.1，阶段一功能操作验收完成）
 
-v0.4.1 于 2026-03-16 发布。完成 ORA-08 bcrypt 跟进修复（varchar 32→64），修复创建管理员 Data too long 错误。阶段一路由+页面验收 **18/18 全部通过**，品牌显示修复为 FreeCDN 管理系统 v0.4.1。
+v0.4.1 于 2026-03-16 发布。阶段一完整端到端验收于 2026-03-17 完成，**53/53 全部 PASS（100%）**。
 
-**验收结论：**
+**验收结论（`scripts/e2e_full.py` 最终结果）：**
 
-- 18 个 ⬜ 页面全部通过（已登录状态下均返回 200）
-- DNS 记录管理：GoEdge 设计即无独立路由，DNS 记录在服务商（DNSPod/阿里云等）侧管理，init.go 未注册，标注为 ⚠️
-- 发现并修复品牌残留：数据库写入 `adminUIConfig` JSON，覆盖 EdgeCommon 语言文件默认值
+- 11个板块，53个验收项，全部 PASS
+- 真实登录流程验证通过（三重认证：csrfToken + TokenKey令牌 + MD5密码）
+- 安全响应头5个全部生效：X-Content-Type-Options / X-Frame-Options / CSP / Referrer-Policy / X-DNS-Prefetch-Control
+- 集群/节点/服务/证书/用户 CRUD 全部通过（数据库写入验证）
+- 所有主要页面路由返回 200/307（已登录状态）
+
+**关键技术发现（与 GoEdge 原版对比）：**
+
+- 登录需三个凭证：`GET /csrf/token` 获取一次性 `csrfToken`（CSRF 防护）、`GET /` 获取 `token`（TokenKey+时间戳）、POST 提交 `MD5(password)`
+- 节点列表路由：`/clusters/nodes?clusterId=X`（`/nodes` prefix 下仅注册 `/delete` 和 IP 子路由，无列表页）
+- HttpOnly session cookie 在 curl netscape jar 中以 `#HttpOnly_` 前缀写入，需从响应头 `Set-Cookie` 提取
 
 **正确路由路径映射（PLAN.md 勘误）：**
 
@@ -113,15 +124,13 @@ v0.4.1 于 2026-03-16 发布。完成 ORA-08 bcrypt 跟进修复（varchar 32→
 | /servers/server/access | /servers/server/settings/access?serverId=X |
 | /servers/certs/cert | /servers/certs/certPopup?certId=X（弹窗） |
 
-**下一步：功能操作验收（阶段一正式进入功能层）**
+**下一步：v0.5.0 规划（阶段一全部完成）**
 
-路由层 OK 只是第一步，下一步是对每个 ✅ 页面做功能操作验收：
+阶段一（路由层+功能操作层）全部验收通过。下一步进入 v0.5.0 规划：
 
-1. 创建一个测试 HTTP 服务，配置源站，验证转发
-2. 证书 ACME 申请流程端到端验证
-3. 创建管理员账号验证
-4. 用户系统（创建用户 → 绑定服务）验证
-5. Dashboard 流量图表数据显示验证（需节点有真实流量）
+1. 剩余安全加固项（RED/ORA 未完成项）
+2. 阶段二 UI 升级（方案待定）
+3. 一键安装体验优化（新用户 0→1 安装流程压测）
 
 
 

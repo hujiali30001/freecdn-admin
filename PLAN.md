@@ -82,6 +82,7 @@ v0.1.8 于 2026-03-16 发布，修复两个关键 bug：
 - install-node.sh（即 install.sh --node）端到端跑通 ✅
 - api_node.yaml 正确写入 uniqueId/secret ✅
 - freecdn-node 服务 active，日志无错误 ✅
+- 节点已成功与 edge-api 建立 gRPC 连接（日志出现 GoAway/too_many_pings，表明心跳已通）✅
 - 节点正常运行（LISTENER_MANAGER: no available servers — 正常，还没配站点）✅
 
 **已知机制（文档需补充）**：

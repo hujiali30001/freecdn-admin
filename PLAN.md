@@ -1,7 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-15 | 基于研究报告结论整合
-> 版本基线：GoEdge v1.3.9（已确认安全，不跟踪 v1.4.x 及以上）
+> 更新于 2026-03-16 | 当前版本 v0.1.6 | P0~P5 全部完成，下一阶段待规划
 
 ---
 
@@ -24,78 +23,81 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 
 ---
 
+## 版本发布历史
+
+| 版本 | 标签时间 | GitHub Release 产物 | 说明 |
+|------|----------|---------------------|------|
+| v0.1.0 | 2026-03-15 | 无 Release 产物 | v0.1.0 release prep，确立目录结构和安装脚本基础 |
+| v0.1.1 | 2026-03-16 | 无 Release 产物 | release.yml 修复 web/ overlay 覆盖 |
+| v0.1.2 | 2026-03-15 | amd64/arm64 tar.gz ✓ | GoEdge v1.3.9 商业版残留清理 |
+| v0.1.3 | 2026-03-15 | 无 Release 产物 | 品牌替换（settings 商业版菜单清理）|
+| v0.1.4 | 2026-03-15 | 无 Release 产物 | 首个从源码编译的版本，脱离 GoEdge 上游二进制 |
+| v0.1.5 | 2026-03-15 | 无 Release 产物 | 编译流程完善，EdgeCommon 依赖指向自有仓库 |
+| v0.1.6 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | Docker 完整初始化、install.sh 品牌 SQL 修复 |
+
+**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.1.6"`  
+**下载地址**：`https://github.com/hujiali30001/freecdn-admin/releases/download/v0.1.6/freecdn-v0.1.6-linux-{arch}.tar.gz`
+
+> v0.1.6 Release 包是从 **源码自主编译**（local_build_release.py），包含 edge-admin / edge-api / edge-node 三个组件，不再依赖 GoEdge 官方二进制。
+
+---
+
 ## 已完成
 
 - [x] GoEdge v1.3.9 成功部署，CDN 转发 200 验证通过
 - [x] 排查并修复三个关键技术坑（edge-api 字段名、http JSON 格式、accessAddrs）
-- [x] install.sh 骨架（管理节点 + 边缘节点模式）
+- [x] install.sh 完整实现（管理节点 + 边缘节点模式，非交互参数支持）
 - [x] fix_api.sh 运维修复脚本（7 步修复流程）
-- [x] ssh_install.py 远程安装辅助工具（凭据改为参数/环境变量）
-- [x] Docker Compose + Dockerfile 骨架
-- [x] 文档体系（ARCHITECTURE.md、INSTALL.md、FAQ.md）
+- [x] ssh_install.py 远程安装辅助工具
+- [x] **P0 验收通过**：干净 Ubuntu 22.04 端到端跑通 install.sh，品牌 SQL 写入正确，HTTP 200，admin 账号可登录（v0.1.6）
+- [x] Docker Compose + Dockerfile 完整实现（含数据库自动初始化、配置持久化）
+- [x] **P1 验收通过**：docker compose up -d 跑通，容器启动正常，管理后台可访问（v0.1.6）
+- [x] **P2 完成**：local_build_release.py 从三个自有仓库源码编译 amd64/arm64，手动上传到 GitHub Release（因 Actions 账单问题，CI 不可用）
+  - release.yml 存在但账单冻结无法触发，实际通过 local_build_release.py 本地构建
+  - v0.1.6 Release 已发布，含 amd64/arm64 tar.gz + SHA256SUMS
+- [x] **P4 完成**：upstream-check.yml（每周检查 GoEdge 上游 tag，自动创建审计 Issue）
+- [x] **P5 完成**：品牌替换全覆盖
+  - JS 文件 goedge.cloud 链接/示例域名替换
+  - 所有商业版授权/套餐/计费模块移除
+  - settings 商业版菜单项清理
+  - ip-library HTML 模板品牌替换
+  - web footer、集群节点安装页等静态 HTML 替换
+- [x] 文档体系（ARCHITECTURE.md、docs/INSTALL.md、docs/FAQ.md）
 - [x] README.md FreeCDN 化
-- [x] GitHub Actions release.yml（push tag v* 自动打包 FreeCDN Release）
-- [x] GitHub Actions upstream-check.yml（每周检查 GoEdge 上游新 tag，自动创建审计 Issue）
-- [x] P5 品牌替换：JS 文件中 goedge.cloud 链接/示例域名全部替换为 FreeCDN
-- [x] GitHub 推送（commit 0f421fbb）
 - [x] 完成 GoEdge 全维度研究报告
 
 ---
 
-## 开发优先级
+## 当前状态（v0.1.6 之后未打 tag 的提交）
 
-### P0 — install.sh 真正可用（最高优先）
+v0.1.6 之后还有 **7 个未发布提交**（均在 main 分支，未打 tag，未 Release）：
 
-**现状**：脚本在 Windows 上写的，从未在干净 Linux 上跑过，存在以下已知风险：
-- edgeAPINodes 的 INSERT 已修复（uniqueId、http JSON、accessAddrs）
-- 但整个脚本流程（下载二进制、初始化 DB、写配置、注册服务）从未端到端验证过
+| commit | 说明 |
+|--------|------|
+| c23247c8 | fix: correct edgeSysSettings INSERT SQL in install.sh |
+| 3d114556 | fix: persist edge-api configs and sync ~/.edge-admin on container restart |
+| 52925581 | feat(deploy): revamp Docker entrypoint with auto-init, fix api_admin.yaml format |
+| c8226f81 | feat(docker): add build config to docker-compose.yml |
+| 03e9f36a | feat(docker): use FreeCDN Release instead of GoEdge official binaries |
+| af35c638 | fix: copy VERSION file in install.sh; bump build script default to v0.1.6 |
+| 08ad1926 | chore: bump install.sh default version to v0.1.6 |
 
-**目标**：在一台干净 Ubuntu 22.04 服务器上 `curl ... | bash` 一次成功。
-
-**具体工作**：
-1. 审查 install.sh 完整流程，修复明显的逻辑问题
-2. 特别检查：二进制下载地址（目前从哪里下？GoEdge 官方 Release？）
-3. 验证 systemd 服务注册（edge-admin.service、edge-api.service）
-4. 验证 edgeAPITokens 表的初始化（admin token 必须正确插入）
-5. 验证管理后台登录（edgeAdmins 表需要 MD5 密码的初始账号）
-6. 同步验证 `--node` 模式
-
-**验收标准**：curl 安装后，访问 `http://IP:7788` 直接进入管理界面，无需再次配置向导。
+这些提交对应今天的工作成果（install.sh 品牌 SQL 修复、Docker 完整初始化），**已在服务器验证通过，尚未打 tag / 发布为 v0.1.7**。
 
 ---
 
-### P1 — Docker 部署可用
+## 下一步（待规划）
 
-**现状**：docker-compose.yml 和 Dockerfile 骨架存在，但：
-- Dockerfile 引用 `COPY goedge/edge-admin/...`，这个目录从哪来？没有构建流程
-- docker-entrypoint-admin.sh 没有数据库初始化逻辑（只生成配置文件，不 CREATE TABLE）
-- 没有自动注入 nodeId/secret 到数据库的逻辑（容器启动后还需要向导）
+### 近期优先：发布 v0.1.7
 
-**目标**：`docker compose up -d` 后直接能登录，无需向导。
+今天的修复已经很重要（edgeSysSettings INSERT 修复、Docker 完整初始化），值得单独发一个版本。
 
-**具体工作**：
-1. 明确 Dockerfile 的构建方式（从 GoEdge Release 直接下载二进制，不需要本地编译）
-2. docker-entrypoint-admin.sh 增加数据库初始化逻辑（等 MySQL 就绪后自动建表 + 插初始数据）
-3. 自动生成并注入 nodeId/secret（与 install.sh 逻辑共用）
-4. docker-compose.prod.yml 生产版（不暴露 MySQL 端口，配置持久化卷）
-5. 写 deploy/README.md 说明构建和使用方法
-
----
-
-### P2 — GitHub Actions 自动构建 Release
-
-**现状**：没有真正的 FreeCDN Release，install.sh 下载的其实是 GoEdge 官方二进制（界面显示 GoEdge 字样）。
-
-**目标**：每次打 tag 自动构建 linux/amd64 + linux/arm64 二进制，上传到 GitHub Release。
-
-**具体工作**：
-1. 理清编译入口（`cmd/` 目录是什么）
-2. 写 `.github/workflows/release.yml`，trigger：push tag v*
-3. 构建 edge-admin 和 edge-node（含品牌替换编译标志 `-tags community`）
-4. 上传产物：`freecdn-admin-linux-amd64.tar.gz`、`freecdn-admin-linux-arm64.tar.gz`、`freecdn-node-linux-amd64.tar.gz`、`freecdn-node-linux-arm64.tar.gz`
-5. install.sh 下载链接指向 FreeCDN 自己的 Release
-
----
+**具体工作：**
+1. 确认 v0.1.6 之后的 7 个提交都已推送到远端 main
+2. 打 tag `v0.1.7`，push 到 GitHub
+3. 跑 `local_build_release.py --version v0.1.7 --token <TOKEN>` 编译并上传 Release
+4. 更新 install.sh 默认版本号到 v0.1.7
+5. 服务器上跑一遍验证
 
 ### P3 — 真实 HTTPS 链路验证
 
@@ -109,27 +111,17 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 3. 验证 HTTPS 加速转发
 4. 把操作步骤补进 docs/INSTALL.md
 
----
+### 中期：install-node.sh 验证
 
-### P4 — 上游安全同步机制
+**现状**：install-node.sh（边缘节点安装脚本）从未在真实 Linux 上端到端跑过。
 
-**背景**：GoEdge v1.4.0/v1.4.1 被植入恶意代码，必须严格控制上游同步。
+**目标**：在第二台服务器（或同台服务器另一个端口）验证边缘节点接入流程，走通「管理后台添加节点 → install-node.sh 一键安装 → 节点在线」全链路。
 
-**具体工作**：
-1. 写 `.github/workflows/upstream-check.yml`，每周检查上游是否有新 tag
-2. 有新 tag 时创建 GitHub Issue（附 changelog diff），人工决策是否合并
-3. 不自动 merge，所有上游变更必须人工代码审计后才能进入 freecdn-main
+### 中期：社区运营
 
----
-
-### P5 — 品牌定制深化（可选）
-
-参考 GoedgeWorks 的 aiFanCDN 模板，将管理界面的 GoEdge 字样、Logo、版权信息全部替换为 FreeCDN。
-
-**集中改动位置**：
-- `web/` 目录：HTML 模板中的系统名称、logo 路径、footer 版权
-- `internal/` 中的版本常量（`internal/utils/version.go` 等）
-- 策略：改动集中到 `web/public/brand/` 和独立常量文件，避免散布
+- README 补充"为什么不用 GoEdge 官方版本"说明（v1.4.0/v1.4.1 恶意代码事件）
+- 补充快速上手截图/GIF
+- 考虑在 V2EX / Linux.do / 少数派 发推广帖
 
 ---
 
@@ -138,6 +130,7 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 | 参数 | 值 |
 |------|-----|
 | 版本基线 | GoEdge v1.3.9 |
+| 当前 FreeCDN 版本 | v0.1.6（release），main 分支有 7 个未发布提交 |
 | Go 最低版本 | 1.21 |
 | MySQL | 5.7.8+（推荐 8.0+），只能 TCP 连接 |
 | EdgeAdmin 端口 | 7788 |
@@ -146,6 +139,7 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 | FreeCDN 许可证 | Apache-2.0 |
 | 编译标志 | `-tags community`（开源版） |
 | 密码存储 | MD5（非 bcrypt） |
+| CI 状态 | GitHub Actions 账单冻结，release 需本地 local_build_release.py 手动构建 |
 
 **架构关键原则**：EdgeNode 和 EdgeAdmin 均不直连 MySQL，所有数据操作通过 EdgeAPI（gRPC 8003）。
 
@@ -153,8 +147,9 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 - `edgeAPINodes.uniqueId` ≠ `adminNodeId`（旧文档错误，真实字段是 `uniqueId`）
 - `edgeAPINodes.http` 的 `listen[0].protocol` 必须是 `"http"`（空字符串 → edge-api 无法启动）
 - `edgeAPINodes.accessAddrs` 必须含真实 IP（空数组 `[]` → SyncAPINodesTask nil pointer panic）
-- `api_admin.yaml` 必须用嵌套 YAML 格式（`rpc:` / `  endpoints:` / `    - "..."``），点号格式 `rpc.endpoints: [...]` 会导致 edge-admin 解析失败，报 "wrong token role"
+- `api_admin.yaml` 必须用嵌套 YAML 格式（`rpc:` / `  endpoints:` / `    - "..."``），点号格式会导致 edge-admin "wrong token role"
 - `edgeAPITokens.role=admin` 的 nodeId 必须与 `api_admin.yaml` 中一致
+- `edgeSysSettings` INSERT 不能有 `updatedAt` 字段（该表无此列）
 - 管理员密码 MD5 存储，不是 bcrypt
 - curl 访问管理后台返回 403（正常），需要浏览器访问
 
@@ -162,7 +157,8 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 
 ## 不做的事
 
-- **计费/套餐系统**：GoEdge 商业版计费模块不做，永远不设付费功能墙
-- **Windows 服务端支持**：边缑节点只支持 Linux
+- **计费/套餐系统**：永远不设付费功能墙
+- **Windows 服务端支持**：边缘节点只支持 Linux
 - **PostgreSQL/SQLite 支持**：只支持 MySQL（上游限制，不打算改）
 - **前端框架升级（近期）**：Vue 2 足够用，不浪费时间升 Vue 3（中期可选）
+- **跟踪 GoEdge v1.4.x+**：v1.4.0/v1.4.1 含恶意代码，永不合并

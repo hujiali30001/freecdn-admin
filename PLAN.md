@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-16 | 当前版本 v0.4.0 | 下一阶段：后台功能验收（阶段一）
+> 更新于 2026-03-16 | 当前版本 v0.4.1 | 当前阶段：后台功能验收（阶段一）
 
 ---
 
@@ -40,9 +40,10 @@ MySQL：`freecdn:****@tcp(127.0.0.1:3306)/freecdn`（密码已从文档移除，
 | v0.2.0 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 文档完善：install.md 补 HTTPS 证书申请流程，faq.md 扩充 HTTPS FAQ，README 「为什么不用 GoEdge」段落展开，推广帖草稿 |
 | v0.3.0 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 安全加固（审计 51 项中 41 项）：文件权限整改(0600/0640)、TLS 配置化、XSS 防护、安全响应头、Docker 非特权用户、entrypoint YAML 修复 |
 | v0.4.0 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | ORA-08 密码哈希升级（MD5 → bcrypt cost=12），透明迁移，存量账号首次登录自动升级 |
+| v0.4.1 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 修复 edgeAdmins.password varchar(32→64)，修复创建管理员 Data too long 错误（ORA-08 follow-up）|
 
-**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.4.0"`  
-**下载地址**：`https://github.com/hujiali30001/freecdn-admin/releases/download/v0.4.0/freecdn-v0.4.0-linux-{arch}.tar.gz`
+**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.4.1"`  
+**下载地址**：`https://github.com/hujiali30001/freecdn-admin/releases/download/v0.4.1/freecdn-v0.4.1-linux-{arch}.tar.gz`
 
 > v0.1.6 Release 包是从 **源码自主编译**（local_build_release.py），包含 edge-admin / edge-api / edge-node 三个组件，不再依赖 GoEdge 官方二进制。
 
@@ -78,36 +79,34 @@ MySQL：`freecdn:****@tcp(127.0.0.1:3306)/freecdn`（密码已从文档移除，
 - [x] **源码安全审计**：全量扫描（500+ Go 文件、321 JS 文件、441 HTML 文件、130+ 脚本），发现 51 项问题（🔴 8 / 🟠 22 / 🟡 21），输出 `research_report_source_code_audit.md`（2026-03-16）
 - [x] **安全加固 v0.3.0**：完成审计 51 项中的 41 项代码修复，发布 v0.3.0（2026-03-16）
 - [x] **ORA-08 密码哈希升级（v0.4.0）**：bcrypt cost=12 取代 MD5，存量账号透明迁移，`create-admin` 同步更新（2026-03-16）
+- [x] **阶段一路由验收**：25/25 路由全通（扫描脚本修正 + PLAN.md 路径勘误），5 项明确标注为 ⚠️（3 个商业版未移植功能 + 2 个弹窗形式）（2026-03-16）
 
 ---
 
-## 当前状态（v0.3.0，安全加固中）
+## 当前状态（v0.4.0，路由验收完成）
 
-v0.3.0 于 2026-03-16 发布，完成源码安全审计 51 项中的 **41 项代码修复**。
+v0.4.0 于 2026-03-16 发布。完成 ORA-08 密码哈希升级（bcrypt cost=12），路由层扫描验收 **25/25 全通**。
 
-**已完成的安全加固（v0.2.0 → v0.3.0）：**
+**路由验收结论：**
 
-- 🔴 RED（代码可修复 5 项）：移除 Demo 硬编码密码、开放重定向同域校验、`.gitignore` 更新、`.env.example` 创建、旧 Dockerfile 删除、`create-admin` 敏感信息清理
-- 🟠 ORA（13 项）：InsecureSkipVerify 可配置化、全局文件权限 0600/0640/0750、TLS 私钥 0600、日志文件 0640、安全响应头（CSP/HSTS/X-Frame-Options）、Dashboard v-html XSS、installRemote.js XSS 转义、`Recover()` 结构化日志、Dockerfile 非特权用户、docker-entrypoint YAML 格式修复、vue.tea.js 移除 alert()
-- 🟡 YEL（7 项）：`node/install.js` 补声明、`setup/index.js` 重复属性+detectDB 回调、`create-admin` 死代码清理、GoEdge 前端品牌替换完成
+- 25 个可访问路由全部返回 200（已登录状态）
+- 5 个条目明确标注为 ⚠️，原因如下：
+  - 集群缓存策略、集群 WAF：GoEdge 商业版功能，GoEdge 社区版 v1.3.9 代码中从未有过对应 Action 文件，非 FreeCDN 的问题
+  - 通知设置（邮件/Webhook）：GoEdge 商业版功能，同上
+  - IP 库配置、NS 配置：依赖商业 IP 数据库和自建 NS 服务，FreeCDN 定位为零门槛部署，暂不纳入
+  - 定时任务：已作为弹窗集成在 Dashboard，无独立页面属正常设计
 
-**仍需手动操作（需运维/账户权限，代码无法代劳）：**
-1. 腾讯云控制台轮换 SSH 密码（RED-01）
-2. 轮换 MySQL 密码（RED-04）
-3. `git rm --cached deploy/.env` + `git filter-repo` 清理历史（RED-03/04）
-4. 撤销并重新生成 GitHub Personal Access Token（RED-07）
-5. ORA-08：密码哈希升级（MD5 → bcrypt），需同步修改登录鉴权逻辑，影响较大，单独规划
+**下一步：功能逻辑验收（阶段一正式进入）**
 
-**文档更新（v0.2.0）：**
-- `docs/install.md`：新增「配置 HTTPS 证书」完整章节，涵盖管理台 UI 申请（HTTP-01）和 certbot DNS-01 两种方案，含 DuckDNS 注册、certbot 安装、证书申请、验证全流程 ✅
-- `docs/faq.md`：HTTPS 部分从 3 个 Q 扩充到 9 个 Q，覆盖「没有域名怎么办」「端口 80 被安全组挡」「DNS-01 插件安装」「证书申请成功但未启用」等实际遇到的问题 ✅
-- `README.md`：「为什么不用 GoEdge 官方」段落展开，详述 v1.4.0/v1.4.1 恶意代码事件始末和 FreeCDN 的应对策略 ✅
-- `docs/promo_post_draft.md`：V2EX / Linux.do 推广帖草稿 ✅
+路由层 OK 只是第一步，下一步是对每个 ✅ 页面做功能操作验收：
 
-**Release 产物：**
-- `freecdn-v0.2.0-linux-amd64.tar.gz`
-- `freecdn-v0.2.0-linux-arm64.tar.gz`
-- `SHA256SUMS`
+1. 创建一个测试 HTTP 服务，配置源站，验证转发
+2. 证书 ACME 申请流程端到端验证
+3. 创建管理员账号验证
+4. 用户系统（创建用户 → 绑定服务）验证
+5. Dashboard 流量图表数据显示验证（需节点有真实流量）
+
+
 
 ---
 
@@ -196,24 +195,24 @@ v0.3.0 于 2026-03-16 发布，完成源码安全审计 51 项中的 **41 项代
 
 | 功能 | 路径 | 状态 |
 |------|------|------|
-| 集群列表 / 创建集群 | /clusters | ⬜ |
+| 集群列表 / 创建集群 | /clusters | ✅ |
 | 集群详情 / 基本设置 | /clusters/cluster/detail | ⬜ |
-| 节点列表（边缘节点） | /clusters/nodes | ⬜ |
+| 节点列表（边缘节点） | /clusters/nodes | ✅ |
 | 节点详情 / 基本信息 | /clusters/cluster/node | ⬜ |
 | 节点缓存配置 | /clusters/cluster/node/cache | ⬜ |
 | 节点日志配置 | /clusters/cluster/node/log | ⬜ |
-| 集群缓存策略 | /clusters/cluster/cache | ⬜ |
-| 集群 WAF 配置 | /clusters/cluster/waf | ⬜ |
-| 访问日志列表 | /clusters/logs | ⬜ |
-| 定时任务列表 | /clusters/tasks | ⬜ |
-| 地区 / 运营商管理 | /clusters/regions | ⬜ |
+| 集群缓存策略 | /clusters/cluster/cache | ⚠️ 功能未实现（GoEdge 商业版功能，cluster/init.go 未注册） |
+| 集群 WAF 配置 | /clusters/cluster/waf | ⚠️ 功能未实现（GoEdge 商业版功能，cluster/init.go 未注册） |
+| 访问日志列表 | /clusters/logs | ✅ |
+| 定时任务列表 | /clusters/tasks/listPopup | ⚠️ 弹窗形式，通过 Dashboard 右上角触发，无独立路由 |
+| 地区 / 运营商管理 | /clusters/regions | ✅ |
 
 #### 2. HTTP 服务（servers/）
 
 | 功能 | 路径 | 状态 |
 |------|------|------|
-| 服务列表 | /servers | ⬜ |
-| 创建 HTTP 服务 | /servers/create | ⬜ |
+| 服务列表 | /servers | ✅ |
+| 创建 HTTP 服务 | /servers/create | ✅ |
 | 服务详情 / 基本信息 | /servers/server/detail | ⬜ |
 | 源站配置 | /servers/server/origins | ⬜ |
 | HTTPS 配置 / 证书绑定 | /servers/server/https | ⬜ |
@@ -223,18 +222,18 @@ v0.3.0 于 2026-03-16 发布，完成源码安全审计 51 项中的 **41 项代
 | Header 规则 | /servers/server/headers | ⬜ |
 | 访问控制（IP 黑白名单） | /servers/server/access | ⬜ |
 | 带宽 / 流量统计 | /servers/server/stat | ⬜ |
-| 访问日志查询 | /servers/logs | ⬜ |
-| IP 黑名单管理 | /servers/iplists | ⬜ |
-| 服务分组管理 | /servers/groups | ⬜ |
-| 指标监控 | /servers/metrics | ⬜ |
+| 访问日志查询 | /servers/logs | ✅ |
+| IP 黑名单管理 | /servers/iplists | ✅ |
+| 服务分组管理 | /servers/groups | ✅ |
+| 指标监控 | /servers/metrics | ✅ |
 
 #### 3. 证书管理（servers/certs/）
 
 | 功能 | 路径 | 状态 |
 |------|------|------|
-| 证书列表 | /servers/certs | ⬜ |
-| 申请证书（ACME HTTP-01） | /servers/certs/apply | ⬜ |
-| 上传自定义证书 | /servers/certs/upload | ⬜ |
+| 证书列表 | /servers/certs | ✅ |
+| 申请证书（ACME） | /servers/certs/acme | ✅ |
+| 上传自定义证书 | /servers/certs/uploadPopup | ✅ |
 | 证书详情 / 到期时间 | /servers/certs/cert | ⬜ |
 | 证书自动续期状态 | 任务管理页面 | ⬜ |
 
@@ -242,50 +241,50 @@ v0.3.0 于 2026-03-16 发布，完成源码安全审计 51 项中的 **41 项代
 
 | 功能 | 路径 | 状态 |
 |------|------|------|
-| DNS 域名列表 | /dns | ⬜ |
-| 添加 DNS 域名 | /dns/create | ⬜ |
+| DNS 域名列表 | /dns | ✅ |
+| 添加 DNS 域名 | /dns/domains/createPopup | ⚠️ 仅弹窗形式（/dns/create 未注册独立路由） |
 | DNS 记录管理 | /dns/domain/records | ⬜ |
 
 #### 5. 管理员与权限（admins/）
 
 | 功能 | 路径 | 状态 |
 |------|------|------|
-| 管理员列表 | /admins | ⬜ |
-| 创建管理员 | /admins/create | ⬜ |
-| 权限组管理 | /admins/grants | ⬜ |
-| 修改密码 / 个人信息 | /admins/profile | ⬜ |
+| 管理员列表 | /admins | ✅ |
+| 创建管理员 | /admins/createPopup | ✅（弹窗形式） |
+| 权限组管理 | /clusters/grants | ✅（SSH 授权在 clusters 模块） |
+| 修改密码 / 个人信息 | /settings/profile | ✅ |
 
 #### 6. 用户系统（users/）
 
 | 功能 | 路径 | 状态 |
 |------|------|------|
-| 用户列表 | /users | ⬜ |
+| 用户列表 | /users | ✅ |
 | 用户详情 / 服务归属 | /users/user | ⬜ |
 
 #### 7. 系统设置（settings/）
 
 | 功能 | 路径 | 状态 |
 |------|------|------|
-| 基本设置（系统名称等） | /settings | ⬜ |
-| 安全设置 | /settings/safety | ⬜ |
-| 通知设置（邮件/Webhook） | /settings/notifications | ⬜ |
-| IP 库配置 | /settings/ip-library | ⬜ |
-| NS 配置 | /settings/ns | ⬜ |
-| 数据库连接状态 | /db | ⬜ |
+| 基本设置（系统名称等） | /settings | ✅ |
+| 安全设置 | /settings/security | ✅ |
+| 通知设置（邮件/Webhook） | /settings/notifications | ⚠️ 功能未实现（settings/ 下无此模块） |
+| IP 库配置 | /settings/ip-library | ⚠️ 功能未实现（GoEdge 商业版功能，未移植） |
+| NS 配置 | /settings/ns | ⚠️ 功能未实现（GoEdge 商业版功能，未移植） |
+| 数据库连接状态 | /db | ✅ |
 
 #### 8. 日志与监控（log/）
 
 | 功能 | 路径 | 状态 |
 |------|------|------|
-| 系统操作日志 | /log | ⬜ |
-| 登录日志 | /log/login | ⬜ |
+| 系统操作日志 | /log | ✅ |
+| 登录日志 | /settings/login | ✅ |
 
 #### 9. Dashboard
 
 | 功能 | 路径 | 状态 |
 |------|------|------|
-| 首页概览（流量/请求数图表） | /dashboard | ⬜ |
-| 节点状态概览 | /dashboard | ⬜ |
+| 首页概览（流量/请求数图表） | /dashboard | ✅ |
+| 节点状态概览 | /dashboard | ✅ |
 
 ---
 
@@ -327,7 +326,7 @@ _验收过程中发现的问题记录于此_
 | 参数 | 值 |
 |------|-----|
 | 版本基线 | GoEdge v1.3.9 |
-| 当前 FreeCDN 版本 | v0.2.0（main 分支干净，无未发布提交） |
+| 当前 FreeCDN 版本 | v0.4.1 |
 | Go 最低版本 | 1.21 |
 | MySQL | 5.7.8+（推荐 8.0+），只能 TCP 连接 |
 | EdgeAdmin 端口 | 7788 |

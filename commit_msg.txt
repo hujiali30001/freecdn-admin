@@ -1,9 +1,1 @@
-security: ORA-08 create-admin sends md5(password) to match login flow
-
-cmd/create-admin/main.go: pre-hash password with MD5 before sending
-to edge-api RPC, consistent with frontend login behavior.
-
-Edge-api now stores bcrypt(md5(password)); legacy MD5 accounts are
-auto-upgraded to bcrypt on first login (no manual migration needed).
-
-Also update PLAN.md: mark ORA-08 complete, bump version to v0.4.0.
+release: v0.4.1 fix edgeAdmins.password col width for bcrypt

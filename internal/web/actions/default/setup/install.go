@@ -103,7 +103,8 @@ func (this *InstallAction) RunPost(params struct {
 			this.Fail("生成数据库配置失败：" + err.Error())
 			return
 		}
-		err = os.WriteFile(apiNodeDir+"/configs/db.yaml", dbConfigData, 0666)
+		// 数据库配置含密码，使用 0600 权限（仅 owner 可读写）
+		err = os.WriteFile(apiNodeDir+"/configs/db.yaml", dbConfigData, 0600)
 		if err != nil {
 			this.Fail("保存数据库配置失败（db.yaml）：" + err.Error())
 			return
@@ -124,16 +125,16 @@ func (this *InstallAction) RunPost(params struct {
 		for _, backupDir := range backupDirs {
 			stat, err := os.Stat(backupDir)
 			if err == nil && stat.IsDir() {
-				_ = os.WriteFile(backupDir+"/db.yaml", dbConfigData, 0666)
+				_ = os.WriteFile(backupDir+"/db.yaml", dbConfigData, 0600)
 			} else if err != nil && os.IsNotExist(err) {
-				err = os.Mkdir(backupDir, 0777)
+				err = os.Mkdir(backupDir, 0750)
 				if err == nil {
-					_ = os.WriteFile(backupDir+"/db.yaml", dbConfigData, 0666)
+					_ = os.WriteFile(backupDir+"/db.yaml", dbConfigData, 0600)
 				}
 			}
 		}
 
-		err = os.WriteFile(Tea.ConfigFile("/api_db.yaml"), dbConfigData, 0666)
+		err = os.WriteFile(Tea.ConfigFile("/api_db.yaml"), dbConfigData, 0600)
 		if err != nil {
 			this.Fail("保存数据库配置失败（api_db.yaml）：" + err.Error())
 			return
@@ -147,11 +148,11 @@ func (this *InstallAction) RunPost(params struct {
 		for _, backupDir := range backupDirs {
 			stat, err := os.Stat(backupDir)
 			if err == nil && stat.IsDir() {
-				_ = os.WriteFile(backupDir+"/api_db.yaml", dbConfigData, 0666)
+				_ = os.WriteFile(backupDir+"/api_db.yaml", dbConfigData, 0600)
 			} else if err != nil && os.IsNotExist(err) {
-				err = os.Mkdir(backupDir, 0777)
+				err = os.Mkdir(backupDir, 0750)
 				if err == nil {
-					_ = os.WriteFile(backupDir+"/api_db.yaml", dbConfigData, 0666)
+					_ = os.WriteFile(backupDir+"/api_db.yaml", dbConfigData, 0600)
 				}
 			}
 		}

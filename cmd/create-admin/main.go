@@ -13,9 +13,13 @@ import (
 )
 
 func main() {
-	workDir := "/home/huhuhu/freecdn/goedge/edge-admin"
+	// 工作目录优先从环境变量读取，再从命令行参数读取
+	workDir := os.Getenv("FREECDN_WORK_DIR")
+	if workDir == "" {
+		workDir = "/usr/local/freecdn/edge-admin"
+	}
 	username := "admin"
-	password := "Admin2026"
+	password := ""
 
 	if len(os.Args) >= 2 {
 		workDir = os.Args[1]
@@ -27,9 +31,15 @@ func main() {
 		password = os.Args[3]
 	}
 
+	if password == "" {
+		fmt.Println("ERROR: password is required. Usage: create-admin [workDir] [username] <password>")
+		os.Exit(1)
+	}
+
 	Tea.UpdateRoot(workDir)
 	fmt.Printf("[create-admin] workDir=%s\n", workDir)
 	fmt.Printf("[create-admin] username=%s\n", username)
+	// 不打印密码
 
 	config, err := configs.LoadAPIConfig()
 	if err != nil {
@@ -46,7 +56,7 @@ func main() {
 	}
 	defer client.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	_, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	_, err = client.AdminRPC().CreateOrUpdateAdmin(
@@ -58,10 +68,9 @@ func main() {
 	)
 	if err != nil {
 		fmt.Println("ERROR: CreateOrUpdateAdmin:", err)
-		_ = ctx
 		os.Exit(1)
 	}
 
 	fmt.Printf("[create-admin] Admin '%s' created/updated successfully!\n", username)
-	fmt.Printf("[create-admin] Login at http://WSL_IP:7788 with %s / %s\n", username, password)
+	fmt.Printf("[create-admin] Login at http://HOST:7788 with username: %s\n", username)
 }

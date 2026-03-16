@@ -2277,9 +2277,16 @@ window.Tea.Action = function (action, params) {
 							}
 						}
 
-						if (response.message != null && response.message.length > 0) {
-							alert(response.message);
+
+					if (response.message != null && response.message.length > 0) {
+						// ORA-20：改用 teaweb 通知替代原生 alert
+						if (typeof teaweb !== "undefined" && teaweb) {
+							teaweb.warn(response.message);
+						} else {
+							console.warn("[FreeCDN]", response.message);
 						}
+					}
+
 
 						if (response.next != null && typeof (response.next) === "object") {
 							if (response.next.action === "*refresh") {
@@ -2303,7 +2310,7 @@ window.Tea.Action = function (action, params) {
 				});
 			})
 			.catch(function (error) {
-				console.log(error);
+				console.error("[FreeCDN] request error:", error);
 
 				if (typeof (_errorFn) === "function") {
 					_errorFn.call(Tea.Vue, { message: error.message });
@@ -2791,7 +2798,8 @@ window.Tea.alert = function (message, callback) {
 			}
 		});
 	} else {
-		alert(message);
+		// ORA-20：teaweb 不可用时使用 console.warn 而非原生 alert
+		console.warn("[FreeCDN alert]", message);
 		if (typeof (callback) == "function") {
 			callback();
 		}

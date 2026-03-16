@@ -13,6 +13,19 @@ Tea.context(function () {
 
     let that = this
 
+    /**
+     * ORA-05: HTML 转义工具函数，防止 errMsg 拼入 html: 字符串时产生 XSS
+     */
+    function escapeHtml(str) {
+        if (!str) return ""
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;")
+    }
+
     this.checkNodes = function (isChecked) {
         this.nodes.forEach(function (v) {
             v.isChecked = isChecked
@@ -32,9 +45,19 @@ Tea.context(function () {
             that.isInstalling = true
             node.isInstalling = true
 
+            // ORA-21: 补充 .success() 和 .fail() 回调
             that.$post("$")
                 .params({
                     nodeId: node.id
+                })
+                .success(function () {
+                    // 安装请求已提交，状态轮询由 reload() 负责
+                })
+                .fail(function (err) {
+                    that.isInstalling = false
+                    node.isInstalling = false
+                    installingNode = null
+                    teaweb.warn("安装请求失败：" + (err || "未知错误"))
                 })
         } else {
             teaweb.confirm("确定要开始安装此节点吗？", function () {
@@ -42,9 +65,19 @@ Tea.context(function () {
                 that.isInstalling = true
                 node.isInstalling = true
 
+                // ORA-21: 补充 .success() 和 .fail() 回调
                 that.$post("$")
                     .params({
                         nodeId: node.id
+                    })
+                    .success(function () {
+                        // 安装请求已提交，状态轮询由 reload() 负责
+                    })
+                    .fail(function (err) {
+                        that.isInstalling = false
+                        node.isInstalling = false
+                        installingNode = null
+                        teaweb.warn("安装请求失败：" + (err || "未知错误"))
                     })
             })
         }
@@ -114,7 +147,7 @@ Tea.context(function () {
                                     case "EMPTY_GRANT":
                                         teaweb.warn("需要填写SSH登录信息", function () {
                                             teaweb.popup("/clusters/cluster/updateNodeSSH?nodeId=" + nodeId, {
-												height: "30em",
+                                                height: "30em",
                                                 callback: function () {
                                                     teaweb.reload()
                                                 }
@@ -124,7 +157,7 @@ Tea.context(function () {
                                     case "SSH登录失败，请检查设置":
                                         teaweb.warn("需要填写SSH登录信息", function () {
                                             teaweb.popup("/clusters/cluster/updateNodeSSH?nodeId=" + nodeId, {
-												height: "30em",
+                                                height: "30em",
                                                 callback: function () {
                                                     teaweb.reload()
                                                 }
@@ -141,7 +174,8 @@ Tea.context(function () {
                                         teaweb.warn("环境测试失败：" + errMsg)
                                         return
                                     case "RPC_TEST_FAILED":
-                                        teaweb.confirm("html:要安装的节点到API服务之间的RPC通讯测试失败，具体错误：" + errMsg + "，<br/>现在修改API信息？", function () {
+                                        // ORA-05: errMsg 拼入 html: 字符串前先转义，防止 XSS
+                                        teaweb.confirm("html:要安装的节点到API服务之间的RPC通讯测试失败，具体错误：" + escapeHtml(errMsg) + "，<br/>现在修改API信息？", function () {
                                             window.location = "/settings/api"
                                         })
                                         return
@@ -153,10 +187,11 @@ Tea.context(function () {
                     }
                 })
                 .done(function () {
-                    setTimeout(this.reload, 3000)
+                    // ORA-22: 使用箭头函数保留 this 上下文
+                    setTimeout(() => { that.reload() }, 3000)
                 })
         } else {
-            setTimeout(this.reload, 3000)
+            setTimeout(() => { that.reload() }, 3000)
         }
     }
 })

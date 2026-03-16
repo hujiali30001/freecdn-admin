@@ -124,11 +124,13 @@ func (this *UpdateHTTPSPopupAction) RunPost(params struct {
 			this.ErrorPage(err)
 			return
 		}
-		err = os.WriteFile(Tea.ConfigFile("https.key.pem"), certConfig.KeyData, 0666)
+		// TLS 私钥必须严格保护，仅 owner 可读写
+		err = os.WriteFile(Tea.ConfigFile("https.key.pem"), certConfig.KeyData, 0600)
 		if err != nil {
 			this.Fail("保存密钥失败：" + err.Error())
 		}
-		err = os.WriteFile(Tea.ConfigFile("https.cert.pem"), certConfig.CertData, 0666)
+		// 证书是公开内容，0640 即可（owner 读写，group 只读）
+		err = os.WriteFile(Tea.ConfigFile("https.cert.pem"), certConfig.CertData, 0640)
 		if err != nil {
 			this.Fail("保存证书失败：" + err.Error())
 		}

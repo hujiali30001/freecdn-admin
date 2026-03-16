@@ -189,7 +189,7 @@ func (this *AdminNode) checkServer() error {
 		templateFile := Tea.ConfigFile("server.template.yaml")
 		data, err := os.ReadFile(templateFile)
 		if err == nil {
-			err = os.WriteFile(configFile, data, 0666)
+			err = os.WriteFile(configFile, data, 0640)
 			if err != nil {
 				return fmt.Errorf("create config file failed: %w", err)
 			}
@@ -209,7 +209,7 @@ https:
   cert: ""
   key: ""
 `
-			err = os.WriteFile(configFile, []byte(templateYAML), 0666)
+			err = os.WriteFile(configFile, []byte(templateYAML), 0640)
 			if err != nil {
 				return fmt.Errorf("create config file failed: %w", err)
 			}
@@ -305,9 +305,9 @@ func (this *AdminNode) startAPINode() {
 			_, err = os.Stat(path)
 			if err == nil {
 				data, err := os.ReadFile(path)
+			if err == nil {
+				err = os.WriteFile(configPath, data, 0600) // api.yaml 含密钥，0600
 				if err == nil {
-					err = os.WriteFile(configPath, data, 0666)
-					if err == nil {
 						logs.Println("[NODE]recover 'edge-api/configs/api.yaml' from '" + path + "'")
 						canStart = true
 						break
@@ -331,9 +331,9 @@ func (this *AdminNode) startAPINode() {
 			_, err = os.Stat(path)
 			if err == nil {
 				data, err := os.ReadFile(path)
+			if err == nil {
+				err = os.WriteFile(dbPath, data, 0600) // db.yaml 含密码，0600
 				if err == nil {
-					err = os.WriteFile(dbPath, data, 0666)
-					if err == nil {
 						logs.Println("[NODE]recover 'edge-api/configs/db.yaml' from '" + path + "'")
 						break
 					}
@@ -362,7 +362,7 @@ func (this *AdminNode) genSecret() string {
 		return string(data)
 	}
 	secret := rands.String(32)
-	_ = os.WriteFile(tmpFile, []byte(secret), 0666)
+	_ = os.WriteFile(tmpFile, []byte(secret), 0600) // secret 临时文件，0600
 	return secret
 }
 

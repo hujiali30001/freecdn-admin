@@ -749,12 +749,13 @@ SQL
   fi
 
   # 写入品牌设置：产品名称和管理员系统名称替换为 FreeCDN
+  # 注意：edgeSysSettings 表字段仅有 id/userId/code/value，没有 updatedAt
   INSERT_ERR4=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<'SQL'
-INSERT INTO edgeSysSettings (code, value, updatedAt)
+INSERT INTO edgeSysSettings (userId, code, value)
 VALUES
-  ('product.name', '"FreeCDN"', UNIX_TIMESTAMP()),
-  ('admin.name',   '"FreeCDN管理员系统"', UNIX_TIMESTAMP())
-ON DUPLICATE KEY UPDATE value = VALUES(value), updatedAt = VALUES(updatedAt);
+  (0, 'product.name', '"FreeCDN"'),
+  (0, 'admin.name',   '"FreeCDN管理员系统"')
+ON DUPLICATE KEY UPDATE value = VALUES(value);
 SQL
 ) || INSERT_ERR4="[INSERT FAILED: exit $?]"
   if echo "$INSERT_ERR4" | grep -qi "error"; then

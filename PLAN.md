@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-16 | 当前版本 v0.2.0 | P0~P5 全部完成，文档体系完善，推广帖草稿就绪
+> 更新于 2026-03-16 | 当前版本 v0.2.0 | 下一阶段：后台功能验收 → UI 升级
 
 ---
 
@@ -93,37 +93,145 @@ v0.2.0 于 2026-03-16 发布，完成文档体系完善和社区推广准备：
 
 ---
 
-## 下一步（待规划）
+## 下一步：后台功能验收
 
-### ~~install-node.sh 边缘节点验证~~ ✅ 已验收（2026-03-16）
+**方向**：逐一验证后台管理页面的每个功能是否正常工作。所有功能验收完毕后，再进行 UI 界面升级。不做推广，自己用为主。
 
-install.sh --node 端到端跑通，freecdn-node 服务 active，节点正常运行。
+测试环境：`http://134.175.67.168:7788`（管理后台）
 
 ---
 
-### 近期优先：P3 — 真实 HTTPS 链路验证（用免费域名）
+### 阶段一：后台核心功能验收
 
-**现状**：测试用 IP 直连，无域名，无 HTTPS。
+按模块逐一验证，发现 bug 即时修复，验收通过后打 ✅。
 
-**目标**：完整 HTTPS 全链路（域名 → 边缘节点 → 源站），Let's Encrypt 自动证书。
+#### 1. 集群与节点管理（clusters/）
 
-**具体工作**：
-1. 配置一个子域名 DNS 指向 134.175.67.168
-2. 在管理后台申请 Let's Encrypt 证书（验证 ACME 流程）
-3. 验证 HTTPS 加速转发
-4. 把操作步骤补进 docs/INSTALL.md
+| 功能 | 路径 | 状态 |
+|------|------|------|
+| 集群列表 / 创建集群 | /clusters | ⬜ |
+| 集群详情 / 基本设置 | /clusters/cluster/detail | ⬜ |
+| 节点列表（边缘节点） | /clusters/nodes | ⬜ |
+| 节点详情 / 基本信息 | /clusters/cluster/node | ⬜ |
+| 节点缓存配置 | /clusters/cluster/node/cache | ⬜ |
+| 节点日志配置 | /clusters/cluster/node/log | ⬜ |
+| 集群缓存策略 | /clusters/cluster/cache | ⬜ |
+| 集群 WAF 配置 | /clusters/cluster/waf | ⬜ |
+| 访问日志列表 | /clusters/logs | ⬜ |
+| 定时任务列表 | /clusters/tasks | ⬜ |
+| 地区 / 运营商管理 | /clusters/regions | ⬜ |
 
-### 中期：install-node.sh 验证
+#### 2. HTTP 服务（servers/）
 
-**现状**：install-node.sh（边缘节点安装脚本）从未在真实 Linux 上端到端跑过。
+| 功能 | 路径 | 状态 |
+|------|------|------|
+| 服务列表 | /servers | ⬜ |
+| 创建 HTTP 服务 | /servers/create | ⬜ |
+| 服务详情 / 基本信息 | /servers/server/detail | ⬜ |
+| 源站配置 | /servers/server/origins | ⬜ |
+| HTTPS 配置 / 证书绑定 | /servers/server/https | ⬜ |
+| 缓存规则 | /servers/server/cache | ⬜ |
+| WAF 规则 | /servers/server/waf | ⬜ |
+| 重写规则 | /servers/server/rewrites | ⬜ |
+| Header 规则 | /servers/server/headers | ⬜ |
+| 访问控制（IP 黑白名单） | /servers/server/access | ⬜ |
+| 带宽 / 流量统计 | /servers/server/stat | ⬜ |
+| 访问日志查询 | /servers/logs | ⬜ |
+| IP 黑名单管理 | /servers/iplists | ⬜ |
+| 服务分组管理 | /servers/groups | ⬜ |
+| 指标监控 | /servers/metrics | ⬜ |
 
-**目标**：在第二台服务器（或同台服务器另一个端口）验证边缘节点接入流程，走通「管理后台添加节点 → install-node.sh 一键安装 → 节点在线」全链路。
+#### 3. 证书管理（servers/certs/）
 
-### 中期：社区运营
+| 功能 | 路径 | 状态 |
+|------|------|------|
+| 证书列表 | /servers/certs | ⬜ |
+| 申请证书（ACME HTTP-01） | /servers/certs/apply | ⬜ |
+| 上传自定义证书 | /servers/certs/upload | ⬜ |
+| 证书详情 / 到期时间 | /servers/certs/cert | ⬜ |
+| 证书自动续期状态 | 任务管理页面 | ⬜ |
 
-- README 补充"为什么不用 GoEdge 官方版本"说明（v1.4.0/v1.4.1 恶意代码事件）
-- 补充快速上手截图/GIF
-- 考虑在 V2EX / Linux.do / 少数派 发推广帖
+#### 4. DNS 解析（dns/）
+
+| 功能 | 路径 | 状态 |
+|------|------|------|
+| DNS 域名列表 | /dns | ⬜ |
+| 添加 DNS 域名 | /dns/create | ⬜ |
+| DNS 记录管理 | /dns/domain/records | ⬜ |
+
+#### 5. 管理员与权限（admins/）
+
+| 功能 | 路径 | 状态 |
+|------|------|------|
+| 管理员列表 | /admins | ⬜ |
+| 创建管理员 | /admins/create | ⬜ |
+| 权限组管理 | /admins/grants | ⬜ |
+| 修改密码 / 个人信息 | /admins/profile | ⬜ |
+
+#### 6. 用户系统（users/）
+
+| 功能 | 路径 | 状态 |
+|------|------|------|
+| 用户列表 | /users | ⬜ |
+| 用户详情 / 服务归属 | /users/user | ⬜ |
+
+#### 7. 系统设置（settings/）
+
+| 功能 | 路径 | 状态 |
+|------|------|------|
+| 基本设置（系统名称等） | /settings | ⬜ |
+| 安全设置 | /settings/safety | ⬜ |
+| 通知设置（邮件/Webhook） | /settings/notifications | ⬜ |
+| IP 库配置 | /settings/ip-library | ⬜ |
+| NS 配置 | /settings/ns | ⬜ |
+| 数据库连接状态 | /db | ⬜ |
+
+#### 8. 日志与监控（log/）
+
+| 功能 | 路径 | 状态 |
+|------|------|------|
+| 系统操作日志 | /log | ⬜ |
+| 登录日志 | /log/login | ⬜ |
+
+#### 9. Dashboard
+
+| 功能 | 路径 | 状态 |
+|------|------|------|
+| 首页概览（流量/请求数图表） | /dashboard | ⬜ |
+| 节点状态概览 | /dashboard | ⬜ |
+
+---
+
+### 验收规则
+
+- ⬜ = 未验收
+- ✅ = 正常（页面加载、操作成功）
+- ❌ = 有 bug（需记录具体表现）
+- ⚠️ = 功能受限（如需要第二台节点才能验证）
+
+每个 ❌ 条目需在下方「已知 Bug 列表」中记录复现步骤和修复方案。
+
+---
+
+### 已知 Bug 列表
+
+_验收过程中发现的问题记录于此_
+
+---
+
+### 阶段二：UI 界面升级（功能验收完毕后进行）
+
+**背景**：当前后台 UI 是 GoEdge 原版风格（Vue 2 + 自定义 CSS），较为陈旧。计划在功能全部验收后，系统性升级视觉风格。
+
+**升级原则**：
+- 不改变功能逻辑，只改 CSS/HTML 模板
+- 保持 Vue 2（不升 Vue 3，避免大规模重构）
+- 优先改高频页面：Dashboard、服务列表、服务详情
+
+**待定方案**（功能验收完后再选）：
+- 方案 A：统一配色 + 字体，换掉蓝色主题为更现代的深色/灰色风格
+- 方案 B：引入 TDesign Vue 2 组件库，逐页替换原有 UI 组件
+- 方案 C：直接替换为 Vue 3 + Vite + TDesign，彻底重写前端（工程量最大，暂不考虑）
 
 ---
 
@@ -162,5 +270,5 @@ install.sh --node 端到端跑通，freecdn-node 服务 active，节点正常运
 - **计费/套餐系统**：永远不设付费功能墙
 - **Windows 服务端支持**：边缘节点只支持 Linux
 - **PostgreSQL/SQLite 支持**：只支持 MySQL（上游限制，不打算改）
-- **前端框架升级（近期）**：Vue 2 足够用，不浪费时间升 Vue 3（中期可选）
+- **前端框架升级（近期）**：后台功能验收完毕前不动前端框架；UI 升级在验收后进行，具体方案待定
 - **跟踪 GoEdge v1.4.x+**：v1.4.0/v1.4.1 含恶意代码，永不合并

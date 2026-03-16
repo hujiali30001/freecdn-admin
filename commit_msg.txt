@@ -1,5 +1,9 @@
-fix: replace Unicode symbols with ASCII in build script (Windows GBK compat)
+chore: stage B complete — rename EdgeCommon module, bump to v0.7.0
 
-scripts/local_build_release.py check_version_consistency() 中的
-Unicode 符号（✓）在 Windows cmd GBK 编码下导致 UnicodeEncodeError，
-改为 ASCII 字符 [OK] / [FAIL] / [PASS]。
+- go.mod: replace github.com/hujiali30001/freecdn-common =>
+    github.com/hujiali30001/EdgeCommon v1.3.9-freecdn.2
+  (freecdn-v1.3.9 branch: module renamed + Provider firewall fields cherry-picked)
+- All 595 .go files: TeaOSLab/EdgeCommon → hujiali30001/freecdn-common
+- internal/const/const.go: Version = "0.7.0"
+- go mod tidy: cleaned stale go.sum entries
+- Verified: freecdn-admin/api/node all build successfully (CGO=0/1)

@@ -20,8 +20,8 @@ github.com/google/go-cmp v0.5.6/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/
 github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
-github.com/hujiali30001/EdgeCommon v1.3.10-0.20260315182923-7ed7574dde08 h1:JmuY3TLxGNDOfSEOarZMA1/zYnL4MHObA79XXMrzvaw=
-github.com/hujiali30001/EdgeCommon v1.3.10-0.20260315182923-7ed7574dde08/go.mod h1:GJ1zO45wmoa+W1qdZAKG89q4fcH6lCBwHq+rkUJI5J0=
+github.com/hujiali30001/EdgeCommon v1.3.9-freecdn.2 h1:Ez9jOhH4xn6XItkv/xN8UTnBQRQtxN7fvDL0KTvL9dw=
+github.com/hujiali30001/EdgeCommon v1.3.9-freecdn.2/go.mod h1:614wZwjpg2GSfC1sMCScsrN7WaX7tyzRgd+2wu5Omcc=
 github.com/iwind/TeaGo v0.0.0-20240508072741-7647e70b7070 h1:0YHZBcuXYbvtQ0XfEdtzr/XybiMrwD8vV1lvgAwzUW4=
 github.com/iwind/TeaGo v0.0.0-20240508072741-7647e70b7070/go.mod h1:SfqVbWyIPdVflyA6lMgicZzsoGS8pyeLiTRe8/CIpGI=
 github.com/iwind/gosock v0.0.0-20220505115348-f88412125a62 h1:HJH6RDheAY156DnIfJSD/bEvqyXzsZuE2gzs8PuUjoo=

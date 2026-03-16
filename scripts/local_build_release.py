@@ -290,6 +290,10 @@ def build_package(go_bin, src_dir, work_dir, freecdn_ver, arch, repo_root, token
     compile_binary(go_bin, admin_dir, "edge-admin",
                    os.path.join(bin_dir, "edge-admin"), "linux", arch)
 
+    log(f"\n-- Compiling freecdn-init ({arch}) --")
+    compile_binary(go_bin, admin_dir, "freecdn-init",
+                   os.path.join(bin_dir, "freecdn-init"), "linux", arch)
+
     log(f"\n-- Compiling edge-api ({arch}) --")
     compile_binary(go_bin, api_dir, "edge-api",
                    os.path.join(bin_dir, "edge-api"), "linux", arch)
@@ -311,6 +315,12 @@ def build_package(go_bin, src_dir, work_dir, freecdn_ver, arch, repo_root, token
 
     # edge-admin 二进制
     shutil.copy2(os.path.join(bin_dir, "edge-admin"), os.path.join(pkg_dir, "edge-admin"))
+
+    # freecdn-init 二进制（数据库初始化工具）
+    freecdn_init_src = os.path.join(bin_dir, "freecdn-init")
+    if os.path.exists(freecdn_init_src):
+        shutil.copy2(freecdn_init_src, os.path.join(pkg_dir, "freecdn-init"))
+        log("  Copied freecdn-init")
 
     # web 资源（直接用 admin 仓库的 web/）
     web_src = os.path.join(admin_dir, "web")

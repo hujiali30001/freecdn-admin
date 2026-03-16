@@ -60,7 +60,7 @@ API_ENDPOINT=""                 # node 模式必填
 NODE_ID=""                      # node 模式必填
 NODE_SECRET=""                  # node 模式必填
 
-FREECDN_VERSION="v0.8.0"        # FreeCDN 自己的 Release 版本
+FREECDN_VERSION="v0.9.0"        # FreeCDN 自己的 Release 版本
 FORCE_REINSTALL="false"
 
 # ── 参数解析 ───────────────────────────────────────────────────────────────────
@@ -472,6 +472,14 @@ if [ "$MODE" = "admin" ]; then
     error "未找到 edge-api 二进制，请检查下载包（期望路径: $API_BIN）"
   fi
 
+  # 安装 freecdn-init 二进制（数据库初始化工具）
+  INIT_BIN="${SRC_ROOT}/freecdn-init"
+  if [ -f "$INIT_BIN" ]; then
+    cp "$INIT_BIN" "${ADMIN_DIR}/bin/freecdn-init"
+    chmod +x "${ADMIN_DIR}/bin/freecdn-init"
+    info "freecdn-init 安装完成"
+  fi
+
   # 保存 edge-node zip 供后续节点使用
   NODE_ZIP_FOUND=$(find "$NODE_DEPLOY_DIR" -name "edge-node-linux-${ARCH_TAG}-*.zip" 2>/dev/null | head -1 || true)
   if [ -n "$NODE_ZIP_FOUND" ]; then
@@ -559,49 +567,79 @@ fi
 if [ "$MODE" = "admin" ]; then
   step "初始化数据库"
 
-  # Step 1：运行 edge-api upgrade 创建所有表
-  # upgrade 可能因 db 连接竞争在首次启动时 panic，最多重试 3 次
+  # 生成管理员密码（若未预先设置）
+  ADMIN_PASSWORD="FreeCDN$(date +%Y)!"
+
+  # 获取服务器内网 IP（用于 accessAddrs）
+  set +o pipefail
+  SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}' \
+    || ip route get 1 2>/dev/null | awk '{print $NF;exit}' \
+    || echo "127.0.0.1")
+  set -o pipefail
+  [ -z "$SERVER_IP" ] && SERVER_IP="127.0.0.1"
+  info "检测到服务器 IP: ${SERVER_IP}"
+
+  # 使用 freecdn-init 一键完成所有数据库初始化步骤：
+  #   1. edge-api upgrade（建表/迁移）
+  #   2. edge-api setup（创建 APINode + Token + SysSettings）
+  #   3. 写 api_admin.yaml（嵌套格式，0600）
+  #   4. 同步 api.yaml
+  #   5. 创建管理员账号（bcrypt password）
+  #   6. 写品牌设置
+  MYSQL_DSN="${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}?charset=utf8mb4&parseTime=true"
+
+  FREECDN_INIT_BIN="${ADMIN_DIR}/bin/freecdn-init"
+  if [ -f "$FREECDN_INIT_BIN" ]; then
+    info "运行 freecdn-init 初始化数据库..."
+    INIT_OUT=$("$FREECDN_INIT_BIN" \
+      --api-dir    "${API_DIR}" \
+      --admin-dir  "${ADMIN_DIR}" \
+      --mysql-dsn  "${MYSQL_DSN}" \
+      --api-host   "${SERVER_IP}" \
+      --api-port   "${API_RPC_PORT}" \
+      --admin-user "admin" \
+      --admin-pass "${ADMIN_PASSWORD}" \
+      2>&1) || {
+      error "freecdn-init 失败，请检查上方日志：
+  mysql-dsn: ${MYSQL_USER}:***@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}
+  api-dir:   ${API_DIR}
+  提示：1. MySQL 连接是否正常？ 2. edge-api 是否已正确安装？"
+    }
+    info "数据库初始化完成"
+  else
+    # 兼容旧包（freecdn-init 不存在时退化为 bash 路径）
+    warn "未找到 freecdn-init，使用传统 bash 初始化方式..."
+    _bash_init_db
+  fi
+fi
+
+# ── _bash_init_db：传统 bash 初始化（freecdn-init 不可用时的后备）──────────
+_bash_init_db() {
+  # Step 1：edge-api upgrade
   info "运行数据库迁移（edge-api upgrade）..."
   UPGRADE_OUT="/tmp/freecdn_upgrade_$$.log"
   cd "${API_DIR}"
   UPGRADE_OK=false
   for _retry in 1 2 3; do
     if ./bin/edge-api upgrade > "$UPGRADE_OUT" 2>&1; then
-      UPGRADE_OK=true
-      tail -3 "$UPGRADE_OUT" || true
-      break
+      UPGRADE_OK=true; tail -3 "$UPGRADE_OUT" || true; break
     fi
-    if grep -q "panic" "$UPGRADE_OUT" 2>/dev/null; then
-      warn "edge-api upgrade panic（第 ${_retry} 次），1秒后重试..."
-      sleep 1
-    else
-      UPGRADE_OK=true
-      warn "edge-api upgrade 返回非零（可能是表已存在，继续）："
-      cat "$UPGRADE_OUT" >&2 || true
-      break
-    fi
+    grep -q "panic" "$UPGRADE_OUT" 2>/dev/null && {
+      warn "edge-api upgrade panic（第 ${_retry} 次），1秒后重试..."; sleep 1; continue
+    }
+    UPGRADE_OK=true
+    warn "edge-api upgrade 返回非零（可能是表已存在，继续）："
+    cat "$UPGRADE_OUT" >&2 || true; break
   done
   rm -f "$UPGRADE_OUT"
   cd - > /dev/null
-  if [ "$UPGRADE_OK" = "false" ]; then
-    error "edge-api upgrade 连续 3 次 panic，数据库迁移失败，请检查 MySQL 连接配置"
-  fi
+  [ "$UPGRADE_OK" = "true" ] || error "edge-api upgrade 连续 3 次 panic"
   info "数据库迁移完成"
 
-  # Step 2：运行 edge-api setup 自动初始化 APINode + Token + SysSettings
-  # setup 命令输出 JSON：{"isOk":true,"adminNodeId":"...","adminNodeSecret":"..."}
-  # 这是正确的初始化路径，完全替代手工 SQL INSERT
-  info "运行 edge-api setup 初始化（自动创建 API 节点、管理员 Token）..."
+  # Step 2：edge-api setup
+  info "运行 edge-api setup..."
   SETUP_OUT="/tmp/freecdn_setup_$$.json"
   cd "${API_DIR}"
-
-  # 获取服务器内网 IP（用于 accessAddrs）
-  SERVER_IP=$(hostname -I | awk '{print $1}' 2>/dev/null \
-    || ip route get 1 | awk '{print $NF;exit}' 2>/dev/null \
-    || echo "127.0.0.1")
-  [ -z "$SERVER_IP" ] && SERVER_IP="127.0.0.1"
-  info "检测到服务器 IP: ${SERVER_IP}"
-
   SETUP_OK=false
   for _retry in 1 2 3; do
     if ./bin/edge-api setup \
@@ -609,25 +647,15 @@ if [ "$MODE" = "admin" ]; then
         -api-node-host="${SERVER_IP}" \
         -api-node-port="${API_RPC_PORT}" \
         > "$SETUP_OUT" 2>&1; then
-      SETUP_OK=true
-      break
+      SETUP_OK=true; break
     fi
-    warn "edge-api setup 第 ${_retry} 次失败，1秒后重试..."
-    sleep 1
+    warn "edge-api setup 第 ${_retry} 次失败，1秒后重试..."; sleep 1
   done
   cd - > /dev/null
 
-  if [ "$SETUP_OK" = "false" ]; then
-    warn "edge-api setup 命令失败，输出如下："
-    cat "$SETUP_OUT" >&2 || true
-    warn "尝试继续（可能已初始化过）..."
-  fi
-
-  # Step 3：解析 setup 命令输出，获取 adminNodeId + adminNodeSecret
   ADMIN_TOKEN_NODE_ID=""
   ADMIN_TOKEN_SECRET=""
   if [ -f "$SETUP_OUT" ]; then
-    # 用 python3 解析 JSON（系统自带）
     if command -v python3 &>/dev/null; then
       ADMIN_TOKEN_NODE_ID=$(python3 -c "
 import sys,json
@@ -647,7 +675,6 @@ except: pass
     rm -f "$SETUP_OUT"
   fi
 
-  # 若解析失败，从数据库读取（兜底）
   if [ -z "$ADMIN_TOKEN_NODE_ID" ] || [ -z "$ADMIN_TOKEN_SECRET" ]; then
     warn "无法从 setup 输出解析 token，从数据库读取..."
     ADMIN_TOKEN_NODE_ID=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" \
@@ -656,32 +683,10 @@ except: pass
       -sNe "SELECT secret FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
   fi
 
-  if [ -z "$ADMIN_TOKEN_NODE_ID" ] || [ -z "$ADMIN_TOKEN_SECRET" ]; then
-    error "无法获取 admin token，数据库初始化失败。请检查：
-  1. MySQL 连接是否正常：mysql -h 127.0.0.1 -u ${MYSQL_USER} -p ${MYSQL_DATABASE}
-  2. edge-api upgrade 是否成功创建了 edgeAPITokens 表
-  3. journalctl -u freecdn-api -n 50 查看日志"
-  fi
-  info "Admin token 获取成功（nodeId: ${ADMIN_TOKEN_NODE_ID:0:8}...）"
+  [ -n "$ADMIN_TOKEN_NODE_ID" ] && [ -n "$ADMIN_TOKEN_SECRET" ] || \
+    error "无法获取 admin token，请检查 MySQL 连接和 edge-api upgrade"
 
-  # Step 4：从数据库同步 API 节点的 uniqueId/secret 到 api.yaml
-  DB_API_UNIQUE_ID=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" \
-    -sNe "SELECT uniqueId FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
-  DB_API_SECRET=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" \
-    -sNe "SELECT secret FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
-
-  if [ -n "$DB_API_UNIQUE_ID" ] && [ -n "$DB_API_SECRET" ]; then
-    cat > "${API_DIR}/configs/api.yaml" <<YAML
-nodeId: "${DB_API_UNIQUE_ID}"
-secret: "${DB_API_SECRET}"
-YAML
-    info "api.yaml 已与数据库同步（nodeId: ${DB_API_UNIQUE_ID:0:8}...）"
-  else
-    warn "无法从 edgeAPINodes 读取 nodeId，api.yaml 将在 edge-api 首次启动时自动生成"
-  fi
-
-  # Step 5：写 api_admin.yaml（edge-admin 连接 edge-api 的认证配置）
-  # 严格使用嵌套 YAML 格式（点号格式会导致 "wrong token role" 错误）
+  # api_admin.yaml
   cat > "${ADMIN_DIR}/configs/api_admin.yaml" <<YAML
 rpc:
   endpoints:
@@ -690,20 +695,30 @@ nodeId: "${ADMIN_TOKEN_NODE_ID}"
 secret: "${ADMIN_TOKEN_SECRET}"
 YAML
   chmod 600 "${ADMIN_DIR}/configs/api_admin.yaml"
-  info "api_admin.yaml 生成完成（嵌套 YAML 格式）"
+  info "api_admin.yaml 生成完成"
 
-  # Step 6：创建管理员账号
-  # v0.4.0+ 使用 bcrypt，通过 edge-api create-admin 子命令（若有）或 SQL 直插 MD5（首次登录自动升级）
-  ADMIN_PASSWORD="FreeCDN$(date +%Y)!"
+  # api.yaml
+  DB_API_UNIQUE_ID=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" \
+    -sNe "SELECT uniqueId FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
+  DB_API_SECRET=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" \
+    -sNe "SELECT secret FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null | tr -d '\r' || true)
+  if [ -n "$DB_API_UNIQUE_ID" ] && [ -n "$DB_API_SECRET" ]; then
+    cat > "${API_DIR}/configs/api.yaml" <<YAML
+nodeId: "${DB_API_UNIQUE_ID}"
+secret: "${DB_API_SECRET}"
+YAML
+    info "api.yaml 已与数据库同步"
+  fi
+
+  # 管理员账号
   ADMIN_PASSWORD_MD5=$(echo -n "$ADMIN_PASSWORD" | md5sum | cut -d' ' -f1)
   mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>/dev/null <<SQL || \
     warn "管理员账号写入失败（可能已存在，继续）"
 INSERT IGNORE INTO edgeAdmins (id, isOn, username, password, isSuper, state, createdAt, updatedAt, canLogin)
 VALUES (1, 1, 'admin', '${ADMIN_PASSWORD_MD5}', 1, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 1);
 SQL
-  info "管理员账号创建完成（用户名: admin）"
+  info "管理员账号创建完成"
 
-  # Step 7：写入品牌设置
   mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>/dev/null <<'SQL' || \
     warn "品牌设置写入失败（可能已存在，继续）"
 INSERT INTO edgeSysSettings (userId, code, value)
@@ -713,7 +728,7 @@ VALUES
 ON DUPLICATE KEY UPDATE value = VALUES(value);
 SQL
   info "品牌设置写入完成"
-fi
+}
 
 # ── 注册 systemd 服务 ─────────────────────────────────────────────────────────
 step "注册系统服务"

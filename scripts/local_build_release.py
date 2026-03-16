@@ -487,7 +487,7 @@ def check_version_consistency(version_tag, repo_root, src_dir, token):
             continue
         found = m.group(1)
         if found == expected:
-            log(f"  [OK]  {repo_name}: Version = \"{found}\" ✓")
+            log(f"  [OK]  {repo_name}: Version = \"{found}\" OK")
         else:
             log(f"  [FAIL] {repo_name}: Version = \"{found}\"，期望 \"{expected}\"")
             all_ok = False
@@ -533,7 +533,7 @@ def main():
     if not args.skip_version_check:
         if not check_version_consistency(args.version, repo_root, src_dir, args.token):
             sys.exit(1)
-        log("版本号一致性检查通过 ✓")
+        log("版本号一致性检查通过 [PASS]")
     else:
         log("WARNING: 跳过版本号一致性检查（--skip-version-check）")
 

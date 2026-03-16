@@ -1,5 +1,9 @@
-docs: mark stage B complete, update PLAN.md to v0.7.0
+feat: v0.8.0 - /health endpoints, version bump, faq update (stage C-3)
 
-- PLAN.md: mark all stage B tasks as done
-- Version table: v0.7.0 released 2026-03-17
-- Current milestone: stage C (freecdn-init + health endpoint)
+- freecdn-admin: add /health endpoint at port 7788 (no auth required)
+- freecdn-api: add /health endpoint at port 8004 (standalone HTTP goroutine)
+- bump version to 0.8.0 in const.go, install.sh, Dockerfile, docker-compose.yml
+- update faq.md example URLs from v0.5.0 to v0.8.0
+- security: bat scripts now use GITHUB_TOKEN env var instead of hardcoded token
+- confirm freecdn-api/node Go module rename (B-3/B-4) already complete
+- update PLAN.md: mark stage C-3 complete, update version table

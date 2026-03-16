@@ -4,6 +4,7 @@ import (
 	_ "github.com/hujiali30001/freecdn-admin/internal/tasks"
 	_ "github.com/hujiali30001/freecdn-admin/internal/web/actions/default/about"
 	_ "github.com/hujiali30001/freecdn-admin/internal/web/actions/default/files"
+	_ "github.com/hujiali30001/freecdn-admin/internal/web/actions/default/health"
 
 	// 系统用户
 	_ "github.com/hujiali30001/freecdn-admin/internal/web/actions/default/admins"

@@ -1,2 +1,0 @@
-import paramiko
-print("ok")

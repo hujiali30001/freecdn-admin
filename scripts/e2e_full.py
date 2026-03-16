@@ -11,14 +11,26 @@ import http.client, urllib.parse, re, time, json, hashlib
 import paramiko
 
 # ── 基础配置 ──────────────────────────────────────────────────────────────────
-BASE_HOST = "134.175.67.168"
-BASE_PORT = 7788
-BASE = f"{BASE_HOST}:{BASE_PORT}"
-SSH_HOST = BASE_HOST
-SSH_USER = "ubuntu"
-SSH_PASS = "FreeCDN2026!"
-ADMIN_USER = "admin"
-ADMIN_PASS = "FreeCDN2026!"
+# 敏感凭据从环境变量读取，避免硬编码在源码中
+# 使用前请 export / set：
+#   SSH_HOST=134.175.67.168
+#   SSH_PASS=<服务器密码>
+#   ADMIN_PASS=<管理后台密码>（默认与 SSH_PASS 相同）
+import os as _os
+BASE_HOST  = _os.environ.get("SSH_HOST",  "134.175.67.168")
+BASE_PORT  = int(_os.environ.get("ADMIN_PORT", "7788"))
+BASE       = f"{BASE_HOST}:{BASE_PORT}"
+SSH_HOST   = BASE_HOST
+SSH_USER   = _os.environ.get("SSH_USER",  "ubuntu")
+SSH_PASS   = _os.environ.get("SSH_PASS",  "")
+ADMIN_USER = _os.environ.get("ADMIN_USER","admin")
+ADMIN_PASS = _os.environ.get("ADMIN_PASS", SSH_PASS)
+
+if not SSH_PASS:
+    print("ERROR: SSH_PASS environment variable is not set.")
+    print("  Windows: set SSH_PASS=yourpassword")
+    print("  Linux:   export SSH_PASS=yourpassword")
+    import sys; sys.exit(1)
 BROWSER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
 results = []
@@ -30,7 +42,7 @@ def ssh_run(cmd, t=20):
     global _ssh
     if _ssh is None:
         _ssh = paramiko.SSHClient()
-        _ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        _ssh.set_missing_host_key_policy(paramiko.WarningPolicy())  # 固定服务器，WarningPolicy 代替 AutoAddPolicy
         _ssh.connect(SSH_HOST, username=SSH_USER, password=SSH_PASS, timeout=30)
     _, o, e = _ssh.exec_command(cmd, timeout=t)
     return (o.read().decode(errors="replace") + e.read().decode(errors="replace")).strip()

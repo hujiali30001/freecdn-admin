@@ -1,5 +1,0 @@
-Tag: v0.4.0  |  Assets: ['freecdn-v0.4.0-linux-amd64.tar.gz', 'freecdn-v0.4.0-linux-arm64.tar.gz', 'SHA256SUMS']
-Tag: v0.3.0  |  Assets: ['freecdn-v0.3.0-linux-amd64.tar.gz', 'freecdn-v0.3.0-linux-arm64.tar.gz', 'SHA256SUMS']
-Tag: v0.1.9  |  Assets: ['freecdn-v0.1.9-linux-amd64.tar.gz', 'freecdn-v0.1.9-linux-arm64.tar.gz', 'SHA256SUMS']
-Tag: v0.1.8  |  Assets: ['freecdn-v0.1.8-linux-amd64.tar.gz', 'freecdn-v0.1.8-linux-arm64.tar.gz', 'SHA256SUMS']
-Tag: v0.1.7  |  Assets: ['freecdn-v0.1.7-linux-amd64.tar.gz', 'freecdn-v0.1.7-linux-arm64.tar.gz', 'SHA256SUMS']

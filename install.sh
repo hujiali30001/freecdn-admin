@@ -60,7 +60,7 @@ API_ENDPOINT=""                 # node 模式必填
 NODE_ID=""                      # node 模式必填
 NODE_SECRET=""                  # node 模式必填
 
-FREECDN_VERSION="v0.9.0"        # FreeCDN 自己的 Release 版本
+FREECDN_VERSION="v0.9.1"        # FreeCDN 自己的 Release 版本
 FORCE_REINSTALL="false"
 
 # ── 参数解析 ───────────────────────────────────────────────────────────────────
@@ -563,57 +563,8 @@ YAML
   info "api_node.yaml 生成完成"
 fi
 
-# ── 数据库初始化（admin 模式）────────────────────────────────────────────────
-if [ "$MODE" = "admin" ]; then
-  step "初始化数据库"
-
-  # 生成管理员密码（若未预先设置）
-  ADMIN_PASSWORD="FreeCDN$(date +%Y)!"
-
-  # 获取服务器内网 IP（用于 accessAddrs）
-  set +o pipefail
-  SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}' \
-    || ip route get 1 2>/dev/null | awk '{print $NF;exit}' \
-    || echo "127.0.0.1")
-  set -o pipefail
-  [ -z "$SERVER_IP" ] && SERVER_IP="127.0.0.1"
-  info "检测到服务器 IP: ${SERVER_IP}"
-
-  # 使用 freecdn-init 一键完成所有数据库初始化步骤：
-  #   1. edge-api upgrade（建表/迁移）
-  #   2. edge-api setup（创建 APINode + Token + SysSettings）
-  #   3. 写 api_admin.yaml（嵌套格式，0600）
-  #   4. 同步 api.yaml
-  #   5. 创建管理员账号（bcrypt password）
-  #   6. 写品牌设置
-  MYSQL_DSN="${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}?charset=utf8mb4&parseTime=true"
-
-  FREECDN_INIT_BIN="${ADMIN_DIR}/bin/freecdn-init"
-  if [ -f "$FREECDN_INIT_BIN" ]; then
-    info "运行 freecdn-init 初始化数据库..."
-    INIT_OUT=$("$FREECDN_INIT_BIN" \
-      --api-dir    "${API_DIR}" \
-      --admin-dir  "${ADMIN_DIR}" \
-      --mysql-dsn  "${MYSQL_DSN}" \
-      --api-host   "${SERVER_IP}" \
-      --api-port   "${API_RPC_PORT}" \
-      --admin-user "admin" \
-      --admin-pass "${ADMIN_PASSWORD}" \
-      2>&1) || {
-      error "freecdn-init 失败，请检查上方日志：
-  mysql-dsn: ${MYSQL_USER}:***@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}
-  api-dir:   ${API_DIR}
-  提示：1. MySQL 连接是否正常？ 2. edge-api 是否已正确安装？"
-    }
-    info "数据库初始化完成"
-  else
-    # 兼容旧包（freecdn-init 不存在时退化为 bash 路径）
-    warn "未找到 freecdn-init，使用传统 bash 初始化方式..."
-    _bash_init_db
-  fi
-fi
-
 # ── _bash_init_db：传统 bash 初始化（freecdn-init 不可用时的后备）──────────
+# 注意：函数必须定义在调用之前（bash 解释执行）
 _bash_init_db() {
   # Step 1：edge-api upgrade
   info "运行数据库迁移（edge-api upgrade）..."
@@ -729,6 +680,56 @@ ON DUPLICATE KEY UPDATE value = VALUES(value);
 SQL
   info "品牌设置写入完成"
 }
+
+# ── 数据库初始化（admin 模式）────────────────────────────────────────────────
+if [ "$MODE" = "admin" ]; then
+  step "初始化数据库"
+
+  # 生成管理员密码
+  ADMIN_PASSWORD="FreeCDN$(date +%Y)!"
+
+  # 获取服务器内网 IP（用于 accessAddrs）
+  set +o pipefail
+  SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}' \
+    || ip route get 1 2>/dev/null | awk '{print $NF;exit}' \
+    || echo "127.0.0.1")
+  set -o pipefail
+  [ -z "$SERVER_IP" ] && SERVER_IP="127.0.0.1"
+  info "检测到服务器 IP: ${SERVER_IP}"
+
+  # 使用 freecdn-init 一键完成所有数据库初始化步骤：
+  #   1. edge-api upgrade（建表/迁移）
+  #   2. edge-api setup（创建 APINode + Token + SysSettings）
+  #   3. 写 api_admin.yaml（嵌套格式，0600）
+  #   4. 同步 api.yaml
+  #   5. 创建管理员账号
+  #   6. 写品牌设置
+  MYSQL_DSN="${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}?charset=utf8mb4&parseTime=true"
+
+  FREECDN_INIT_BIN="${ADMIN_DIR}/bin/freecdn-init"
+  if [ -f "$FREECDN_INIT_BIN" ]; then
+    info "运行 freecdn-init 初始化数据库..."
+    # 直接执行（不捕获输出），让进度实时打印到终端
+    if ! "$FREECDN_INIT_BIN" \
+        --api-dir    "${API_DIR}" \
+        --admin-dir  "${ADMIN_DIR}" \
+        --mysql-dsn  "${MYSQL_DSN}" \
+        --api-host   "${SERVER_IP}" \
+        --api-port   "${API_RPC_PORT}" \
+        --admin-user "admin" \
+        --admin-pass "${ADMIN_PASSWORD}"; then
+      error "freecdn-init 失败，请查看上方输出。
+  常见原因：
+    1. MySQL 未启动或连接参数错误
+    2. edge-api 二进制未正确安装（${API_DIR}/bin/edge-api）"
+    fi
+    info "数据库初始化完成"
+  else
+    # 兼容旧包（freecdn-init 不存在时退化为 bash 路径）
+    warn "未找到 freecdn-init，使用传统 bash 初始化方式..."
+    _bash_init_db
+  fi
+fi
 
 # ── 注册 systemd 服务 ─────────────────────────────────────────────────────────
 step "注册系统服务"

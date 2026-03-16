@@ -1,99 +1,424 @@
-// labels
-.ui.toggle.checkbox input:focus:checked ~ .box:before, .ui.toggle.checkbox input:focus:checked ~ label:before {
-	background-color: #21ba45 !important;
+// ────────────────────────────────────────────────────────────────────
+// FreeCDN UI — TDesign 风格视觉升级覆盖层  v0.6.0
+// 策略：仅覆盖 CSS，不动 JS / 模板 / Semantic UI 结构
+// 主色参考 TDesign: #0052D9 (品牌蓝) / #E7F0FF (浅背景)
+// ────────────────────────────────────────────────────────────────────
+
+// ── 1. CSS 自定义属性（全局令牌）
+:root {
+  --fc-brand:        #0052D9;
+  --fc-brand-hover:  #1167F0;
+  --fc-brand-active: #0035A4;
+  --fc-brand-light:  #E7F0FF;
+  --fc-success:      #00A870;
+  --fc-warning:      #ED7B2F;
+  --fc-danger:       #E34D59;
+  --fc-text-primary: #1A1A1A;
+  --fc-text-second:  #4B4B4B;
+  --fc-text-disable: #C5C5C5;
+  --fc-border:       #DCDCDC;
+  --fc-bg:           #F5F5F5;
+  --fc-white:        #FFFFFF;
+  --fc-radius-sm:    3px;
+  --fc-radius:       4px;
+  --fc-radius-lg:    6px;
+  --fc-shadow-sm:    0 1px 4px rgba(0,0,0,.08);
+  --fc-shadow:       0 2px 8px rgba(0,0,0,.10);
+  --fc-shadow-lg:    0 4px 16px rgba(0,0,0,.12);
+  --fc-transition:   0.18s ease;
 }
 
-.ui.toggle.checkbox input:checked ~ .box:before, .ui.toggle.checkbox input:checked ~ label:before {
-	background-color: #21ba45 !important;
+// ── 2. 全局字体 & 基础颜色
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+               "Microsoft YaHei", "Segoe UI", Roboto, sans-serif !important;
+  color: var(--fc-text-primary) !important;
+  background: var(--fc-bg) !important;
+  -webkit-font-smoothing: antialiased;
 }
 
-.ui.label.basic {
-	background-color: white !important;
+// ── 3. 顶部导航栏
+.ui.menu.top-nav.blue.inverted,
+.ui.menu.top-nav.theme1,
+.ui.menu.top-nav.theme2,
+.ui.menu.top-nav.theme3,
+.ui.menu.top-nav.theme4,
+.ui.menu.top-nav.theme5,
+.ui.menu.top-nav.theme6,
+.ui.menu.top-nav.theme7 {
+  background: var(--fc-brand) !important;
+  border-bottom: 1px solid var(--fc-brand-active) !important;
+  box-shadow: 0 2px 6px rgba(0,82,217,.18) !important;
+  height: 48px !important;
 }
 
-.ui.label.basic.grey {
-	border: 1px #ccc solid !important;
+.top-nav {
+  .item {
+    font-size: 13px !important;
+    letter-spacing: .02em;
+    transition: background var(--fc-transition) !important;
+
+    &:hover, &.active {
+      background: rgba(255,255,255,.12) !important;
+      border-radius: var(--fc-radius) !important;
+    }
+  }
 }
 
-.disabled .ui.label {
-	color: #ccc !important;
+// ── 4. 左侧主菜单
+.main-menu,
+.main-menu.theme1,
+.main-menu.theme2,
+.main-menu.theme3,
+.main-menu.theme4,
+.main-menu.theme5,
+.main-menu.theme6,
+.main-menu.theme7 {
+  background: #0D2B6B !important;
+  border-right: 1px solid rgba(255,255,255,.06);
+
+  .menu, .ui.menu {
+    background: transparent !important;
+  }
+
+  .ui.menu .item {
+    color: rgba(255,255,255,.72) !important;
+    border-radius: var(--fc-radius) !important;
+    margin: 1px 6px !important;
+    padding: 0.7em 0.8em !important;
+    font-size: 13px !important;
+    transition: background var(--fc-transition), color var(--fc-transition) !important;
+
+    &:hover {
+      background: rgba(255,255,255,.10) !important;
+      color: #fff !important;
+    }
+
+    &.active, &.expend {
+      background: var(--fc-brand) !important;
+      color: #fff !important;
+    }
+  }
+
+  .ui.menu .sub-items .item.active {
+    background: rgba(0,82,217,.7) !important;
+  }
 }
 
-.ui.basic.grey.label.border-grey {
-	border-color: #ddd!important;
+// ── 5. 按钮
+.ui.button {
+  border-radius: var(--fc-radius) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: .6em 1.2em !important;
+  transition: background var(--fc-transition), box-shadow var(--fc-transition),
+              opacity var(--fc-transition) !important;
+  box-shadow: none !important;
+
+  &:not(.basic):not(.red):not(.orange):not(.green):not(.grey):not(.teal):not(.purple):not(.black) {
+    background: var(--fc-brand) !important;
+    color: #fff !important;
+
+    &:hover {
+      background: var(--fc-brand-hover) !important;
+      box-shadow: 0 2px 8px rgba(0,82,217,.3) !important;
+    }
+
+    &:active {
+      background: var(--fc-brand-active) !important;
+    }
+  }
+
+  &.basic {
+    border: 1px solid var(--fc-border) !important;
+    background: var(--fc-white) !important;
+    color: var(--fc-text-second) !important;
+    box-shadow: var(--fc-shadow-sm) !important;
+
+    &:hover {
+      border-color: var(--fc-brand) !important;
+      color: var(--fc-brand) !important;
+      background: var(--fc-brand-light) !important;
+    }
+  }
+
+  &.red {
+    background: var(--fc-danger) !important;
+    color: #fff !important;
+    border-radius: var(--fc-radius) !important;
+
+    &:hover { background: #C9333D !important; }
+  }
+
+  &.green {
+    background: var(--fc-success) !important;
+    color: #fff !important;
+    border-radius: var(--fc-radius) !important;
+  }
 }
 
-// fields
-form {
-	.fields {
-		margin-bottom: 0 !important;
-	}
+// ── 6. 表格
+.ui.table {
+  border: 1px solid var(--fc-border) !important;
+  border-radius: var(--fc-radius-lg) !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  box-shadow: var(--fc-shadow-sm) !important;
+  overflow: hidden;
+  background: var(--fc-white) !important;
+
+  thead tr th {
+    background: #F8FAFB !important;
+    color: var(--fc-text-second) !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    letter-spacing: .04em;
+    border-bottom: 1px solid var(--fc-border) !important;
+    padding: 10px 12px !important;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    td {
+      border-top: 1px solid #F2F2F2 !important;
+      padding: 10px 12px !important;
+      font-size: 13px !important;
+      vertical-align: middle !important;
+      color: var(--fc-text-primary) !important;
+      transition: background var(--fc-transition) !important;
+    }
+
+    &:last-child td { border-bottom: none !important; }
+  }
+
+  &.selectable tbody tr:hover > td {
+    background: var(--fc-brand-light) !important;
+    cursor: pointer;
+  }
+
+  tbody[style*="display: none;"],
+  tr[style*="display: none;"],
+  tr > td[style*="display: none;"],
+  tr > th[style*="display: none;"] {
+    display: none !important;
+  }
 }
 
-// links
-.link.grey {
-	color: grey !important;
-}
-
-.link.grey:hover {
-	color: #4183c4 !important;
-}
-
-// table
 table {
-	th.center, td.center {
-		text-align: center !important;
-		padding-left: 0 !important;
-		padding-right: 0 !important;
-	}
+  th.center, td.center {
+    text-align: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
 
-	th.width10 {
-		width: 10em;
-	}
-
-	th.width5 {
-		width: 5em;
-	}
-
-	th.width6 {
-		width: 6em;
-	}
+  th.width10 { width: 10em; }
+  th.width5  { width: 5em;  }
+  th.width6  { width: 6em;  }
 }
 
-.ui.table tbody[style*="display: none;"], .ui.table tr[style*="display: none;"], .ui.table tr>td[style*="display: none;"], .ui.table tr>th[style*="display: none;"] {
-	display: none!important;
-}
+// ── 7. 表单元素
+.ui.form {
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="number"],
+  input[type="url"],
+  textarea,
+  select {
+    border-radius: var(--fc-radius) !important;
+    border: 1px solid var(--fc-border) !important;
+    background: var(--fc-white) !important;
+    color: var(--fc-text-primary) !important;
+    font-size: 13px !important;
+    transition: border-color var(--fc-transition), box-shadow var(--fc-transition) !important;
+  }
 
-// textarea
-textarea::-webkit-scrollbar {
-	width: 6px !important;
+  input:focus,
+  textarea:focus {
+    border-color: var(--fc-brand) !important;
+    box-shadow: 0 0 0 3px rgba(0,82,217,.12) !important;
+    outline: none !important;
+  }
 }
 
 // dropdown
 select.dropdown {
-	height: auto !important;
+  height: auto !important;
+  border-radius: var(--fc-radius) !important;
+  border: 1px solid var(--fc-border) !important;
+  background: var(--fc-white) !important;
+  font-size: 13px !important;
 }
 
-// message
-.message {
-	.icon.warning {
-		font-size: 2em !important;
-	}
+// ── 8. 标签
+.ui.label {
+  border-radius: var(--fc-radius-sm) !important;
+  font-weight: 500 !important;
+  font-size: 12px !important;
+
+  &.basic {
+    background-color: var(--fc-white) !important;
+    border: 1px solid var(--fc-border) !important;
+
+    &.grey { border: 1px solid #ccc !important; color: var(--fc-text-second) !important; }
+  }
+
+  &.green  { background: #E3FAF1 !important; color: #00A870 !important; border: 1px solid #B4EDD9 !important; }
+  &.red    { background: #FDF2F2 !important; color: var(--fc-danger) !important; border: 1px solid #F8C9CB !important; }
+  &.orange { background: #FEF4EC !important; color: var(--fc-warning) !important; border: 1px solid #F9D4AE !important; }
+  &.blue   { background: var(--fc-brand-light) !important; color: var(--fc-brand) !important; border: 1px solid #BDD3FF !important; }
 }
 
-// popup
-body.swal2-shown {
-	overflow: auto !important;
+.disabled .ui.label { color: var(--fc-text-disable) !important; }
+.ui.basic.grey.label.border-grey { border-color: var(--fc-border) !important; }
+
+// ── 9. 消息提示框
+.ui.message {
+  border-radius: var(--fc-radius) !important;
+  box-shadow: none !important;
+  border: 1px solid var(--fc-border) !important;
+  background: var(--fc-white) !important;
+  font-size: 13px !important;
+
+  &.error   { background: #FDF2F2 !important; border-color: #F8C9CB !important; color: var(--fc-danger) !important; }
+  &.success { background: #E3FAF1 !important; border-color: #B4EDD9 !important; color: var(--fc-success) !important; }
+  &.warning { background: #FEF4EC !important; border-color: #F9D4AE !important; color: var(--fc-warning) !important; }
+  &.info    { background: var(--fc-brand-light) !important; border-color: #BDD3FF !important; color: var(--fc-brand) !important; }
+
+  .icon.warning { font-size: 2em !important; }
 }
 
-// grid
-.grid {
-	margin-right: 0 !important;
+// ── 10. Segment
+.ui.segment {
+  border-radius: var(--fc-radius-lg) !important;
+  border: 1px solid var(--fc-border) !important;
+  box-shadow: var(--fc-shadow-sm) !important;
+  background: var(--fc-white) !important;
+
+  &.basic { box-shadow: none !important; border: none !important; }
 }
 
-// fields
-.fields {
-	button {
-		min-width: 5em;
-	}
+// ── 11. Toggle
+.ui.toggle.checkbox {
+  input:focus:checked ~ .box:before,
+  input:focus:checked ~ label:before,
+  input:checked ~ .box:before,
+  input:checked ~ label:before {
+    background-color: var(--fc-brand) !important;
+  }
+}
+
+// ── 12. Tab 菜单
+.ui.menu.tab-menu {
+  .item.active:not(.title) {
+    color: var(--fc-brand) !important;
+
+    .bottom-indicator { border-bottom-color: var(--fc-brand) !important; }
+  }
+
+  .item:hover { background: var(--fc-brand-light) !important; }
+}
+
+// ── 13. 分页
+.page {
+  margin-top: 1em;
+  border-left: 1px solid var(--fc-border);
+
+  a {
+    display: inline-block;
+    background: var(--fc-white);
+    color: var(--fc-text-second);
+    padding: 5px 11px;
+    margin: 0;
+    font-size: 13px;
+    border: 1px solid var(--fc-border);
+    border-left: 0;
+    transition: background var(--fc-transition), color var(--fc-transition) !important;
+
+    &.active {
+      background: var(--fc-brand) !important;
+      color: var(--fc-white) !important;
+      border-color: var(--fc-brand) !important;
+    }
+
+    &:hover:not(.active) {
+      background: var(--fc-brand-light) !important;
+      color: var(--fc-brand) !important;
+    }
+  }
+}
+
+// ── 14. 主内容区
+.main {
+  background: var(--fc-bg) !important;
+
+  .main-box { padding-top: 0.5em; }
+
+  table td.color-border { border-left: 2px var(--fc-brand) solid !important; }
+}
+
+// ── 15. 链接
+a {
+  color: var(--fc-brand) !important;
+  transition: color var(--fc-transition) !important;
+
+  &:hover { color: var(--fc-brand-hover) !important; }
+
+  &.disabled, &.disabled:hover, &.disabled:active { color: var(--fc-text-disable) !important; }
+  &.enabled { color: var(--fc-success) !important; }
+}
+
+span.disabled { color: var(--fc-text-disable) !important; }
+span.enabled, span.green { color: var(--fc-success) !important; }
+span.red, pre.red { color: var(--fc-danger) !important; }
+
+.link.grey {
+  color: #888 !important;
+  &:hover { color: var(--fc-brand) !important; }
+}
+
+// ── 16. SweetAlert2
+body.swal2-shown { overflow: auto !important; }
+
+.swal2-popup {
+  border-radius: var(--fc-radius-lg) !important;
+  box-shadow: var(--fc-shadow-lg) !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
+}
+
+.swal2-confirm {
+  background: var(--fc-brand) !important;
+  border-radius: var(--fc-radius) !important;
+  box-shadow: none !important;
+
+  &:hover { background: var(--fc-brand-hover) !important; }
+}
+
+.swal2-cancel {
+  border-radius: var(--fc-radius) !important;
+  margin-left: 2em !important;
+}
+
+.swal2-close, .swal2-close:focus { border: 0; }
+.swal2-confirm:focus, .swal2-cancel:focus { border: 3px #ddd solid !important; }
+.swal2-confirm, .swal2-cancel { border: 3px #fff solid !important; }
+.swal2-html-container { overflow-x: hidden; }
+
+// ── 17. scrollbar
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+textarea::-webkit-scrollbar { width: 6px !important; }
+
+// ── 18. 杂项
+form .fields { margin-bottom: 0 !important; }
+.grid { margin-right: 0 !important; }
+.fields button { min-width: 5em; }
+
+// ── 19. FreeCDN: 隐藏商业版/授权相关内容
+body[data-page*="authority"] .main-box,
+body[data-route*="authority"] .main-box {
+  display: none !important;
 }

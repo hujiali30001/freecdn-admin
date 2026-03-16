@@ -337,6 +337,16 @@ _auto_setup_confirm() {
   fi
 }
 
+# ---- 确保 ~/.edge-admin/ 存在（防止 IsNewInstalled() 每次都返回 true）----
+# GoEdge 以 ~/.edge-admin/api_admin.yaml 是否存在来判断是否首次安装
+# 容器内此文件在非 volume 目录，必须每次启动时同步
+ADMIN_HOME_DIR="${HOME:-/root}/.edge-admin"
+if [ -f "${WORKDIR}/configs/api_admin.yaml" ]; then
+  mkdir -p "${ADMIN_HOME_DIR}"
+  cp -f "${WORKDIR}/configs/api_admin.yaml" "${ADMIN_HOME_DIR}/api_admin.yaml"
+  info "已同步 api_admin.yaml 到 ${ADMIN_HOME_DIR}/"
+fi
+
 # 在后台运行 setup/confirm 激活任务
 _auto_setup_confirm &
 

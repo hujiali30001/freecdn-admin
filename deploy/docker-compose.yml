@@ -25,6 +25,7 @@ networks:
 volumes:
   mysql_data:
   admin_configs:    # edge-admin configs（含安装后生成的 nodeId/secret）
+  api_configs:      # edge-api configs（含 api.yaml，重建容器后保留）
   admin_logs:
   api_logs:
   api_data:
@@ -102,6 +103,7 @@ services:
     volumes:
       # 持久化配置（含安装向导生成的 nodeId/secret，重启后保留）
       - admin_configs:/app/edge-admin/configs
+      - api_configs:/app/edge-admin/edge-api/configs
       - admin_logs:/app/edge-admin/logs
       - api_logs:/app/edge-admin/edge-api/logs
       - api_data:/app/edge-admin/edge-api/data

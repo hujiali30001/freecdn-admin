@@ -1,13 +1,20 @@
-chore: v0.1.0 release prep
+fix: persist edge-api configs and sync ~/.edge-admin on container restart
 
-- const.go: Version 0.1.0, APINodeVersion 1.3.9 (security baseline)
-- install.sh: FreeCDN Release tar.gz first, fallback to goedge.rip zip
-- install.sh: add --freecdn-version / --goedge-version flags
-- install.sh: support both tar.gz and zip package layouts
-- build.yml: fix edge-api/bin/ copy path bug
-- web footer: replace your-org placeholder with real GitHub URL
-- web views: /usr/local/freecdn instead of /usr/local/goedge
-- docs/INSTALL.md: fix Docker volume paths and binary install instructions
-- docs/FAQ.md: fix package filename format (freecdn-v0.1.0-linux-amd64.tar.gz)
-- scripts/fix_brand.py: brand replacement utility
-- normalize line endings (CRLF to LF)
+Problem:
+- After `docker compose up -d` recreates the container, edge-api/configs/
+  (including api.yaml with nodeId/secret) was lost because it was not
+  mounted as a volume. This caused edge-api to fail matching its DB record,
+  leaving the admin backend stuck on the setup wizard every restart.
+- GoEdge checks ~/.edge-admin/api_admin.yaml (HOME dir, NOT /app/...) to
+  decide if it's a fresh install (IsNewInstalled()). Since HOME is not a
+  volume, the file disappeared on every container rebuild, forcing the
+  setup wizard to appear again even though DB was already initialized.
+
+Fix (docker-compose.yml):
+- Add `api_configs` named volume mapped to /app/edge-admin/edge-api/configs
+  so that api.yaml survives container recreation.
+
+Fix (docker-entrypoint-admin.sh):
+- Before starting edge-admin, copy configs/api_admin.yaml into
+  ~/.edge-admin/ on every boot, so GoEdge always finds the file and
+  skips the setup wizard correctly.

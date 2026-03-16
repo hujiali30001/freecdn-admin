@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-16 | 当前版本 v0.1.7 | P0~P5 全部完成
+> 更新于 2026-03-16 | 当前版本 v0.1.8 | P0~P5 全部完成，边缘节点接入验证通过
 
 ---
 
@@ -35,9 +35,10 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 | v0.1.5 | 2026-03-15 | 无 Release 产物 | 编译流程完善，EdgeCommon 依赖指向自有仓库 |
 | v0.1.6 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | Docker 完整初始化、install.sh 品牌 SQL 修复 |
 | v0.1.7 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 版本号统一至 v0.1.7，PLAN.md 精确同步，服务器验证通过 |
+| v0.1.8 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 修复 MySQL socket 认证（加 -h 127.0.0.1），修复 node 模式覆盖运行中二进制 (Text file busy) |
 
-**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.1.7"`  
-**下载地址**：`https://github.com/hujiali30001/freecdn-admin/releases/download/v0.1.7/freecdn-v0.1.7-linux-{arch}.tar.gz`
+**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.1.8"`  
+**下载地址**：`https://github.com/hujiali30001/freecdn-admin/releases/download/v0.1.8/freecdn-v0.1.8-linux-{arch}.tar.gz`
 
 > v0.1.6 Release 包是从 **源码自主编译**（local_build_release.py），包含 edge-admin / edge-api / edge-node 三个组件，不再依赖 GoEdge 官方二进制。
 
@@ -66,30 +67,44 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 - [x] 文档体系（ARCHITECTURE.md、docs/INSTALL.md、docs/FAQ.md）
 - [x] README.md FreeCDN 化
 - [x] 完成 GoEdge 全维度研究报告
+- [x] **边缘节点接入验证**：install.sh --node 端到端跑通，freecdn-node active，日志无错误（2026-03-16）
+- [x] **v0.1.8 修复**：MySQL socket 认证 bug + node 模式 Text file busy bug（2026-03-16）
 
 ---
 
-## 当前状态（v0.1.7，main 分支干净）
+## 当前状态（v0.1.8，main 分支干净）
 
-v0.1.7 于 2026-03-16 发布，包含所有今天的修复（install.sh 品牌 SQL、Docker 完整初始化等）。main 分支目前无未发布提交。
+v0.1.8 于 2026-03-16 发布，修复两个关键 bug：
+- MySQL socket 认证失败（所有 `mysql -u freecdn` 语句加 `-h 127.0.0.1` 强制 TCP）
+- `--node` 模式覆盖运行中二进制报 `Text file busy`（安装前先 stop freecdn-node）
+
+**边缘节点接入验证通过（2026-03-16）**：
+- install-node.sh（即 install.sh --node）端到端跑通 ✅
+- api_node.yaml 正确写入 uniqueId/secret ✅
+- freecdn-node 服务 active，日志无错误 ✅
+- 节点正常运行（LISTENER_MANAGER: no available servers — 正常，还没配站点）✅
+
+**已知机制（文档需补充）**：
+- 节点需要在管理后台「集群 → 节点 → 添加」后获取 uniqueId/secret，再传给 install-node.sh
+- install.sh admin 模式只写 role=admin 的 edgeAPITokens，不自动注册节点
+- freecdn 用户只能用 TCP（127.0.0.1），socket 路径无权限（这是预期行为）
 
 **Release 产物：**
-- `freecdn-v0.1.7-linux-amd64.tar.gz`（42.9 MB，amd64 源码编译）
-- `freecdn-v0.1.7-linux-arm64.tar.gz`（40.6 MB，arm64 交叉编译）
+- `freecdn-v0.1.8-linux-amd64.tar.gz`
+- `freecdn-v0.1.8-linux-arm64.tar.gz`
 - `SHA256SUMS`
-
-**服务器验证结果（134.175.67.168）：**
-- install.sh 默认版本 v0.1.7 ✓
-- tar.gz 可从 ghfast.top 镜像站下载 ✓
-- edge-admin ELF 64-bit 静态链接二进制 ✓
-- VERSION 文件含正确版本号和构建时间 ✓
-- freecdn-admin / freecdn-api 服务均 active ✓
 
 ---
 
 ## 下一步（待规划）
 
-### 近期优先：P3 — 真实 HTTPS 链路验证
+### ~~install-node.sh 边缘节点验证~~ ✅ 已验收（2026-03-16）
+
+install.sh --node 端到端跑通，freecdn-node 服务 active，节点正常运行。
+
+---
+
+### 近期优先：P3 — 真实 HTTPS 链路验证（用免费域名）
 
 **现状**：测试用 IP 直连，无域名，无 HTTPS。
 
@@ -120,7 +135,7 @@ v0.1.7 于 2026-03-16 发布，包含所有今天的修复（install.sh 品牌 S
 | 参数 | 值 |
 |------|-----|
 | 版本基线 | GoEdge v1.3.9 |
-| 当前 FreeCDN 版本 | v0.1.7（main 分支干净，无未发布提交） |
+| 当前 FreeCDN 版本 | v0.1.8（main 分支干净，无未发布提交） |
 | Go 最低版本 | 1.21 |
 | MySQL | 5.7.8+（推荐 8.0+），只能 TCP 连接 |
 | EdgeAdmin 端口 | 7788 |

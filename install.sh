@@ -61,7 +61,7 @@ NODE_ID=""                      # node 模式必填
 NODE_SECRET=""                  # node 模式必填
 
 GOEDGE_VERSION="v1.3.9"
-FREECDN_VERSION="v0.1.7"        # FreeCDN 自己的 Release 版本
+FREECDN_VERSION="v0.1.8"        # FreeCDN 自己的 Release 版本
 FORCE_REINSTALL="false"
 
 # ── 参数解析 ───────────────────────────────────────────────────────────────────
@@ -105,7 +105,7 @@ FreeCDN 一键安装脚本
   --mysql-host     MySQL 地址（默认 127.0.0.1）
   --mysql-pass     MySQL 密码（默认自动生成）
   --skip-mysql     跳过 MySQL 安装（自行管理数据库时使用）
-  --version        指定 FreeCDN Release 版本（默认 v0.1.6）
+  --version        指定 FreeCDN Release 版本（默认 v0.1.7）
   --freecdn-version 同 --version
   --goedge-version  强制指定 GoEdge 底层版本（高级用法，默认 v1.3.9）
   --reinstall      强制重新安装（覆盖现有安装）
@@ -533,6 +533,13 @@ else
   NODE_ZIP_FOUND=$(find "$NODE_DEPLOY_DIR" -name "edge-node-linux-${ARCH_TAG}-*.zip" 2>/dev/null | head -1 || true)
   [ -n "$NODE_ZIP_FOUND" ] || error "未在下载包中找到 edge-node，请检查版本"
 
+  # 停止正在运行的 freecdn-node 服务（如有），避免覆盖运行中二进制时报 "Text file busy"
+  if systemctl is-active --quiet freecdn-node 2>/dev/null; then
+    info "停止旧的 freecdn-node 服务以允许二进制更新..."
+    systemctl stop freecdn-node 2>/dev/null || true
+    sleep 1
+  fi
+
   TMP_NODE="/tmp/freecdn-node-extract"
   rm -rf "$TMP_NODE"; mkdir -p "$TMP_NODE"
   unzip -q "$NODE_ZIP_FOUND" -d "$TMP_NODE"
@@ -652,7 +659,8 @@ if [ "$MODE" = "admin" ]; then
   #   http        = HTTPProtocolConfig JSON，protocol 必须是 "http"（非空字符串）
   #   accessAddrs = 外部访问地址数组（至少一个，不能为空 []）
   #   isPrimary   = 1（标记为主节点，edge-admin 依赖此字段）
-  INSERT_ERR=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<SQL
+  # 注意：必须用 -h 127.0.0.1 强制走 TCP，'freecdn'@'localhost' 走 socket 权限不足
+  INSERT_ERR=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<SQL
 INSERT IGNORE INTO edgeAPINodes (id, isOn, uniqueId, name, description, secret, clusterId, http, https, accessAddrs, state, createdAt, isPrimary)
 VALUES (
   1,
@@ -678,8 +686,8 @@ SQL
   fi
 
   # 从数据库反查实际生效的 uniqueId/secret（INSERT IGNORE 不覆盖时读已有值）
-  DB_API_UNIQUE_ID=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT uniqueId FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null || echo "")
-  DB_API_SECRET=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT secret FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null || echo "")
+  DB_API_UNIQUE_ID=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT uniqueId FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null || echo "")
+  DB_API_SECRET=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT secret FROM edgeAPINodes WHERE id=1 LIMIT 1;" 2>/dev/null || echo "")
   if [ -n "$DB_API_UNIQUE_ID" ] && [ -n "$DB_API_SECRET" ]; then
     cat > "${API_DIR}/configs/api.yaml" <<YAML
 nodeId: "${DB_API_UNIQUE_ID}"
@@ -696,7 +704,7 @@ YAML
   fi
 
   # 插入管理员 Token（role=admin，供 edge-admin 连接 edge-api 用）
-  INSERT_ERR2=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<SQL
+  INSERT_ERR2=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<SQL
 INSERT IGNORE INTO edgeAPITokens (nodeId, secret, role, state)
 VALUES (
   '${ADMIN_TOKEN_NODE_ID}',
@@ -713,8 +721,8 @@ SQL
   fi
 
   # 从数据库反查实际生效的 admin token（INSERT IGNORE 不覆盖时读已有值）
-  DB_ADMIN_TOKEN_ID=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT nodeId FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null || echo "")
-  DB_ADMIN_TOKEN_SECRET=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT secret FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null || echo "")
+  DB_ADMIN_TOKEN_ID=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT nodeId FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null || echo "")
+  DB_ADMIN_TOKEN_SECRET=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -sNe "SELECT secret FROM edgeAPITokens WHERE role='admin' LIMIT 1;" 2>/dev/null || echo "")
   if [ -n "$DB_ADMIN_TOKEN_ID" ] && [ -n "$DB_ADMIN_TOKEN_SECRET" ]; then
     ADMIN_TOKEN_NODE_ID="$DB_ADMIN_TOKEN_ID"
     ADMIN_TOKEN_SECRET="$DB_ADMIN_TOKEN_SECRET"
@@ -737,7 +745,7 @@ YAML
   # 创建管理员账号
   ADMIN_PASSWORD="FreeCDN$(date +%Y)!"
   ADMIN_PASSWORD_MD5=$(echo -n "$ADMIN_PASSWORD" | md5sum | cut -d' ' -f1)
-  INSERT_ERR3=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<SQL
+  INSERT_ERR3=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<SQL
 INSERT IGNORE INTO edgeAdmins (id, isOn, username, password, isSuper, state, createdAt, updatedAt, canLogin)
 VALUES (1, 1, 'admin', '${ADMIN_PASSWORD_MD5}', 1, 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), 1);
 SQL
@@ -750,7 +758,7 @@ SQL
 
   # 写入品牌设置：产品名称和管理员系统名称替换为 FreeCDN
   # 注意：edgeSysSettings 表字段仅有 id/userId/code/value，没有 updatedAt
-  INSERT_ERR4=$(mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<'SQL'
+  INSERT_ERR4=$(mysql -h 127.0.0.1 -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" 2>&1 <<'SQL'
 INSERT INTO edgeSysSettings (userId, code, value)
 VALUES
   (0, 'product.name', '"FreeCDN"'),

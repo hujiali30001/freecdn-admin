@@ -10,6 +10,7 @@ import (
 	"github.com/hujiali30001/freecdn-admin/internal/rpc"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
 	"github.com/iwind/TeaGo/Tea"
+	stringutil "github.com/iwind/TeaGo/utils/string"
 )
 
 func main() {
@@ -59,11 +60,15 @@ func main() {
 	_, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	// ORA-08：与前端登录保持一致，发送 md5(password)
+	// edge-api 存储的是 bcrypt(md5(password))，前端也发 md5(password)
+	passwordMd5 := stringutil.Md5(password)
+
 	_, err = client.AdminRPC().CreateOrUpdateAdmin(
 		client.APIContext(0),
 		&pb.CreateOrUpdateAdminRequest{
 			Username: username,
-			Password: password,
+			Password: passwordMd5,
 		},
 	)
 	if err != nil {

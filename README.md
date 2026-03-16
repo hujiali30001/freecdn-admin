@@ -119,13 +119,18 @@ sudo systemctl daemon-reload && sudo systemctl restart docker
 
 ---
 
-## 安全说明
+## 为什么不用 GoEdge 官方版本？
 
-FreeCDN **锁定使用 GoEdge v1.3.9**，不跟踪 v1.4.0 及以上版本。
+**2024 年 7 月，GoEdge v1.4.0 和 v1.4.1 的 EdgeNode 被植入了恶意代码。** 具体表现为：EdgeNode 会在代理的网页响应中自动注入第三方 JavaScript，绕过用户配置直接劫持访客流量，将流量重定向至攻击者控制的广告系统。受影响的 CDN 运营者在不知情的情况下向终端用户投放了第三方广告。
 
-2024 年 7 月，GoEdge v1.4.0/v1.4.1 的 EdgeNode 被植入恶意 JS 注入代码，导致大量网站流量被劫持。中文技术社区普遍推荐以 v1.3.9 作为安全基线。FreeCDN 基于此版本，并在合并任何上游更新前进行严格的代码安全审计。
+事件被中文技术社区曝光后引发大量讨论（参见：[Linux.do 投毒事件复盘](https://linux.do/t/topic/160500)）。GoEdge 官方随后发布了 v1.4.2 声称修复，但已有相当一部分社区用户永久失去信任。
 
-参考：[GoEdge 投毒事件复盘](https://linux.do/t/topic/160500)
+**FreeCDN 的应对策略：**
+
+- **版本锁定**：基于 v1.3.9，这是恶意代码植入前最后一个干净版本，也是中文社区公认的安全基线
+- **不自动跟踪上游**：v1.4.x 及以后的所有版本，必须经过逐行代码审计后才会考虑合并，永远不会自动同步
+- **每周自动检查**：GitHub Actions 每周检查 GoEdge 上游是否有新 tag，自动创建 Issue 供维护者人工审查
+- **供应链透明**：从源码编译，三个依赖仓库（EdgeAdmin、EdgeAPI、EdgeCommon）均为自有 Fork，不依赖 GoEdge 官方的分发渠道
 
 ---
 

@@ -40,9 +40,9 @@ curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/free
 
 ```bash
 # 从 Release 页面手动下载
-wget https://github.com/hujiali30001/freecdn-admin/releases/download/v0.1.0/freecdn-v0.1.0-linux-amd64.tar.gz
+wget https://github.com/hujiali30001/freecdn-admin/releases/download/v0.2.0/freecdn-v0.2.0-linux-amd64.tar.gz
 # 上传到目标服务器
-scp freecdn-v0.1.0-linux-amd64.tar.gz root@YOUR_SERVER:/tmp/freecdn-pkg.tar.gz
+scp freecdn-v0.2.0-linux-amd64.tar.gz root@YOUR_SERVER:/tmp/freecdn-pkg.tar.gz
 # 然后在服务器上执行 install.sh，脚本会自动检测到已存在的包，跳过下载
 ```
 
@@ -193,25 +193,100 @@ sysctl -p
 
 ### Q: 如何为 CDN 域名配置 HTTPS？
 
-在 EdgeAdmin 管理台：
+有两种方式，推荐先用方式一（简单），遇到问题再考虑方式二（更通用）：
 
-1. 进入"证书管理" → "申请证书"（Let's Encrypt ACME 自动申请）
-2. 填写域名，确保域名 DNS 已解析到 EdgeNode IP
-3. 申请成功后，在"HTTP 服务" → 对应域名 → "HTTPS" 中启用，选择证书
-4. 证书到期前会自动续期（EdgeAdmin 内置续期任务）
+**方式一：管理台 UI 一键申请（HTTP-01 验证）**
 
-### Q: 申请证书时报 DNS 验证失败
+1. 管理台 → 证书管理 → 申请证书（Let's Encrypt ACME 自动申请）
+2. 填写域名，选择「HTTP-01 验证」，确保该域名的 A 记录已指向边缘节点 IP
+3. 确认边缘节点 80 端口对公网开放，点击申请
+4. 成功后在「HTTP 服务 → 对应域名 → HTTPS」中启用并选择证书
 
-ACME HTTP-01 验证需要域名 80 端口可访问，DNS-01 验证需要配置 DNS API。
+**方式二：certbot + DNS-01 验证（无需开放 80 端口）**
 
-确认：
-- 域名 A 记录已指向 EdgeNode 的公网 IP
-- EdgeNode 80 端口防火墙已开放
-- 等待 DNS 生效（TTL 较长时需等待）
+适合腾讯云/阿里云等安全组默认不开放 80 端口的场景。详见 [安装指南 → 配置 HTTPS 证书](./INSTALL.md#配置-https-证书)。
 
-### Q: 可以上传自定义证书吗？
+### Q: 我没有域名，能用 HTTPS 吗？
 
-可以。管理台"证书管理" → "上传证书"，填入 PEM 格式的证书和私钥即可。
+Let's Encrypt 不支持裸 IP，必须有域名才能申请证书。
+
+推荐使用 **DuckDNS**（https://www.duckdns.org）申请免费子域名，格式为 `你的名字.duckdns.org`，注册即用，整个过程 2 分钟。DuckDNS 还支持 DNS-01 验证，可以完全绕过端口 80 限制。
+
+具体步骤见 [安装指南 → 方案二：certbot + DuckDNS DNS-01 验证](./INSTALL.md#方案二certbot--duckdns-dns-01-验证无需开放-80-端口)。
+
+### Q: 申请证书时提示「连接被重置」或「Connection reset by peer」
+
+这是典型的**安全组/防火墙挡住了 80 端口**的症状。Let's Encrypt HTTP-01 验证时会从外部访问 `http://你的域名/.well-known/acme-challenge/...`，如果服务器的安全组或 iptables 没有放行 80 端口，连接就会被 reset。
+
+解决方案有两个：
+
+1. 在云控制台的**安全组**中添加入站规则放行 TCP 80（注意：服务器本机 ufw 和云安全组是两套规则，两个都要改）
+2. 改用 **DNS-01 验证**，完全不依赖 80 端口（推荐，见上一条）
+
+### Q: 申请证书时报「DNS 解析失败」或「Could not resolve host」
+
+域名 A 记录还没生效。检查步骤：
+
+```bash
+# 从外部验证 DNS 是否已生效（不要用 localhost，要用公共 DNS）
+nslookup 你的域名 8.8.8.8
+# 或
+dig 你的域名 @1.1.1.1
+```
+
+如果结果显示的 IP 不是你的边缘节点 IP，说明 DNS 还没传播完成。DuckDNS 更新通常 30 秒内生效；如果是自购域名，TTL 可能需要等几分钟到几小时。
+
+### Q: certbot 安装了但提示「找不到 dns-duckdns 插件」
+
+snap 安装的 certbot 需要显式连接插件：
+
+```bash
+sudo snap install certbot-dns-duckdns
+sudo snap set certbot trust-plugin-with-root=ok
+sudo snap connect certbot:plugin certbot-dns-duckdns
+
+# 验证插件已加载
+certbot plugins | grep duckdns
+```
+
+### Q: 证书申请成功了，但 curl 访问还是显示 HTTP 而不是 HTTPS
+
+证书申请和启用是两步操作。申请完成后还需要：
+
+1. 管理台 → 证书管理，确认证书状态为"正常"
+2. 进入对应 HTTP 服务 → HTTPS 标签页 → 启用 HTTPS，选择刚申请的证书
+3. 在服务配置中确认有监听 443 端口的规则（或让边缘节点自动监听）
+
+然后再用 `curl -v https://你的域名/` 测试。
+
+### Q: curl 测试显示 TLS 握手成功但 HTTP/2 没有升级，只有 HTTP/1.1
+
+HTTP/2 需要服务端开启 ALPN h2 协商。FreeCDN/GoEdge 默认启用 HTTP/2，如果看到 HTTP/1.1，可能是：
+
+- 客户端没有发送 ALPN（老版本 curl）：`curl --http2 -v https://你的域名/`
+- 服务端配置中 HTTP/2 被手动关闭：管理台 → HTTP 服务 → HTTPS 配置 → 确认 HTTP/2 开关已启用
+
+### Q: 可以上传自定义证书（如阿里云/腾讯云购买的证书）吗？
+
+可以。管理台 → 证书管理 → 上传证书，将 PEM 格式的证书（fullchain）和私钥粘贴进去即可。
+
+注意：上传的证书需要是完整链（包含中间 CA 证书），不要只上传服务器证书，否则部分客户端会报「证书链不完整」。
+
+### Q: 证书快到期了但没有自动续期
+
+检查 certbot 定时任务是否正常：
+
+```bash
+# snap 安装的 certbot
+sudo systemctl status snap.certbot.renew.timer
+
+# apt 安装的 certbot
+sudo systemctl status certbot.timer
+# 或
+sudo crontab -l | grep certbot
+```
+
+如果使用管理台申请的证书，续期由 EdgeAdmin 内置任务处理，可以在「任务管理」页面查看续期任务状态。
 
 ---
 

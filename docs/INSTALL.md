@@ -200,6 +200,121 @@ systemctl enable --now edge-node
 
 ---
 
+## 配置 HTTPS 证书
+
+完成基础安装、边缘节点上线后，下一步是为加速域名申请 HTTPS 证书。
+
+### 准备工作：获取一个域名
+
+Let's Encrypt 证书必须绑定域名（不支持裸 IP）。推荐用以下免费方案之一：
+
+| 方案 | 地址 | 适合场景 |
+|------|------|---------|
+| DuckDNS（推荐） | https://www.duckdns.org | 个人测试，注册即用，支持 DNS-01 验证 |
+| FreeDNS | https://freedns.afraid.org | 有更多二级域名可选 |
+| 自购域名 | 阿里云 / Cloudflare | 生产环境推荐 |
+
+### 方案一：通过管理台 UI 申请（最简单）
+
+适合：域名 DNS 已解析到边缘节点 IP，且**边缘节点的 80 端口已对公网开放**。
+
+1. 管理台 → **证书管理** → **申请证书**
+2. 填写域名，选择「HTTP-01 验证」
+3. 确保域名 A 记录已指向边缘节点公网 IP，点击申请
+4. 申请成功后，进入 **HTTP 服务** → 对应站点 → **HTTPS** → 启用并选择证书
+
+证书到期前，管理台内置续期任务会自动处理，无需手动操作。
+
+### 方案二：certbot + DuckDNS DNS-01 验证（无需开放 80 端口）
+
+适合：腾讯云/阿里云安全组未开放 80 端口，或需要申请**通配符证书**的场景。
+
+**优势**：完全基于 DNS TXT 记录验证，不需要公网 80 端口，甚至不需要先启动边缘节点，申请成功后再配置服务也可以。
+
+#### 1. 注册 DuckDNS 并添加子域名
+
+访问 [duckdns.org](https://www.duckdns.org)，用 GitHub 账号登录，添加一个子域名（如 `mycdn`），复制页面顶部的 **token**（UUID 格式）。
+
+然后更新 A 记录指向你的边缘节点 IP：
+
+```bash
+# 把下面的参数替换为你的值
+DOMAIN="mycdn"        # 子域名（不含 .duckdns.org）
+TOKEN="你的token"
+SERVER_IP="边缘节点公网IP"
+
+curl "https://www.duckdns.org/update?domains=${DOMAIN}&token=${TOKEN}&ip=${SERVER_IP}"
+# 返回 OK 表示成功
+```
+
+#### 2. 在边缘节点服务器上安装 certbot
+
+```bash
+# Ubuntu 22.04+（推荐用 snap 安装，版本最新）
+sudo apt update
+sudo snap install --classic certbot
+sudo snap install certbot-dns-duckdns
+sudo snap set certbot trust-plugin-with-root=ok
+sudo snap connect certbot:plugin certbot-dns-duckdns
+```
+
+#### 3. 创建 DuckDNS 配置文件
+
+```bash
+sudo mkdir -p /etc/letsencrypt/duckdns
+sudo tee /etc/letsencrypt/duckdns/credentials.ini > /dev/null <<EOF
+dns_duckdns_token=你的DuckDNS_token
+EOF
+sudo chmod 600 /etc/letsencrypt/duckdns/credentials.ini
+```
+
+#### 4. 申请证书
+
+```bash
+sudo certbot certonly \
+  --authenticator dns-duckdns \
+  --dns-duckdns-credentials /etc/letsencrypt/duckdns/credentials.ini \
+  --dns-duckdns-propagation-seconds 60 \
+  -d "mycdn.duckdns.org" \
+  --non-interactive \
+  --agree-tos \
+  -m "your-email@example.com"
+```
+
+成功后证书位于：
+- 证书：`/etc/letsencrypt/live/mycdn.duckdns.org/fullchain.pem`
+- 私钥：`/etc/letsencrypt/live/mycdn.duckdns.org/privkey.pem`
+
+#### 5. 配置边缘节点使用证书
+
+通过管理台 → **证书管理** → **上传证书**，将 `fullchain.pem` 和 `privkey.pem` 的内容粘贴进去。
+
+或者在管理台 → **HTTP 服务** → 站点 → **HTTPS** → 填写证书路径（直接引用服务器上的文件）。
+
+#### 6. 验证 HTTPS 链路
+
+```bash
+curl -v https://mycdn.duckdns.org/ 2>&1 | grep -E "SSL|HTTP|Connected"
+# 期望看到：
+# SSL connection using TLSv1.3
+# SSL certificate verify ok.
+# HTTP/2 200
+```
+
+#### 7. 自动续期
+
+certbot 在安装时已自动创建 systemd timer，证书到期前 30 天会自动续期：
+
+```bash
+# 检查自动续期状态
+sudo systemctl status snap.certbot.renew.timer
+
+# 手动测试续期（dry run，不实际续期）
+sudo certbot renew --dry-run
+```
+
+---
+
 ## 甲骨文免费云零成本部署
 
 甲骨文 (Oracle Cloud) 的永久免费资源足以运行完整的 FreeCDN：

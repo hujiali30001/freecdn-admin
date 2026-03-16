@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-16 | 当前版本 v0.1.9 | P0~P5 全部完成，P3 HTTPS 链路验证通过
+> 更新于 2026-03-16 | 当前版本 v0.2.0 | P0~P5 全部完成，文档体系完善，推广帖草稿就绪
 
 ---
 
@@ -37,9 +37,10 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 | v0.1.7 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 版本号统一至 v0.1.7，PLAN.md 精确同步，服务器验证通过 |
 | v0.1.8 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 修复 MySQL socket 认证（加 -h 127.0.0.1），修复 node 模式覆盖运行中二进制 (Text file busy) |
 | v0.1.9 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | P3 HTTPS 链路验证通过：DuckDNS + Let's Encrypt DNS-01 + TLS 1.3 + HTTP/2 全链路跑通 |
+| v0.2.0 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 文档完善：install.md 补 HTTPS 证书申请流程，faq.md 扩充 HTTPS FAQ，README 「为什么不用 GoEdge」段落展开，推广帖草稿 |
 
-**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.1.9"`  
-**下载地址**：`https://github.com/hujiali30001/freecdn-admin/releases/download/v0.1.9/freecdn-v0.1.9-linux-{arch}.tar.gz`
+**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.2.0"`  
+**下载地址**：`https://github.com/hujiali30001/freecdn-admin/releases/download/v0.2.0/freecdn-v0.2.0-linux-{arch}.tar.gz`
 
 > v0.1.6 Release 包是从 **源码自主编译**（local_build_release.py），包含 edge-admin / edge-api / edge-node 三个组件，不再依赖 GoEdge 官方二进制。
 
@@ -71,25 +72,23 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 - [x] **边缘节点接入验证**：install.sh --node 端到端跑通，freecdn-node active，日志无错误（2026-03-16）
 - [x] **v0.1.8 修复**：MySQL socket 认证 bug + node 模式 Text file busy bug（2026-03-16）
 - [x] **P3 HTTPS 链路验证**：DuckDNS + Let's Encrypt DNS-01 + TLS 1.3/HTTP2 全链路跑通，freecdntest.duckdns.org（2026-03-16）
+- [x] **文档完善（v0.2.0）**：install.md 补 HTTPS 申请流程（DuckDNS + certbot DNS-01）；faq.md 扩充 HTTPS FAQ（9 个 Q&A）；README「为什么不用 GoEdge 官方」段落展开；推广帖草稿（docs/promo_post_draft.md）（2026-03-16）
 
 ---
 
-## 当前状态（v0.1.9，main 分支干净）
+## 当前状态（v0.2.0，main 分支干净）
 
-v0.1.9 于 2026-03-16 发布，完成 P3 HTTPS 链路端到端验证：
-- **DuckDNS 免费域名**：`freecdntest.duckdns.org → 134.175.67.168` ✅
-- **Let's Encrypt 证书**：DNS-01 验证（DuckDNS TXT 记录），免公网 80 端口 ✅
-- **freecdn-node 监听 443**：`[LISTENER_MANAGER] listen 'https://*:443'` ✅
-- **TLS 1.3 握手**：`SSL connection using TLSv1.3 / TLS_AES_128_GCM_SHA256` ✅
-- **Let's Encrypt 证书验证通过**：`SSL certificate verify ok.` ✅
-- **HTTP/2 升级**：`Connection state changed (HTTP/2 confirmed)` ✅
-- **CDN 转发链路通**：`HTTP/2 404`（源站 httpbin.org 需要配正确路径）✅
+v0.2.0 于 2026-03-16 发布，完成文档体系完善和社区推广准备：
 
-**certbot 自动续期**已配置（certbot 5.4.0 via snap，DuckDNS DNS-01 hook）。
+**文档更新：**
+- `docs/install.md`：新增「配置 HTTPS 证书」完整章节，涵盖管理台 UI 申请（HTTP-01）和 certbot DNS-01 两种方案，含 DuckDNS 注册、certbot 安装、证书申请、验证全流程 ✅
+- `docs/faq.md`：HTTPS 部分从 3 个 Q 扩充到 9 个 Q，覆盖「没有域名怎么办」「端口 80 被安全组挡」「DNS-01 插件安装」「证书申请成功但未启用」等实际遇到的问题 ✅
+- `README.md`：「为什么不用 GoEdge 官方」段落展开，详述 v1.4.0/v1.4.1 恶意代码事件始末和 FreeCDN 的应对策略 ✅
+- `docs/promo_post_draft.md`：V2EX / Linux.do 推广帖草稿 ✅
 
 **Release 产物：**
-- `freecdn-v0.1.9-linux-amd64.tar.gz`
-- `freecdn-v0.1.9-linux-arm64.tar.gz`
+- `freecdn-v0.2.0-linux-amd64.tar.gz`
+- `freecdn-v0.2.0-linux-arm64.tar.gz`
 - `SHA256SUMS`
 
 ---
@@ -133,7 +132,7 @@ install.sh --node 端到端跑通，freecdn-node 服务 active，节点正常运
 | 参数 | 值 |
 |------|-----|
 | 版本基线 | GoEdge v1.3.9 |
-| 当前 FreeCDN 版本 | v0.1.9（main 分支干净，无未发布提交） |
+| 当前 FreeCDN 版本 | v0.2.0（main 分支干净，无未发布提交） |
 | Go 最低版本 | 1.21 |
 | MySQL | 5.7.8+（推荐 8.0+），只能 TCP 连接 |
 | EdgeAdmin 端口 | 7788 |

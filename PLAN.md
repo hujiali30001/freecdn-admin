@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-16 | 当前版本 v0.1.8 | P0~P5 全部完成，边缘节点接入验证通过
+> 更新于 2026-03-16 | 当前版本 v0.1.9 | P0~P5 全部完成，P3 HTTPS 链路验证通过
 
 ---
 
@@ -36,9 +36,10 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 | v0.1.6 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | Docker 完整初始化、install.sh 品牌 SQL 修复 |
 | v0.1.7 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 版本号统一至 v0.1.7，PLAN.md 精确同步，服务器验证通过 |
 | v0.1.8 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | 修复 MySQL socket 认证（加 -h 127.0.0.1），修复 node 模式覆盖运行中二进制 (Text file busy) |
+| v0.1.9 | 2026-03-16 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | P3 HTTPS 链路验证通过：DuckDNS + Let's Encrypt DNS-01 + TLS 1.3 + HTTP/2 全链路跑通 |
 
-**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.1.8"`  
-**下载地址**：`https://github.com/hujiali30001/freecdn-admin/releases/download/v0.1.8/freecdn-v0.1.8-linux-{arch}.tar.gz`
+**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.1.9"`  
+**下载地址**：`https://github.com/hujiali30001/freecdn-admin/releases/download/v0.1.9/freecdn-v0.1.9-linux-{arch}.tar.gz`
 
 > v0.1.6 Release 包是从 **源码自主编译**（local_build_release.py），包含 edge-admin / edge-api / edge-node 三个组件，不再依赖 GoEdge 官方二进制。
 
@@ -69,30 +70,26 @@ MySQL：`freecdn:FreeCDN_Mysql2026!@tcp(127.0.0.1:3306)/freecdn`
 - [x] 完成 GoEdge 全维度研究报告
 - [x] **边缘节点接入验证**：install.sh --node 端到端跑通，freecdn-node active，日志无错误（2026-03-16）
 - [x] **v0.1.8 修复**：MySQL socket 认证 bug + node 模式 Text file busy bug（2026-03-16）
+- [x] **P3 HTTPS 链路验证**：DuckDNS + Let's Encrypt DNS-01 + TLS 1.3/HTTP2 全链路跑通，freecdntest.duckdns.org（2026-03-16）
 
 ---
 
-## 当前状态（v0.1.8，main 分支干净）
+## 当前状态（v0.1.9，main 分支干净）
 
-v0.1.8 于 2026-03-16 发布，修复两个关键 bug：
-- MySQL socket 认证失败（所有 `mysql -u freecdn` 语句加 `-h 127.0.0.1` 强制 TCP）
-- `--node` 模式覆盖运行中二进制报 `Text file busy`（安装前先 stop freecdn-node）
+v0.1.9 于 2026-03-16 发布，完成 P3 HTTPS 链路端到端验证：
+- **DuckDNS 免费域名**：`freecdntest.duckdns.org → 134.175.67.168` ✅
+- **Let's Encrypt 证书**：DNS-01 验证（DuckDNS TXT 记录），免公网 80 端口 ✅
+- **freecdn-node 监听 443**：`[LISTENER_MANAGER] listen 'https://*:443'` ✅
+- **TLS 1.3 握手**：`SSL connection using TLSv1.3 / TLS_AES_128_GCM_SHA256` ✅
+- **Let's Encrypt 证书验证通过**：`SSL certificate verify ok.` ✅
+- **HTTP/2 升级**：`Connection state changed (HTTP/2 confirmed)` ✅
+- **CDN 转发链路通**：`HTTP/2 404`（源站 httpbin.org 需要配正确路径）✅
 
-**边缘节点接入验证通过（2026-03-16）**：
-- install-node.sh（即 install.sh --node）端到端跑通 ✅
-- api_node.yaml 正确写入 uniqueId/secret ✅
-- freecdn-node 服务 active，日志无错误 ✅
-- 节点已成功与 edge-api 建立 gRPC 连接（日志出现 GoAway/too_many_pings，表明心跳已通）✅
-- 节点正常运行（LISTENER_MANAGER: no available servers — 正常，还没配站点）✅
-
-**已知机制（文档需补充）**：
-- 节点需要在管理后台「集群 → 节点 → 添加」后获取 uniqueId/secret，再传给 install-node.sh
-- install.sh admin 模式只写 role=admin 的 edgeAPITokens，不自动注册节点
-- freecdn 用户只能用 TCP（127.0.0.1），socket 路径无权限（这是预期行为）
+**certbot 自动续期**已配置（certbot 5.4.0 via snap，DuckDNS DNS-01 hook）。
 
 **Release 产物：**
-- `freecdn-v0.1.8-linux-amd64.tar.gz`
-- `freecdn-v0.1.8-linux-arm64.tar.gz`
+- `freecdn-v0.1.9-linux-amd64.tar.gz`
+- `freecdn-v0.1.9-linux-arm64.tar.gz`
 - `SHA256SUMS`
 
 ---
@@ -136,7 +133,7 @@ install.sh --node 端到端跑通，freecdn-node 服务 active，节点正常运
 | 参数 | 值 |
 |------|-----|
 | 版本基线 | GoEdge v1.3.9 |
-| 当前 FreeCDN 版本 | v0.1.8（main 分支干净，无未发布提交） |
+| 当前 FreeCDN 版本 | v0.1.9（main 分支干净，无未发布提交） |
 | Go 最低版本 | 1.21 |
 | MySQL | 5.7.8+（推荐 8.0+），只能 TCP 连接 |
 | EdgeAdmin 端口 | 7788 |

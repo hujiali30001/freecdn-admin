@@ -457,7 +457,7 @@ def get_or_create_release(token, version):
 def main():
     parser = argparse.ArgumentParser(description="FreeCDN full-source build & GitHub Release upload")
     parser.add_argument("--token",   required=True, help="GitHub PAT (contents:write)")
-    parser.add_argument("--version", default="v0.1.8", help="FreeCDN release version tag")
+    parser.add_argument("--version", default="v0.1.9", help="FreeCDN release version tag")
     parser.add_argument("--arch",    default="all",    help="amd64, arm64, or all")
     parser.add_argument("--work-dir", default=None,   help="Build output directory")
     parser.add_argument("--src-dir",  default=None,   help="Directory for cloned source repos")

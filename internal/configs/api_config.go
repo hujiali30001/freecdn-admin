@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
 	"github.com/iwind/TeaGo/Tea"
 	"gopkg.in/yaml.v3"
 )
@@ -22,6 +22,11 @@ type APIConfig struct {
 
 	RPCEndpoints     []string `yaml:"rpc.endpoints,flow" json:"rpc.endpoints"`
 	RPCDisableUpdate bool     `yaml:"rpc.disableUpdate" json:"rpc.disableUpdate"`
+	// RPCVerifyTLS 控制 HTTPS gRPC 连接是否开启严格 TLS 证书验证。
+	// 默认值 false = 跳过验证（EdgeAPI 默认使用自签证书，保持向后兼容）。
+	// 若已为 EdgeAPI 配置正规 CA 证书，在 api_admin.yaml 中设为 true 以启用严格验证：
+	//   rpc.verifyTLS: true
+	RPCVerifyTLS bool `yaml:"rpc.verifyTLS" json:"rpc.verifyTLS"`
 
 	NodeId string `yaml:"nodeId"`
 	Secret string `yaml:"secret"`
@@ -72,8 +77,8 @@ func LoadAPIConfig() (*APIConfig, error) {
 	}
 
 	if !isFromLocal {
-		// 恢复文件
-		_ = os.WriteFile(realFile, data, 0666)
+		// 恢复文件（含密钥，使用 0600 权限）
+		_ = os.WriteFile(realFile, data, 0600)
 	}
 
 	// 自动生成新配置文件
@@ -152,7 +157,8 @@ func (this *APIConfig) WriteFile(path string) error {
 		return err
 	}
 
-	err = os.WriteFile(path, data, 0666)
+	// api_admin.yaml 含 NodeId + Secret 密钥，使用 0600 权限（仅 owner 可读写）
+	err = os.WriteFile(path, data, 0600)
 	if err != nil {
 		return err
 	}
@@ -166,14 +172,14 @@ func (this *APIConfig) WriteFile(path string) error {
 		dir := homeDir + "/." + teaconst.ProcessName
 		stat, err := os.Stat(dir)
 		if err == nil && stat.IsDir() {
-			err = os.WriteFile(dir+"/"+filename, data, 0666)
+			err = os.WriteFile(dir+"/"+filename, data, 0600)
 			if err != nil {
 				return err
 			}
 		} else if err != nil && os.IsNotExist(err) {
-			err = os.Mkdir(dir, 0777)
+			err = os.Mkdir(dir, 0750)
 			if err == nil {
-				err = os.WriteFile(dir+"/"+filename, data, 0666)
+				err = os.WriteFile(dir+"/"+filename, data, 0600)
 				if err != nil {
 					return err
 				}
@@ -186,11 +192,11 @@ func (this *APIConfig) WriteFile(path string) error {
 		var dir = "/etc/" + teaconst.ProcessName
 		stat, err := os.Stat(dir)
 		if err == nil && stat.IsDir() {
-			_ = os.WriteFile(dir+"/"+filename, data, 0666)
+			_ = os.WriteFile(dir+"/"+filename, data, 0600)
 		} else if err != nil && os.IsNotExist(err) {
-			err = os.Mkdir(dir, 0777)
+			err = os.Mkdir(dir, 0750)
 			if err == nil {
-				_ = os.WriteFile(dir+"/"+filename, data, 0666)
+				_ = os.WriteFile(dir+"/"+filename, data, 0600)
 			}
 		}
 	}

@@ -9,7 +9,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/rpc"
+	"github.com/hujiali30001/freecdn-admin/internal/rpc"
 	"github.com/TeaOSLab/EdgeCommon/pkg/nodeconfigs"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
 	"github.com/iwind/TeaGo/maps"

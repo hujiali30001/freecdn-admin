@@ -1,0 +1,146 @@
+name: Package & Release
+
+# 触发：打 v* tag 时，或手动触发
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      goedge_version:
+        description: 'GoEdge version to package (e.g. v1.3.9)'
+        required: false
+        default: 'v1.3.9'
+
+permissions:
+  contents: write
+
+env:
+  # 安全基线版本，不随意升级
+  GOEDGE_VERSION: ${{ github.event.inputs.goedge_version || 'v1.3.9' }}
+
+jobs:
+  # ---------------------------------------------------------------
+  # 打包：下载 GoEdge v1.3.9 二进制 + 打包 FreeCDN 脚本和文档
+  # ---------------------------------------------------------------
+  package:
+    name: Package ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+
+    steps:
+      - name: Checkout FreeCDN
+        uses: actions/checkout@v4
+
+      - name: Download GoEdge ${{ env.GOEDGE_VERSION }} binary (${{ matrix.arch }})
+        run: |
+          URL="https://goedge.rip/dl/edge/${GOEDGE_VERSION}/edge-admin-linux-${{ matrix.arch }}-plus-${GOEDGE_VERSION}.zip"
+          echo "Downloading: $URL"
+          wget -q --timeout=300 "$URL" -O goedge.zip || \
+            wget -q --timeout=300 \
+              "https://dl.goedge.cloud/edge/${GOEDGE_VERSION}/edge-admin-linux-${{ matrix.arch }}-plus-${GOEDGE_VERSION}.zip" \
+              -O goedge.zip
+          unzip -q goedge.zip -d goedge-src
+          # 兼容不同解压目录层级
+          if [ -d goedge-src/edge-admin ]; then
+            mv goedge-src/edge-admin goedge
+          else
+            mv goedge-src goedge
+          fi
+          echo "Binary size: $(du -sh goedge/bin/edge-admin | cut -f1)"
+
+      - name: Build FreeCDN package
+        run: |
+          FREECDN_VERSION="${GITHUB_REF_NAME:-dev}"
+          PKG_DIR="freecdn-${FREECDN_VERSION}-linux-${{ matrix.arch }}"
+          mkdir -p "${PKG_DIR}"
+
+          # edge-admin 二进制和 web 资源
+          cp goedge/bin/edge-admin "${PKG_DIR}/"
+          cp -r goedge/web "${PKG_DIR}/"
+
+          # edge-api 二进制（内嵌子进程）
+          mkdir -p "${PKG_DIR}/edge-api/bin"
+          cp goedge/edge-api/bin/edge-api "${PKG_DIR}/edge-api/bin/"
+
+          # edge-node 安装包（供节点服务器使用）
+          mkdir -p "${PKG_DIR}/edge-api/deploy"
+          find goedge/edge-api/deploy -name "edge-node-linux-${{ matrix.arch }}-*.zip" \
+            -exec cp {} "${PKG_DIR}/edge-api/deploy/" \;
+
+          # FreeCDN 自定义脚本和文档
+          cp install.sh install-node.sh "${PKG_DIR}/" 2>/dev/null || true
+          cp README.md NOTICE LICENSE "${PKG_DIR}/"
+          cp -r docs "${PKG_DIR}/"
+
+          # 版本标记文件
+          echo "FreeCDN ${FREECDN_VERSION} (based on GoEdge ${GOEDGE_VERSION})" > "${PKG_DIR}/VERSION"
+          echo "Build date: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> "${PKG_DIR}/VERSION"
+
+          # 打包
+          ARCHIVE="freecdn-${FREECDN_VERSION}-linux-${{ matrix.arch }}.tar.gz"
+          tar czf "${ARCHIVE}" "${PKG_DIR}"
+          echo "Archive size: $(du -sh ${ARCHIVE} | cut -f1)"
+          echo "ARCHIVE=${ARCHIVE}" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: freecdn-linux-${{ matrix.arch }}
+          path: "*.tar.gz"
+
+  # ---------------------------------------------------------------
+  # 创建 GitHub Release
+  # ---------------------------------------------------------------
+  release:
+    name: Create Release
+    needs: package
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum *.tar.gz > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/SHA256SUMS
+          body: |
+            ## FreeCDN ${{ github.ref_name }}
+
+            基于 **GoEdge ${{ env.GOEDGE_VERSION }}**（安全基线版本）打包。
+
+            > ⚠️ 注意：FreeCDN 锁定使用 GoEdge v1.3.9，不跟踪 v1.4.x 及以上版本（v1.4.0/v1.4.1 存在恶意代码注入安全事件）。
+
+            ### 下载说明
+
+            | 文件 | 架构 | 说明 |
+            |------|------|------|
+            | `freecdn-*-linux-amd64.tar.gz` | x86_64 | 适用于大多数 VPS |
+            | `freecdn-*-linux-arm64.tar.gz` | ARM64 | 适用于甲骨文免费 ARM 实例 |
+
+            ### 快速安装
+
+            ```bash
+            curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
+            ```
+
+            ### 完整更新日志
+          generate_release_notes: true

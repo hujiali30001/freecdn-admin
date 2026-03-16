@@ -1,0 +1,200 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build FreeCDN Release
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set version variables
+        id: vars
+        run: |
+          TAG="${GITHUB_REF_NAME}"          # e.g. v0.1.0
+          echo "FREECDN_VERSION=${TAG}" >> "$GITHUB_ENV"
+          echo "GOEDGE_VERSION=v1.3.9"    >> "$GITHUB_ENV"
+          echo "ARCH=${{ matrix.arch }}"   >> "$GITHUB_ENV"
+          echo "PKG_NAME=freecdn-${TAG}-linux-${{ matrix.arch }}" >> "$GITHUB_ENV"
+
+      # ── 下载 GoEdge 官方 zip（含 edge-admin + edge-api + web）─────────────────
+      - name: Download GoEdge edge-admin zip
+        run: |
+          ADMIN_ZIP_URL="https://dl.goedge.cloud/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH}-plus-${GOEDGE_VERSION}.zip"
+          echo "Downloading: $ADMIN_ZIP_URL"
+          curl -fsSL "$ADMIN_ZIP_URL" -o /tmp/edge-admin.zip || \
+            curl -fsSL "https://goedge.rip/dl/edge/${GOEDGE_VERSION}/edge-admin-linux-${ARCH}-plus-${GOEDGE_VERSION}.zip" \
+              -o /tmp/edge-admin.zip
+          echo "Download OK, size: $(stat -c%s /tmp/edge-admin.zip) bytes"
+
+      # ── 解包 + 重新打包为 FreeCDN 格式 ───────────────────────────────────────
+      - name: Repack into FreeCDN tar.gz
+        run: |
+          set -e
+          WORK=/tmp/freecdn-repack
+          PKG_DIR="${WORK}/${PKG_NAME}"
+          rm -rf "$WORK"
+          mkdir -p "$PKG_DIR"
+
+          # 解压 GoEdge zip
+          UNZIP_DIR=/tmp/goedge-unzip
+          mkdir -p "$UNZIP_DIR"
+          unzip -q /tmp/edge-admin.zip -d "$UNZIP_DIR"
+
+          # GoEdge zip 解压后根目录可能是 edge-admin/ 或直接就是文件
+          if [ -d "${UNZIP_DIR}/edge-admin" ]; then
+            GOEDGE_ROOT="${UNZIP_DIR}/edge-admin"
+          else
+            GOEDGE_ROOT="${UNZIP_DIR}"
+          fi
+
+          # 验证必要文件存在
+          [ -f "${GOEDGE_ROOT}/bin/edge-admin" ] || { echo "ERROR: edge-admin binary not found"; ls -R "$GOEDGE_ROOT"; exit 1; }
+          [ -f "${GOEDGE_ROOT}/edge-api/bin/edge-api" ] || { echo "ERROR: edge-api binary not found"; exit 1; }
+
+          # 按 FreeCDN Release 结构组装（install.sh 期望的结构）：
+          #   freecdn-vX.Y.Z-linux-ARCH/
+          #     edge-admin              ← 主程序（直接在根，不在 bin/）
+          #     web/                    ← 前端静态资源
+          #     configs/                ← 配置模板
+          #     edge-api/
+          #       bin/edge-api
+          #       configs/
+          #       deploy/               ← 含 edge-node zip
+          cp "${GOEDGE_ROOT}/bin/edge-admin" "${PKG_DIR}/edge-admin"
+          chmod +x "${PKG_DIR}/edge-admin"
+
+          # web 目录：先复制 GoEdge 原版，再用仓库里修改过的文件覆盖
+          # 仓库里的 web/ 已经过品牌替换 + 收费模块清理，必须覆盖原版
+          if [ -d "${GOEDGE_ROOT}/web" ]; then
+            cp -r "${GOEDGE_ROOT}/web" "${PKG_DIR}/web"
+          else
+            echo "WARNING: web/ not found in GoEdge zip, creating empty dir"
+            mkdir -p "${PKG_DIR}/web"
+          fi
+          # 用仓库里改过的 web/ 覆盖（品牌替换 + 去收费模块）
+          if [ -d "$GITHUB_WORKSPACE/web" ]; then
+            echo "Overlaying repo web/ onto GoEdge web/..."
+            cp -r "$GITHUB_WORKSPACE/web/." "${PKG_DIR}/web/"
+            echo "Overlay done."
+          else
+            echo "WARNING: repo web/ not found, using GoEdge original web/"
+          fi
+
+          # configs 目录（server.template.yaml 等）
+          if [ -d "${GOEDGE_ROOT}/configs" ]; then
+            cp -r "${GOEDGE_ROOT}/configs" "${PKG_DIR}/configs"
+          else
+            mkdir -p "${PKG_DIR}/configs"
+          fi
+
+          # edge-api 目录（完整复制，含 bin/edge-api、configs/、deploy/）
+          cp -r "${GOEDGE_ROOT}/edge-api" "${PKG_DIR}/edge-api"
+          chmod +x "${PKG_DIR}/edge-api/bin/edge-api"
+
+          # 打包
+          cd "$WORK"
+          tar czf "${PKG_NAME}.tar.gz" "${PKG_NAME}/"
+          ls -lh "${PKG_NAME}.tar.gz"
+          echo "TAR_PATH=${WORK}/${PKG_NAME}.tar.gz" >> "$GITHUB_ENV"
+
+      # ── 生成 SHA256 校验文件 ──────────────────────────────────────────────────
+      - name: Generate SHA256 checksum
+        run: |
+          cd /tmp/freecdn-repack
+          sha256sum "${PKG_NAME}.tar.gz" > "${PKG_NAME}.tar.gz.sha256"
+          cat "${PKG_NAME}.tar.gz.sha256"
+
+      # ── 上传产物（供后续 release job 使用）───────────────────────────────────
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PKG_NAME }}
+          path: |
+            /tmp/freecdn-repack/${{ env.PKG_NAME }}.tar.gz
+            /tmp/freecdn-repack/${{ env.PKG_NAME }}.tar.gz.sha256
+          retention-days: 1
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set version
+        run: echo "FREECDN_VERSION=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/release-assets
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p /tmp/final-assets
+          find /tmp/release-assets -type f | xargs -I{} cp {} /tmp/final-assets/
+          echo "=== Release assets ==="
+          ls -lh /tmp/final-assets/
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          VERSION="${FREECDN_VERSION}"
+          # 从 CHANGELOG.md 提取当前版本 changelog（如果存在）
+          if [ -f CHANGELOG.md ]; then
+            # 提取两个 ## 之间的内容
+            awk "/^## \[?${VERSION//./\\.}\]?/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md > /tmp/release_notes.md
+          fi
+          if [ ! -s /tmp/release_notes.md ]; then
+            cat > /tmp/release_notes.md << 'EOF'
+          基于 GoEdge v1.3.9 重新打包，锁定安全基线，修复已知 bug。
+
+          ## 安装
+
+          **一键安装（国内服务器）：**
+          ```bash
+          curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
+          ```
+
+          **一键安装（境外服务器）：**
+          ```bash
+          curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
+          ```
+
+          ## 包含组件
+
+          - `edge-admin`：FreeCDN 管理后台（GoEdge v1.3.9）
+          - `edge-api`：FreeCDN API 服务（GoEdge v1.3.9）
+          - `edge-api/deploy/`：边缘节点安装包（edge-node v1.3.9）
+
+          > 版本基线锁定在 GoEdge v1.3.9，不跟踪 v1.4.x（该版本含恶意代码）。
+          EOF
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.FREECDN_VERSION }}
+          name: FreeCDN ${{ env.FREECDN_VERSION }}
+          body_path: /tmp/release_notes.md
+          draft: false
+          prerelease: ${{ contains(env.FREECDN_VERSION, '-') }}
+          files: /tmp/final-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

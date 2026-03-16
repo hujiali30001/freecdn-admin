@@ -3,8 +3,8 @@ package ui
 import (
 	"io"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/configloaders"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/actionutils"
+	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
 	"github.com/TeaOSLab/EdgeCommon/pkg/nodeconfigs"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
@@ -49,7 +49,6 @@ func (this *IndexAction) RunPost(params struct {
 	ProductName        string
 	AdminSystemName    string
 	ShowOpenSourceInfo bool
-	ShowFinance        bool
 	ShowVersion        bool
 	Version            string
 	FaviconFile        *actions.File
@@ -83,7 +82,6 @@ func (this *IndexAction) RunPost(params struct {
 	config.ProductName = params.ProductName
 	config.AdminSystemName = params.AdminSystemName
 	config.ShowOpenSourceInfo = params.ShowOpenSourceInfo
-	config.ShowFinance = params.ShowFinance
 	config.ShowVersion = params.ShowVersion
 	config.Version = params.Version
 	config.TimeZone = params.TimeZone

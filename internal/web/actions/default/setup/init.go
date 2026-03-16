@@ -1,7 +1,7 @@
 package setup
 
 import (
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/setup/mysql"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/setup/mysql"
 	"github.com/iwind/TeaGo"
 )
 

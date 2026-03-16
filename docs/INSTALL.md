@@ -1,0 +1,340 @@
+# FreeCDN 安装指南
+
+## 目录
+
+- [系统要求](#系统要求)
+- [方案一：Docker 一键部署（推荐）](#方案一docker-一键部署推荐)
+- [方案二：一键脚本安装](#方案二一键脚本安装)
+- [添加边缘节点](#添加边缘节点)
+- [完成初始化向导](#完成初始化向导)
+- [甲骨文免费云零成本部署](#甲骨文免费云零成本部署)
+
+---
+
+## 系统要求
+
+| 组件 | 最低配置 | 推荐配置 |
+|------|---------|---------|
+| 管理节点 (Admin+API+MySQL) | 1 核 1GB | 2 核 2GB |
+| 边缘节点 (Node) | 1 核 512MB | 1 核 1GB |
+| 操作系统 | Ubuntu 20.04 / Debian 11 / CentOS 7 | Ubuntu 22.04 LTS |
+| 架构 | linux/amd64 或 linux/arm64 | - |
+| 开放端口 | 管理节点: 7788, 8001 / 边缘节点: 80, 443 | - |
+
+---
+
+## 方案一：Docker 一键部署（推荐）
+
+适合：有 Docker 环境、希望快速验证的用户。
+
+```bash
+# 1. 克隆仓库
+git clone https://github.com/hujiali30001/freecdn-admin.git
+cd freecdn-admin
+
+# 2. 创建配置文件
+cp deploy/.env.example deploy/.env
+# 编辑 .env，修改数据库密码
+nano deploy/.env
+
+# 3. 启动服务
+docker compose -f deploy/docker-compose.yml up -d
+
+# 4. 查看启动状态
+docker compose -f deploy/docker-compose.yml ps
+docker compose -f deploy/docker-compose.yml logs -f edge-admin
+
+# 5. 访问管理台
+# http://你的服务器IP:7788
+```
+
+### 防火墙配置
+
+```bash
+# Ubuntu/Debian (ufw)
+ufw allow 7788/tcp  # 管理台（建议只对自己 IP 开放）
+ufw allow 8001/tcp  # API 节点（边缘节点需要连接此端口）
+ufw allow 80/tcp    # HTTP（边缘节点）
+ufw allow 443/tcp   # HTTPS（边缘节点）
+
+# CentOS/Rocky (firewalld)
+firewall-cmd --permanent --add-port=7788/tcp
+firewall-cmd --permanent --add-port=8001/tcp
+firewall-cmd --reload
+```
+
+---
+
+## 方案二：一键脚本安装
+
+适合：Linux 服务器，无 Docker 环境。
+
+### 前置：开启 SSH 密码登录 & 放行端口
+
+刚重装的云服务器（腾讯云 / 阿里云 / AWS 等）有时默认禁用密码登录，或防火墙仅开放 22 端口，需要先执行以下命令：
+
+```bash
+# 1. 开启 SSH 密码登录（如果只用密钥登录可跳过）
+sudo sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sudo sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+sudo systemctl restart sshd
+
+# 2. 放行防火墙端口（Ubuntu/Debian ufw）
+# 腾讯云默认未启用 ufw，如果 `ufw status` 显示 inactive 可跳过
+sudo ufw allow 22/tcp    # SSH，务必先放行，否则会断连
+sudo ufw allow 7788/tcp  # 管理台
+sudo ufw allow 8001/tcp  # API 节点（边缘节点连接用）
+sudo ufw allow 8003/tcp  # gRPC（内部通信）
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw --force enable
+
+# CentOS/Rocky（firewalld）
+sudo firewall-cmd --permanent --add-port=22/tcp
+sudo firewall-cmd --permanent --add-port=7788/tcp
+sudo firewall-cmd --permanent --add-port=8001/tcp
+sudo firewall-cmd --permanent --add-port=8003/tcp
+sudo firewall-cmd --permanent --add-port=80/tcp
+sudo firewall-cmd --permanent --add-port=443/tcp
+sudo firewall-cmd --reload
+```
+
+> **腾讯云 / 阿里云用户**：服务器本身的防火墙之外，还需要在云控制台的**安全组**里同步放行以上端口，否则外网仍无法访问。
+
+---
+
+**国内服务器（推荐，镜像加速）：**
+```bash
+curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
+```
+
+**GitHub 直连（境外服务器或镜像不可用时）：**
+```bash
+curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
+```
+
+安装脚本会自动探测最快的下载镜像，国内服务器下载速度通常在 5-20 MB/s，安装全程约 2-5 分钟。安装完成后按提示访问管理台完成向导。
+
+---
+
+## 添加边缘节点
+
+管理台初始化完成后，按以下步骤添加边缘节点：
+
+### 方法一：远程 SSH 安装（最简单）
+
+1. 管理台 → 节点管理 → 添加节点
+2. 填写边缘服务器的 SSH 地址、端口、用户名、密码
+3. 点击"一键安装"，等待安装完成
+
+### 方法二：Docker 手动安装
+
+在边缘节点服务器上执行：
+
+```bash
+# 从管理台"节点 > 安装"页面获取以下三个参数
+ENDPOINTS="http://管理节点IP:8001"
+CLUSTERID="集群ID"
+SECRET="节点密钥"
+
+docker run -d \
+  --name freecdn-node \
+  --network host \
+  --restart always \
+  -e ENDPOINTS="$ENDPOINTS" \
+  -e CLUSTERID="$CLUSTERID" \
+  -e SECRET="$SECRET" \
+  -v /var/lib/freecdn/node/configs:/usr/local/freecdn/edge-node/configs \
+  -v /var/lib/freecdn/node/caches:/usr/local/freecdn/edge-node/caches \
+  ghcr.io/hujiali30001/freecdn-node:latest
+```
+
+### 方法三：二进制手动安装
+
+```bash
+# 1. 从 FreeCDN Releases 下载对应架构的包
+# amd64 (x86_64)
+wget https://github.com/hujiali30001/freecdn-admin/releases/download/v0.1.0/freecdn-v0.1.0-linux-amd64.tar.gz
+# arm64（甲骨文 ARM 实例）
+# wget https://github.com/hujiali30001/freecdn-admin/releases/download/v0.1.0/freecdn-v0.1.0-linux-arm64.tar.gz
+
+tar xzf freecdn-v0.1.0-linux-amd64.tar.gz
+FREECDN_DIR=$(tar tf freecdn-v0.1.0-linux-amd64.tar.gz | head -1 | cut -d/ -f1)
+mkdir -p /usr/local/freecdn/edge-node
+cp "${FREECDN_DIR}/edge-api/deploy/"edge-node-linux-amd64-*.zip /tmp/edge-node.zip
+unzip /tmp/edge-node.zip -d /tmp/edge-node-src
+NODE_BIN=$(find /tmp/edge-node-src -name edge-node -type f | head -1)
+cp "$NODE_BIN" /usr/local/freecdn/edge-node/edge-node
+chmod +x /usr/local/freecdn/edge-node/edge-node
+
+# 2. 配置节点
+cd /usr/local/freecdn/edge-node
+# 编辑 configs/api_node.yaml，填写 endpoints、clusterId、secret
+# 从管理台「节点管理 → 安装」页面复制这三个参数
+
+# 3. 注册为系统服务
+./edge-node service install
+systemctl enable --now edge-node
+```
+
+---
+
+## 完成初始化向导
+
+首次访问 `http://服务器IP:7788` 会进入初始化向导：
+
+1. **设置 API 节点**
+   - API 节点 Host: `0.0.0.0`（监听所有网卡）
+   - API 节点 Port: `8001`
+
+2. **配置数据库**
+   - Host: `mysql`（Docker 部署）或 `127.0.0.1`
+   - Port: `3306`
+   - Database: `freecdn`（或 `.env` 中设置的值）
+   - User/Password: 与 `.env` 中一致
+
+3. **创建管理员账号**
+   - 设置用户名和密码
+
+4. **完成**，自动跳转到控制台
+
+---
+
+## 配置 HTTPS 证书
+
+完成基础安装、边缘节点上线后，下一步是为加速域名申请 HTTPS 证书。
+
+### 准备工作：获取一个域名
+
+Let's Encrypt 证书必须绑定域名（不支持裸 IP）。推荐用以下免费方案之一：
+
+| 方案 | 地址 | 适合场景 |
+|------|------|---------|
+| DuckDNS（推荐） | https://www.duckdns.org | 个人测试，注册即用，支持 DNS-01 验证 |
+| FreeDNS | https://freedns.afraid.org | 有更多二级域名可选 |
+| 自购域名 | 阿里云 / Cloudflare | 生产环境推荐 |
+
+### 方案一：通过管理台 UI 申请（最简单）
+
+适合：域名 DNS 已解析到边缘节点 IP，且**边缘节点的 80 端口已对公网开放**。
+
+1. 管理台 → **证书管理** → **申请证书**
+2. 填写域名，选择「HTTP-01 验证」
+3. 确保域名 A 记录已指向边缘节点公网 IP，点击申请
+4. 申请成功后，进入 **HTTP 服务** → 对应站点 → **HTTPS** → 启用并选择证书
+
+证书到期前，管理台内置续期任务会自动处理，无需手动操作。
+
+### 方案二：certbot + DuckDNS DNS-01 验证（无需开放 80 端口）
+
+适合：腾讯云/阿里云安全组未开放 80 端口，或需要申请**通配符证书**的场景。
+
+**优势**：完全基于 DNS TXT 记录验证，不需要公网 80 端口，甚至不需要先启动边缘节点，申请成功后再配置服务也可以。
+
+#### 1. 注册 DuckDNS 并添加子域名
+
+访问 [duckdns.org](https://www.duckdns.org)，用 GitHub 账号登录，添加一个子域名（如 `mycdn`），复制页面顶部的 **token**（UUID 格式）。
+
+然后更新 A 记录指向你的边缘节点 IP：
+
+```bash
+# 把下面的参数替换为你的值
+DOMAIN="mycdn"        # 子域名（不含 .duckdns.org）
+TOKEN="你的token"
+SERVER_IP="边缘节点公网IP"
+
+curl "https://www.duckdns.org/update?domains=${DOMAIN}&token=${TOKEN}&ip=${SERVER_IP}"
+# 返回 OK 表示成功
+```
+
+#### 2. 在边缘节点服务器上安装 certbot
+
+```bash
+# Ubuntu 22.04+（推荐用 snap 安装，版本最新）
+sudo apt update
+sudo snap install --classic certbot
+sudo snap install certbot-dns-duckdns
+sudo snap set certbot trust-plugin-with-root=ok
+sudo snap connect certbot:plugin certbot-dns-duckdns
+```
+
+#### 3. 创建 DuckDNS 配置文件
+
+```bash
+sudo mkdir -p /etc/letsencrypt/duckdns
+sudo tee /etc/letsencrypt/duckdns/credentials.ini > /dev/null <<EOF
+dns_duckdns_token=你的DuckDNS_token
+EOF
+sudo chmod 600 /etc/letsencrypt/duckdns/credentials.ini
+```
+
+#### 4. 申请证书
+
+```bash
+sudo certbot certonly \
+  --authenticator dns-duckdns \
+  --dns-duckdns-credentials /etc/letsencrypt/duckdns/credentials.ini \
+  --dns-duckdns-propagation-seconds 60 \
+  -d "mycdn.duckdns.org" \
+  --non-interactive \
+  --agree-tos \
+  -m "your-email@example.com"
+```
+
+成功后证书位于：
+- 证书：`/etc/letsencrypt/live/mycdn.duckdns.org/fullchain.pem`
+- 私钥：`/etc/letsencrypt/live/mycdn.duckdns.org/privkey.pem`
+
+#### 5. 配置边缘节点使用证书
+
+通过管理台 → **证书管理** → **上传证书**，将 `fullchain.pem` 和 `privkey.pem` 的内容粘贴进去。
+
+或者在管理台 → **HTTP 服务** → 站点 → **HTTPS** → 填写证书路径（直接引用服务器上的文件）。
+
+#### 6. 验证 HTTPS 链路
+
+```bash
+curl -v https://mycdn.duckdns.org/ 2>&1 | grep -E "SSL|HTTP|Connected"
+# 期望看到：
+# SSL connection using TLSv1.3
+# SSL certificate verify ok.
+# HTTP/2 200
+```
+
+#### 7. 自动续期
+
+certbot 在安装时已自动创建 systemd timer，证书到期前 30 天会自动续期：
+
+```bash
+# 检查自动续期状态
+sudo systemctl status snap.certbot.renew.timer
+
+# 手动测试续期（dry run，不实际续期）
+sudo certbot renew --dry-run
+```
+
+---
+
+## 甲骨文免费云零成本部署
+
+甲骨文 (Oracle Cloud) 的永久免费资源足以运行完整的 FreeCDN：
+
+| 资源 | 规格 | 用途 |
+|------|------|------|
+| AMD64 实例 x2 | 各 1 核 1GB | 其中一台运行管理节点 |
+| ARM64 实例 | 共 4 核 24GB（可分配为 4 台各 1 核 6GB） | 边缘节点 |
+
+申请地址：https://www.oracle.com/cloud/free/
+
+**注意**：甲骨文免费实例默认安全规则较严，需要在"安全列表"中手动开放端口，不仅要改防火墙，还要改 VCN 安全规则。
+
+```bash
+# 甲骨文 ARM64 实例开放端口（同时需要在控制台安全规则中放行）
+iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+iptables -I INPUT -p tcp --dport 7788 -j ACCEPT
+iptables -I INPUT -p tcp --dport 8001 -j ACCEPT
+# 持久化规则
+apt-get install -y iptables-persistent
+netfilter-persistent save
+```

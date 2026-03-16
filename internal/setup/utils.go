@@ -1,7 +1,7 @@
 package setup
 
 import (
-	"github.com/TeaOSLab/EdgeAdmin/internal/configs"
+	"github.com/hujiali30001/freecdn-admin/internal/configs"
 )
 
 var isConfigured bool

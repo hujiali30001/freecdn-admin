@@ -3,8 +3,8 @@ package waf
 import (
 	"strconv"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/ttlcache"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/actionutils"
+	"github.com/hujiali30001/freecdn-admin/internal/ttlcache"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
 	"github.com/iwind/TeaGo/types"
 )
 

@@ -3,8 +3,8 @@
 package helpers
 
 import (
-	"github.com/TeaOSLab/EdgeAdmin/internal/configloaders"
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
+	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs"
 	"github.com/iwind/TeaGo/actions"
 )

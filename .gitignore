@@ -6,3 +6,36 @@
 *_plus.less
 *_plus.css
 *_plus.css.map
+
+# 安装完成报告（含服务器IP/密码等敏感信息，不提交）
+INSTALL_COMPLETE.md
+
+# 敏感配置文件（含数据库密码等，使用 .env.example 作为模板）
+deploy/.env
+
+# 调试/临时脚本（含生产服务器 SSH 凭据，整体排除）
+# 只有以下脚本通过白名单允许提交：
+#   scripts/e2e_full.py    — 端到端验收脚本
+#   scripts/build_linux.py — Linux binary 编译部署脚本
+#   scripts/fix_api.sh     — 运维修复脚本
+scripts/*.py
+!scripts/e2e_full.py
+!scripts/build_linux.py
+scripts/*.bat
+scripts/*.ps1
+scripts/*.js
+scripts/*.txt
+
+# 安全审计报告（含漏洞细节，不公开）
+research_report_*.md
+
+# 本地编译产物（非发布用途）
+edge-admin.exe
+dist/edge-admin-linux-amd64
+commit_api.txt
+commit_out.txt
+
+# 构建产物
+dist/build/
+dist/src/
+$null

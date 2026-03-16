@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/configs"
+	"github.com/hujiali30001/freecdn-admin/internal/configs"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
 	_ "github.com/iwind/TeaGo/bootstrap"
 	stringutil "github.com/iwind/TeaGo/utils/string"

@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/goman"
-	"github.com/TeaOSLab/EdgeAdmin/internal/utils/sizes"
+	"github.com/hujiali30001/freecdn-admin/internal/goman"
+	"github.com/hujiali30001/freecdn-admin/internal/utils/sizes"
 	"github.com/iwind/TeaGo/Tea"
 	"github.com/iwind/TeaGo/files"
 	timeutil "github.com/iwind/TeaGo/utils/time"
@@ -30,8 +30,9 @@ func (this *LogWriter) Init() {
 	}
 
 	// 打开要写入的日志文件
+	// 日志可能含内部 IP/错误等信息，使用 0640（owner 读写，group 只读）
 	var logPath = Tea.LogFile("run.log")
-	fp, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	fp, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0640)
 	if err != nil {
 		log.Println("[LOG]open log file failed: " + err.Error())
 	} else {

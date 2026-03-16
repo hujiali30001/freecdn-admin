@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	dig "github.com/TeaOSLab/EdgeCommon/pkg/utils"
 	"golang.org/x/net/idna"
 )
 
@@ -18,6 +17,18 @@ func stringInSlice(str string, slice []string) bool {
 		}
 	}
 	return false
+}
+
+// digTraceIP resolves a domain to its IP addresses using the system resolver.
+// This replaces the removed EdgeCommon/pkg/utils.DigTraceIP dependency.
+func digTraceIP(domain string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	addrs, err := net.DefaultResolver.LookupHost(ctx, domain)
+	if err != nil {
+		return nil, err
+	}
+	return addrs, nil
 }
 
 func DnsCheck(domains []string, nodeIps []string) map[string]bool {
@@ -41,12 +52,12 @@ func DnsCheck(domains []string, nodeIps []string) map[string]bool {
 					domain = unicodeDomain
 				}
 			}
-			dnsIps, err := dig.DigTraceIP(domain)
+			dnsIps, err := digTraceIP(domain)
 			if err != nil || len(dnsIps) < 1 {
 				ipMap.Store(domain, false)
 			} else {
 				var flag = false
-				for _, ip := range dnsIps{
+				for _, ip := range dnsIps {
 					flag = stringInSlice(ip, nodeIps)
 					if flag {
 						break

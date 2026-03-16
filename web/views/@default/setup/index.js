@@ -57,7 +57,7 @@ Tea.context(function () {
 
 	// 数据库
 	this.dbInfo = {}
-	this.localDB = {"host": "", "port": "", "username": "", "port": "", "isLocal": true, "canInstall": false}
+	this.localDB = {"host": "", "port": "", "username": "", "isLocal": true, "canInstall": false}
 	this.localDBHost = ""
 	this.dbRequesting = false
 
@@ -67,6 +67,10 @@ Tea.context(function () {
 				this.localDB = resp.data.localDB
 				this.localDB["isLocal"] = true
 				this.localDBHost = this.localDB.host
+			})
+			.fail(function () {
+				// 自动检测失败时不阻断用户，保留已有输入
+				console.warn("[setup] detectDB failed, using manual input")
 			})
 	}
 

@@ -3,7 +3,7 @@ package nodeutils
 import (
 	"testing"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/rpc"
+	"github.com/hujiali30001/freecdn-admin/internal/rpc"
 	_ "github.com/iwind/TeaGo/bootstrap"
 	"github.com/iwind/TeaGo/logs"
 )

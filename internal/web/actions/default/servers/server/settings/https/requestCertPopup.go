@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/dns/domains/domainutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/dns/domains/domainutils"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
 	"github.com/TeaOSLab/EdgeCommon/pkg/serverconfigs"
@@ -202,7 +202,6 @@ func (this *RequestCertPopupAction) RunPost(params struct {
 					Domains:       domains,
 					AutoRenew:     true,
 					AuthType:      "http",
-					Async:         true,
 				})
 				if err == nil {
 					this.CreateLogInfo("创建证书申请任务 %d", createResp.AcmeTaskId)
@@ -216,11 +215,10 @@ func (this *RequestCertPopupAction) RunPost(params struct {
 			AcmeUserId:    acmeUserId,
 			DnsProviderId: 0,
 			DnsDomain:     "",
-			Domains:       params.ServerNames,
-			AutoRenew:     true,
-			AuthType:      "http",
-			Async:         false,
-		})
+		Domains:       params.ServerNames,
+		AutoRenew:     true,
+		AuthType:      "http",
+	})
 		if err != nil {
 			this.ErrorPage(err)
 			return

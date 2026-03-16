@@ -3,7 +3,7 @@
 
 package users
 
-import "github.com/TeaOSLab/EdgeAdmin/internal/configloaders"
+import "github.com/hujiali30001/freecdn-admin/internal/configloaders"
 
 func (this *OtpQrcodeAction) findProductName() (string, error) {
 	uiConfig, err := configloaders.LoadAdminUIConfig()
@@ -12,7 +12,7 @@ func (this *OtpQrcodeAction) findProductName() (string, error) {
 	}
 	var productName = uiConfig.ProductName
 	if len(productName) == 0 {
-		productName = "GoEdge用户"
+		productName = "FreeCDN用户"
 	}
 	return productName, nil
 }

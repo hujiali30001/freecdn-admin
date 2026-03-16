@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/utils"
+	"github.com/hujiali30001/freecdn-admin/internal/utils"
 )
 
 func TestNewUpgradeManager(t *testing.T) {

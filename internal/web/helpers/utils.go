@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"sync"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/events"
-	"github.com/TeaOSLab/EdgeAdmin/internal/utils"
+	"github.com/hujiali30001/freecdn-admin/internal/events"
+	"github.com/hujiali30001/freecdn-admin/internal/utils"
 	"github.com/TeaOSLab/EdgeCommon/pkg/configutils"
 	"github.com/TeaOSLab/EdgeCommon/pkg/iplibrary"
 	"github.com/TeaOSLab/EdgeCommon/pkg/serverconfigs/regionconfigs"

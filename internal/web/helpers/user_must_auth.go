@@ -6,13 +6,13 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/configloaders"
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
-	"github.com/TeaOSLab/EdgeAdmin/internal/events"
-	"github.com/TeaOSLab/EdgeAdmin/internal/goman"
-	"github.com/TeaOSLab/EdgeAdmin/internal/rpc"
-	"github.com/TeaOSLab/EdgeAdmin/internal/setup"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/index/loginutils"
+	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
+	"github.com/hujiali30001/freecdn-admin/internal/events"
+	"github.com/hujiali30001/freecdn-admin/internal/goman"
+	"github.com/hujiali30001/freecdn-admin/internal/rpc"
+	"github.com/hujiali30001/freecdn-admin/internal/setup"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/index/loginutils"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs"
 	"github.com/TeaOSLab/EdgeCommon/pkg/nodeconfigs"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
@@ -112,6 +112,13 @@ func NewUserMustAuth(module string) *userMustAuth {
 
 func (this *userMustAuth) BeforeAction(actionPtr actions.ActionWrapper, paramName string) (goNext bool) {
 	var action = actionPtr.Object()
+
+	// 注入安全响应头（ORA-13）
+	w := action.ResponseWriter
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Referrer-Policy", "same-origin")
+	w.Header().Set("X-DNS-Prefetch-Control", "off")
+	w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 
 	// 检查请求是否合法
 	if isEvilRequest(action.Request) {

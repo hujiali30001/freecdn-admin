@@ -3,7 +3,7 @@ package utils
 import (
 	"sync"
 
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
 	"github.com/TeaOSLab/EdgeCommon/pkg/configutils"
 	"github.com/iwind/TeaGo/lists"
 	"github.com/iwind/TeaGo/logs"

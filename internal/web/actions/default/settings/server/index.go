@@ -1,8 +1,8 @@
 package server
 
 import (
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/actionutils"
-	adminserverutils "github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/settings/server/admin-server-utils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
+	adminserverutils "github.com/hujiali30001/freecdn-admin/internal/web/actions/default/settings/server/admin-server-utils"
 )
 
 type IndexAction struct {

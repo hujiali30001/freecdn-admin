@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/configloaders"
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
-	"github.com/TeaOSLab/EdgeAdmin/internal/oplogs"
-	"github.com/TeaOSLab/EdgeAdmin/internal/rpc"
-	"github.com/TeaOSLab/EdgeAdmin/internal/utils"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/index/loginutils"
+	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
+	"github.com/hujiali30001/freecdn-admin/internal/oplogs"
+	"github.com/hujiali30001/freecdn-admin/internal/rpc"
+	"github.com/hujiali30001/freecdn-admin/internal/utils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/index/loginutils"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/dao"
@@ -32,6 +32,33 @@ type ParentAction struct {
 // Parent 可以调用自身的一个简便方法
 func (this *ParentAction) Parent() *ParentAction {
 	return this
+}
+
+// BeforeAction 注入安全响应头（ORA-13）
+// TeaGo 在每个 Action 执行前会调用父类或内嵌对象的 BeforeAction
+func (this *ParentAction) BeforeAction(actionPtr actions.ActionWrapper) (goNext bool) {
+	w := actionPtr.Object().ResponseWriter
+	// 防点击劫持
+	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+	// 禁止 MIME 嗅探
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	// 只向同域发送 Referrer
+	w.Header().Set("Referrer-Policy", "same-origin")
+	// 禁 DNS 预取
+	w.Header().Set("X-DNS-Prefetch-Control", "off")
+	// HSTS（HTTP 模式下设置无害，HTTPS 模式下生效）
+	w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+	// CSP：管理后台含大量内联脚本/样式，使用宽松策略保持兼容
+	w.Header().Set("Content-Security-Policy",
+		"default-src 'self'; "+
+			"script-src 'self' 'unsafe-inline' 'unsafe-eval'; "+
+			"style-src 'self' 'unsafe-inline'; "+
+			"img-src 'self' data: blob:; "+
+			"font-src 'self' data:; "+
+			"connect-src 'self'; "+
+			"frame-ancestors 'self'",
+	)
+	return true
 }
 
 func (this *ParentAction) ErrorPage(err error) {

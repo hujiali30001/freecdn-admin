@@ -9,12 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/configs"
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
-	"github.com/TeaOSLab/EdgeAdmin/internal/events"
-	"github.com/TeaOSLab/EdgeAdmin/internal/goman"
-	"github.com/TeaOSLab/EdgeAdmin/internal/rpc"
-	"github.com/TeaOSLab/EdgeAdmin/internal/setup"
+	"github.com/hujiali30001/freecdn-admin/internal/configs"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
+	"github.com/hujiali30001/freecdn-admin/internal/events"
+	"github.com/hujiali30001/freecdn-admin/internal/goman"
+	"github.com/hujiali30001/freecdn-admin/internal/rpc"
+	"github.com/hujiali30001/freecdn-admin/internal/setup"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
 	"github.com/iwind/TeaGo/Tea"
 	"github.com/iwind/TeaGo/logs"
@@ -94,7 +94,7 @@ func (this *SyncAPINodesTask) Loop() error {
 	}
 
 	// 测试是否有API节点可用
-	hasOk := this.testEndpoints(newEndpoints)
+	hasOk := this.testEndpoints(newEndpoints, config)
 	if !hasOk {
 		return nil
 	}
@@ -121,7 +121,7 @@ func (this *SyncAPINodesTask) isSame(endpoints1 []string, endpoints2 []string) b
 	return strings.Join(endpoints1, "&") == strings.Join(endpoints2, "&")
 }
 
-func (this *SyncAPINodesTask) testEndpoints(endpoints []string) bool {
+func (this *SyncAPINodesTask) testEndpoints(endpoints []string, config *configs.APIConfig) bool {
 	if len(endpoints) == 0 {
 		return false
 	}
@@ -147,16 +147,22 @@ func (this *SyncAPINodesTask) testEndpoints(endpoints []string) bool {
 			var conn *grpc.ClientConn
 
 			if u.Scheme == "http" {
-				conn, err = grpc.DialContext(ctx, u.Host, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+				// grpc.NewClient 连接是懒加载的，用 Connect() 触发实际连接以检测可达性
+				conn, err = grpc.NewClient(u.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			} else if u.Scheme == "https" {
-				conn, err = grpc.DialContext(ctx, u.Host, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
-					InsecureSkipVerify: true,
-				})), grpc.WithBlock())
+				// 同 rpc_client.go：EdgeAPI 默认自签证书，默认跳过验证。
+				// 可通过 api_admin.yaml 中 rpc.verifyTLS: true 启用严格验证。
+				skipVerify := !(config != nil && config.RPCVerifyTLS)
+				conn, err = grpc.NewClient(u.Host, grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
+					InsecureSkipVerify: skipVerify, //nolint:gosec
+				})))
 			}
 			if err != nil {
 				return
 			}
-			_ = conn.Close()
+			// 触发实际连接以检测可达性（替代原 WithBlock 语义）
+			conn.Connect()
+			_ = ctx // 超时 context 保留供后续扩展使用
 
 			ok = true
 		}(endpoint)

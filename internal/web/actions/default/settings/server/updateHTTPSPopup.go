@@ -6,9 +6,9 @@ import (
 	"net"
 	"os"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/utils"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/actionutils"
-	adminserverutils "github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/settings/server/admin-server-utils"
+	"github.com/hujiali30001/freecdn-admin/internal/utils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
+	adminserverutils "github.com/hujiali30001/freecdn-admin/internal/web/actions/default/settings/server/admin-server-utils"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
 	"github.com/TeaOSLab/EdgeCommon/pkg/serverconfigs/sslconfigs"
@@ -124,11 +124,13 @@ func (this *UpdateHTTPSPopupAction) RunPost(params struct {
 			this.ErrorPage(err)
 			return
 		}
-		err = os.WriteFile(Tea.ConfigFile("https.key.pem"), certConfig.KeyData, 0666)
+		// TLS 私钥必须严格保护，仅 owner 可读写
+		err = os.WriteFile(Tea.ConfigFile("https.key.pem"), certConfig.KeyData, 0600)
 		if err != nil {
 			this.Fail("保存密钥失败：" + err.Error())
 		}
-		err = os.WriteFile(Tea.ConfigFile("https.cert.pem"), certConfig.CertData, 0666)
+		// 证书是公开内容，0640 即可（owner 读写，group 只读）
+		err = os.WriteFile(Tea.ConfigFile("https.cert.pem"), certConfig.CertData, 0640)
 		if err != nil {
 			this.Fail("保存证书失败：" + err.Error())
 		}

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/rpc"
+	"github.com/hujiali30001/freecdn-admin/internal/rpc"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
 	"github.com/TeaOSLab/EdgeCommon/pkg/nodeconfigs"
@@ -65,13 +65,9 @@ func UpdateAdminUIConfig(uiConfig *systemconfigs.AdminUIConfig) error {
 	return nil
 }
 
-// ShowFinance 是否显示财务信息
+// ShowFinance 是否显示财务信息 — FreeCDN: 永久关闭，不可配置
 func ShowFinance() bool {
-	config, _ := LoadAdminUIConfig()
-	if config != nil && !config.ShowFinance {
-		return false
-	}
-	return true
+	return false
 }
 
 func loadAdminUIConfig() (*systemconfigs.AdminUIConfig, error) {
@@ -115,7 +111,7 @@ func defaultAdminUIConfig() *systemconfigs.AdminUIConfig {
 		AdminSystemName:    langs.DefaultMessage(codes.AdminUI_DefaultSystemName),
 		ShowOpenSourceInfo: true,
 		ShowVersion:        true,
-		ShowFinance:        true,
+		ShowFinance:        false, // FreeCDN: 默认隐藏财务模块
 		DefaultPageSize:    10,
 		TimeZone:           nodeconfigs.DefaultTimeZoneLocation,
 	}

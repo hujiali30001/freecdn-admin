@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
-	executils "github.com/TeaOSLab/EdgeAdmin/internal/utils/exec"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
+	executils "github.com/hujiali30001/freecdn-admin/internal/utils/exec"
 	"github.com/iwind/TeaGo/Tea"
 	"github.com/iwind/TeaGo/maps"
 	"github.com/iwind/TeaGo/types"
@@ -65,8 +65,10 @@ func NewUpgradeManager(component string, downloadURL string) *UpgradeManager {
 		downloadURL: downloadURL,
 		client: &http.Client{
 			Transport: &http.Transport{
+				// 升级包下载服务器使用自签证书时需跳过验证。
+				// 如已部署公网可信 CA 证书，可在此设为 false。
 				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true,
+					InsecureSkipVerify: true, //nolint:gosec
 				},
 			},
 			CheckRedirect: nil,

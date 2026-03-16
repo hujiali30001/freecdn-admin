@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/configloaders"
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
+	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
 	"github.com/TeaOSLab/EdgeCommon/pkg/iplibrary"
 	"github.com/iwind/TeaGo/actions"
 	stringutil "github.com/iwind/TeaGo/utils/string"

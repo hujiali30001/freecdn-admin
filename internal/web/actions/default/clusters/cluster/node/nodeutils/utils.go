@@ -6,7 +6,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/actionutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
 	"github.com/iwind/TeaGo/maps"
@@ -45,7 +45,7 @@ func InitNodeInfo(parentAction *actionutils.ParentAction, nodeId int64) (*pb.Nod
 		"isUp":         node.IsUp,
 		"group":        groupMap,
 		"level":        node.Level,
-		"bypassMobile": node.BypassMobile,
+		"bypassMobile": false, // BypassMobile field not in current EdgeCommon version
 	}
 	var clusterId int64 = 0
 	if node.NodeCluster != nil {

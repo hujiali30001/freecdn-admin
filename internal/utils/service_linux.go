@@ -8,8 +8,8 @@ import (
 	"os/exec"
 	"regexp"
 
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
-	executils "github.com/TeaOSLab/EdgeAdmin/internal/utils/exec"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
+	executils "github.com/hujiali30001/freecdn-admin/internal/utils/exec"
 	"github.com/iwind/TeaGo/Tea"
 	"github.com/iwind/TeaGo/files"
 )
@@ -90,7 +90,8 @@ func (this *ServiceManager) installInitService(exePath string, args []string) er
 	}
 
 	data = regexp.MustCompile("INSTALL_DIR=.+").ReplaceAll(data, []byte("INSTALL_DIR="+Tea.Root))
-	err = os.WriteFile(initServiceFile, data, 0777)
+	// init.d 脚本需要可执行权限，但不需要 world-writable；使用 0755
+	err = os.WriteFile(initServiceFile, data, 0755)
 	if err != nil {
 		return err
 	}
@@ -111,7 +112,7 @@ func (this *ServiceManager) installInitService(exePath string, args []string) er
 // install systemd service
 func (this *ServiceManager) installSystemdService(systemd, exePath string, args []string) error {
 	shortName := teaconst.SystemdServiceName
-	longName := "GoEdge Admin" // TODO 将来可以修改
+	longName := "FreeCDN Admin" // TODO 将来可以修改
 
 	var startCmd = exePath + " daemon"
 	bashPath, _ := executils.LookPath("bash")
@@ -144,8 +145,8 @@ ExecReload=` + exePath + ` reload
 [Install]
 WantedBy=multi-user.target`
 
-	// write file
-	err := os.WriteFile(systemdServiceFile, []byte(desc), 0777)
+	// write file: systemd unit 文件 0644（world-readable 正常，不需要可写）
+	err := os.WriteFile(systemdServiceFile, []byte(desc), 0644)
 	if err != nil {
 		return err
 	}

@@ -3,8 +3,8 @@ package acme
 import (
 	"strings"
 
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/actionutils"
-	"github.com/TeaOSLab/EdgeAdmin/internal/web/actions/default/dns/domains/domainutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/dns/domains/domainutils"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
 	"github.com/iwind/TeaGo/actions"
@@ -120,7 +120,6 @@ func (this *CreateAction) RunPost(params struct {
 			Domains:       realDomains,
 			AutoRenew:     params.AutoRenew,
 			AuthURL:       params.AuthURL,
-			Async:         false,
 		})
 		if err != nil {
 			this.ErrorPage(err)

@@ -1,8 +1,8 @@
 package configloaders
 
 import (
-	teaconst "github.com/TeaOSLab/EdgeAdmin/internal/const"
-	"github.com/TeaOSLab/EdgeAdmin/internal/rpc"
+	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
+	"github.com/hujiali30001/freecdn-admin/internal/rpc"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs"
 	"github.com/TeaOSLab/EdgeCommon/pkg/langs/codes"
 	"github.com/TeaOSLab/EdgeCommon/pkg/rpc/pb"
@@ -245,12 +245,15 @@ func AllModuleMaps(langCode string) []maps.Map {
 			"code": AdminModuleCodeAdmin,
 			"url":  "/admins",
 		},
-		{
+	}...)
+	// FreeCDN: 仅当管理员开启"显示财务"时才显示财务模块
+	if ShowFinance() {
+		m = append(m, maps.Map{
 			"name": langs.Message(langCode, codes.AdminMenu_Finance),
 			"code": AdminModuleCodeFinance,
 			"url":  "/finance",
-		},
-	}...)
+		})
+	}
 
 	if teaconst.IsPlus {
 		m = append(m, []maps.Map{

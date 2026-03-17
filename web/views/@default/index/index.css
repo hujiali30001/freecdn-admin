@@ -258,8 +258,7 @@ body::after {
 .swal2-container {
   z-index: 9999 !important;
 }
-.swal2-container.swal2-backdrop-show,
-.swal2-container.swal2-center {
+.swal2-container.swal2-backdrop-show {
   background: rgba(45, 27, 105, 0.5) !important;
   backdrop-filter: blur(4px) !important;
 }
@@ -272,7 +271,12 @@ body::after {
   border: none !important;
   background: #ffffff !important;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif !important;
-  animation: swalFadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+.swal2-popup.swal2-show {
+  animation: swalFadeIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+.swal2-popup.swal2-hide {
+  animation: swal2-hide 0.15s ease-out forwards !important;
 }
 .swal2-icon {
   margin: 0 auto 16px !important;

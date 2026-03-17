@@ -286,8 +286,7 @@ body::after {
 
 // 遮罩层
 .swal2-container {
-  &.swal2-backdrop-show,
-  &.swal2-center {
+  &.swal2-backdrop-show {
     background: rgba(45, 27, 105, 0.5) !important;
     backdrop-filter: blur(4px) !important;
   }
@@ -312,8 +311,19 @@ body::after {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
                "Microsoft YaHei", "Segoe UI", Roboto, sans-serif !important;
 
-  // 入场动画（覆盖 swal2 内置的 animate.css 动画）
-  animation: swalFadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  // ⚠️ 不要在这里设置 animation！
+  // SweetAlert2 通过 .swal2-show / .swal2-hide 类控制动画，
+  // 如果在这里写 animation，会覆盖 swal2 内置的关闭动画检测，
+  // 导致弹窗点击确定后按钮消失但弹窗本体无法被 DOM 移除。
+  // 入场动画仅在 .swal2-show 状态生效：
+  &.swal2-show {
+    animation: swalFadeIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  }
+
+  // 关闭动画：交给 swal2 自己处理，我们不覆盖
+  &.swal2-hide {
+    animation: swal2-hide 0.15s ease-out forwards !important;
+  }
 }
 
 // 图标区域

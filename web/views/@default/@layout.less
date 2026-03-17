@@ -84,8 +84,22 @@ tbody {
 	font-size: 0.9em !important;
 }
 
+.table tr {
+	transition: background-color 0.2s ease !important;
+
+	&:hover td {
+		background: rgba(102, 126, 234, 0.08) !important;
+	}
+}
+
 .table tr.active td {
-	background: rgba(0, 0, 0, 0.01) !important;
+	background: rgba(102, 126, 234, 0.15) !important;
+}
+
+.table th {
+	background: #f8f9fa !important;
+	color: #667eea !important;
+	font-weight: 600 !important;
 }
 
 p.comment, div.comment {
@@ -225,7 +239,8 @@ div.margin, p.margin {
 			}
 
 			.item.active {
-				background-color: #2185d0 !important;
+				background-color: rgba(255, 255, 255, 0.7) !important;
+				color: #2b6cb0 !important;
 			}
 		}
 	}
@@ -271,6 +286,11 @@ body .ui.menu .item .blink {
 
 body .ui.menu .item:not(:hover) span.rotate {
 	animation: rotation 3s infinite;
+}
+
+body {
+	background: linear-gradient(135deg, #f5f7ff 0%, #f0f5ff 100%) !important;
+	min-height: 100vh;
 }
 
 body.expanded .main-menu {
@@ -326,32 +346,31 @@ body.expanded .main {
 	}
 }
 
-.top-nav.theme1 {
-	background: #14539A !important;
-}
-
-.top-nav.theme2 {
-	background: #276AC6 !important;
-}
-
-.top-nav.theme3 {
-	background: #007D9C !important;
-}
-
-.top-nav.theme4 {
-	background: #A12568 !important;
-}
-
-.top-nav.theme5 {
-	background: #1C7947 !important;
-}
-
-.top-nav.theme6 {
-	background: #1D365D !important;
-}
-
+.top-nav.theme1,
+.top-nav.theme2,
+.top-nav.theme3,
+.top-nav.theme4,
+.top-nav.theme5,
+.top-nav.theme6,
 .top-nav.theme7 {
-	background: black !important;
+	background: linear-gradient(90deg, #667eea 0%, #764ba2 100%) !important;
+	box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2) !important;
+
+	.item {
+		color: #ffffff !important;
+		transition: all 0.3s ease !important;
+	}
+
+	.item:hover {
+		background: rgba(255, 255, 255, 0.15) !important;
+		color: #ffffff !important;
+	}
+
+	.item.active {
+		background: rgba(102, 126, 234, 0.3) !important;
+		color: #ffffff !important;
+		border-bottom: 3px solid #667eea !important;
+	}
 }
 
 .top-nav::-webkit-scrollbar {
@@ -519,59 +538,40 @@ body.expanded .main {
 	}
 }
 
-.main-menu.theme1 {
-	background: #14539A !important;
-
-	.menu {
-		background: #14539A !important;
-	}
-}
-
-.main-menu.theme2 {
-	background: #276AC6 !important;
-
-	.menu {
-		background: #276AC6 !important;
-	}
-}
-
-.main-menu.theme3 {
-	background: #007D9C !important;
-
-	.menu {
-		background: #007D9C !important;
-	}
-}
-
-.main-menu.theme4 {
-	background: #A12568 !important;
-
-	.menu {
-		background: #A12568 !important;
-	}
-}
-
-.main-menu.theme5 {
-	background: #1C7947 !important;
-
-	.menu {
-		background: #1C7947 !important;
-	}
-}
-
-.main-menu.theme6 {
-	background: #1D365D !important;
-
-	.menu {
-		background: #1D365D !important;
-	}
-}
-
+.main-menu.theme1,
+.main-menu.theme2,
+.main-menu.theme3,
+.main-menu.theme4,
+.main-menu.theme5,
+.main-menu.theme6,
 .main-menu.theme7 {
-	background: black !important;
+	background: linear-gradient(180deg, #c5d0f5 0%, #d8c8f0 100%) !important;
 
 	.menu {
-		background: black !important;
+		background: transparent !important;
+	}
+
+	// 菜单项文字颜色改为深色（配合浅色背景）
+	.menu .item {
+		color: #2d3748 !important;
+
+		i.icon {
+			color: #4a5568 !important;
+		}
+	}
+
+	.menu .item:hover {
+		background: rgba(255, 255, 255, 0.5) !important;
+		color: #1a202c !important;
+	}
+
+	.menu .item.active {
+		background: rgba(255, 255, 255, 0.7) !important;
+		color: #2b6cb0 !important;
+
+		i.icon {
+			color: #2b6cb0 !important;
+		}
 	}
 }
 

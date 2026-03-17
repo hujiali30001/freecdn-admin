@@ -5,7 +5,9 @@
   bottom: 2.4em;
   overflow-y: auto;
   overflow-x: hidden;
-  border-right: 1px #ddd solid;
+  background: linear-gradient(180deg, #2d1b69 0%, #3d2a7a 100%);
+  border-right: 2px solid #667eea;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 }
 .left-box .menu {
   width: 90% !important;
@@ -14,22 +16,32 @@
   line-height: 1.2;
   position: relative;
   padding-left: 1em !important;
+  color: #e0d4ff !important;
+  transition: all 0.3s ease !important;
 }
 .left-box .menu .item .icon {
   position: absolute;
   top: 50%;
   left: 0;
   margin-top: -0.4em !important;
+  color: #a99fd4 !important;
+}
+.left-box .menu .item:hover {
+  background: rgba(102, 126, 234, 0.2) !important;
+  color: #ffffff !important;
+}
+.left-box .menu .item:hover .icon {
+  color: #667eea !important;
 }
 .left-box .menu .item.separator {
-  border-bottom: 1px #eee solid !important;
+  border-bottom: 1px rgba(255, 255, 255, 0.1) solid !important;
   padding-top: 0;
   padding-bottom: 0;
   margin-top: 0 !important;
   margin-bottom: 0 !important;
 }
 .left-box .menu .item.on span {
-  border-bottom: 1px #666 dashed;
+  border-bottom: 1px #667eea solid;
 }
 .left-box .menu .item.off span var {
   font-style: normal;
@@ -41,9 +53,20 @@
   margin-left: 1em;
 }
 .left-box .menu .header {
-  border-bottom: 1px #ddd solid;
+  border-bottom: 1px rgba(255, 255, 255, 0.1) solid;
   padding-left: 0 !important;
   padding-bottom: 1em !important;
+  color: #b0a5c9;
+  font-weight: 600;
+}
+.left-box .menu .item.active {
+  background: rgba(102, 126, 234, 0.4) !important;
+  color: #ffffff !important;
+  border-left: 3px solid #667eea !important;
+  padding-left: calc(1em - 3px) !important;
+}
+.left-box .menu .item.active .icon {
+  color: #667eea !important;
 }
 .left-box::-webkit-scrollbar {
   width: 4px;
@@ -388,8 +411,19 @@ tbody {
 .table td {
   font-size: 0.9em !important;
 }
+.table tr {
+  transition: background-color 0.2s ease !important;
+}
+.table tr:hover td {
+  background: rgba(102, 126, 234, 0.08) !important;
+}
 .table tr.active td {
-  background: rgba(0, 0, 0, 0.01) !important;
+  background: rgba(102, 126, 234, 0.15) !important;
+}
+.table th {
+  background: #f8f9fa !important;
+  color: #667eea !important;
+  font-weight: 600 !important;
 }
 p.comment,
 div.comment {
@@ -498,7 +532,8 @@ p.margin {
   }
 }
 .main-menu .ui.menu .sub-items .item.active {
-  background-color: #2185d0 !important;
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  color: #2b6cb0 !important;
 }
 /** 扩展UI **/
 .field.text {
@@ -532,6 +567,10 @@ body .ui.menu .item .blink {
 }
 body .ui.menu .item:not(:hover) span.rotate {
   animation: rotation 3s infinite;
+}
+body {
+  background: linear-gradient(135deg, #f5f7ff 0%, #f0f5ff 100%) !important;
+  min-height: 100vh;
 }
 body.expanded .main-menu {
   display: none;
@@ -570,26 +609,46 @@ body.expanded .main {
 .top-nav .item.red {
   color: red !important;
 }
-.top-nav.theme1 {
-  background: #14539A !important;
-}
-.top-nav.theme2 {
-  background: #276AC6 !important;
-}
-.top-nav.theme3 {
-  background: #007D9C !important;
-}
-.top-nav.theme4 {
-  background: #A12568 !important;
-}
-.top-nav.theme5 {
-  background: #1C7947 !important;
-}
-.top-nav.theme6 {
-  background: #1D365D !important;
-}
+.top-nav.theme1,
+.top-nav.theme2,
+.top-nav.theme3,
+.top-nav.theme4,
+.top-nav.theme5,
+.top-nav.theme6,
 .top-nav.theme7 {
-  background: black !important;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%) !important;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2) !important;
+}
+.top-nav.theme1 .item,
+.top-nav.theme2 .item,
+.top-nav.theme3 .item,
+.top-nav.theme4 .item,
+.top-nav.theme5 .item,
+.top-nav.theme6 .item,
+.top-nav.theme7 .item {
+  color: #ffffff !important;
+  transition: all 0.3s ease !important;
+}
+.top-nav.theme1 .item:hover,
+.top-nav.theme2 .item:hover,
+.top-nav.theme3 .item:hover,
+.top-nav.theme4 .item:hover,
+.top-nav.theme5 .item:hover,
+.top-nav.theme6 .item:hover,
+.top-nav.theme7 .item:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+.top-nav.theme1 .item.active,
+.top-nav.theme2 .item.active,
+.top-nav.theme3 .item.active,
+.top-nav.theme4 .item.active,
+.top-nav.theme5 .item.active,
+.top-nav.theme6 .item.active,
+.top-nav.theme7 .item.active {
+  background: rgba(102, 126, 234, 0.3) !important;
+  color: #ffffff !important;
+  border-bottom: 3px solid #667eea !important;
 }
 .top-nav::-webkit-scrollbar {
   height: 2px;
@@ -719,47 +778,70 @@ body.expanded .main {
   border: 0 !important;
   box-shadow: none !important;
 }
-.main-menu.theme1 {
-  background: #14539A !important;
-}
-.main-menu.theme1 .menu {
-  background: #14539A !important;
-}
-.main-menu.theme2 {
-  background: #276AC6 !important;
-}
-.main-menu.theme2 .menu {
-  background: #276AC6 !important;
-}
-.main-menu.theme3 {
-  background: #007D9C !important;
-}
-.main-menu.theme3 .menu {
-  background: #007D9C !important;
-}
-.main-menu.theme4 {
-  background: #A12568 !important;
-}
-.main-menu.theme4 .menu {
-  background: #A12568 !important;
-}
-.main-menu.theme5 {
-  background: #1C7947 !important;
-}
-.main-menu.theme5 .menu {
-  background: #1C7947 !important;
-}
-.main-menu.theme6 {
-  background: #1D365D !important;
-}
-.main-menu.theme6 .menu {
-  background: #1D365D !important;
-}
+.main-menu.theme1,
+.main-menu.theme2,
+.main-menu.theme3,
+.main-menu.theme4,
+.main-menu.theme5,
+.main-menu.theme6,
 .main-menu.theme7 {
-  background: black !important;
+  background: linear-gradient(180deg, #c5d0f5 0%, #d8c8f0 100%) !important;
 }
+.main-menu.theme1 .menu,
+.main-menu.theme2 .menu,
+.main-menu.theme3 .menu,
+.main-menu.theme4 .menu,
+.main-menu.theme5 .menu,
+.main-menu.theme6 .menu,
 .main-menu.theme7 .menu {
-  background: black !important;
+  background: transparent !important;
+}
+.main-menu.theme1 .menu .item,
+.main-menu.theme2 .menu .item,
+.main-menu.theme3 .menu .item,
+.main-menu.theme4 .menu .item,
+.main-menu.theme5 .menu .item,
+.main-menu.theme6 .menu .item,
+.main-menu.theme7 .menu .item {
+  color: #2d3748 !important;
+}
+.main-menu.theme1 .menu .item i.icon,
+.main-menu.theme2 .menu .item i.icon,
+.main-menu.theme3 .menu .item i.icon,
+.main-menu.theme4 .menu .item i.icon,
+.main-menu.theme5 .menu .item i.icon,
+.main-menu.theme6 .menu .item i.icon,
+.main-menu.theme7 .menu .item i.icon {
+  color: #4a5568 !important;
+}
+.main-menu.theme1 .menu .item:hover,
+.main-menu.theme2 .menu .item:hover,
+.main-menu.theme3 .menu .item:hover,
+.main-menu.theme4 .menu .item:hover,
+.main-menu.theme5 .menu .item:hover,
+.main-menu.theme6 .menu .item:hover,
+.main-menu.theme7 .menu .item:hover {
+  background: rgba(255, 255, 255, 0.5) !important;
+  color: #1a202c !important;
+}
+.main-menu.theme1 .menu .item.active,
+.main-menu.theme2 .menu .item.active,
+.main-menu.theme3 .menu .item.active,
+.main-menu.theme4 .menu .item.active,
+.main-menu.theme5 .menu .item.active,
+.main-menu.theme6 .menu .item.active,
+.main-menu.theme7 .menu .item.active {
+  background: rgba(255, 255, 255, 0.7) !important;
+  color: #2b6cb0 !important;
+}
+.main-menu.theme1 .menu .item.active i.icon,
+.main-menu.theme2 .menu .item.active i.icon,
+.main-menu.theme3 .menu .item.active i.icon,
+.main-menu.theme4 .menu .item.active i.icon,
+.main-menu.theme5 .menu .item.active i.icon,
+.main-menu.theme6 .menu .item.active i.icon,
+.main-menu.theme7 .menu .item.active i.icon {
+  color: #2b6cb0 !important;
 }
 .main-menu::-webkit-scrollbar {
   width: 4px;

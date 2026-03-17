@@ -5,7 +5,9 @@
 	bottom: 2.4em;
 	overflow-y: auto;
 	overflow-x: hidden;
-	border-right: 1px #ddd solid;
+	background: linear-gradient(180deg, #2d1b69 0%, #3d2a7a 100%);
+	border-right: 2px solid #667eea;
+	box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 
 	.menu {
 		width: 90% !important;
@@ -14,17 +16,29 @@
 			line-height: 1.2;
 			position: relative;
 			padding-left: 1em !important;
+			color: #e0d4ff !important;
+			transition: all 0.3s ease !important;
 
 			.icon {
 				position: absolute;
 				top: 50%;
 				left: 0;
 				margin-top: -0.4em !important;
+				color: #a99fd4 !important;
+			}
+
+			&:hover {
+				background: rgba(102, 126, 234, 0.2) !important;
+				color: #ffffff !important;
+
+				.icon {
+					color: #667eea !important;
+				}
 			}
 		}
 
 		.item.separator {
-			border-bottom: 1px #eee solid !important;
+			border-bottom: 1px rgba(255, 255, 255, 0.1) solid !important;
 			padding-top: 0;
 			padding-bottom: 0;
 			margin-top: 0 !important;
@@ -33,7 +47,7 @@
 
 		.item.on {
 			span {
-				border-bottom: 1px #666 dashed;
+				border-bottom: 1px #667eea solid;
 			}
 		}
 
@@ -53,12 +67,22 @@
 
 		// .header需要在.item下面
 		.header {
-			border-bottom: 1px #ddd solid;
+			border-bottom: 1px rgba(255, 255, 255, 0.1) solid;
 			padding-left: 0 !important;
 			padding-bottom: 1em !important;
+			color: #b0a5c9;
+			font-weight: 600;
 		}
 
 		.item.active {
+			background: rgba(102, 126, 234, 0.4) !important;
+			color: #ffffff !important;
+			border-left: 3px solid #667eea !important;
+			padding-left: calc(1em - 3px) !important;
+
+			.icon {
+				color: #667eea !important;
+			}
 		}
 	}
 }

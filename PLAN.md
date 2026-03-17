@@ -305,9 +305,11 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 | **v0.9.0** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段 C-2：freecdn-init Go 工具（替代 bash DB 初始化）；版本号统一 v0.9.0** |
 | **v0.8.0** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段 C：/health 端点（freecdn-admin:7788/health、freecdn-api:8004/health），freecdn-api/node module 名重命名确认完成，faq.md 版本更新** |
 | **v0.9.1** | 2026-03-17 | **amd64 tar.gz ✓ + SHA256SUMS ✓ + install.sh ✓** | **SSH 安装节点专项修复（7 个坑全部解决）**：install.sh 自动上传到 Release；CRLF 换行符修复；zip 存放路径修正；zip 内部目录结构修正；unzip.go MkdirAll 防御性修复；helper 需重新编译后推到服务器；zipfile create_system=3 修复目录权限 |
+| **v0.9.2** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段二 UI 升级初版（v0.9.2，2026-03-17）**：管理后台主布局 UI 全面升级（顶栏+左菜单+表格）；顶栏深紫色渐变 + 白色文字；左菜单深紫色背景 + 亮紫色活跃项；表格行 hover 淡紫色背景；统一紫色渐变主题（品牌色 #667eea-#764ba2）；commit `535b1f31` |
+| **v0.10.0** | 规划中 | — | **阶段二 UI 全面现代化重构**：完整设计系统（色彩、排版、间距、阴影）；组件库重构（Button/Input/Table/Card 等）；页面模块升级（Dashboard/Clusters/Servers/Users）；交互动画增强；深色模式支持；响应式优化 |
 | **v1.0.0** | 待规划 | — | **完整重命名（三主仓库 module 名全部改为 freecdn-* 命名空间）** |
 
-**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.9.1"`
+**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.9.2"`
 
 > v0.1.6 起所有 Release 包均从**源码自主编译**（local_build_release.py），包含 edge-admin / edge-api / edge-node 三个组件，不依赖 GoEdge 官方二进制。
 
@@ -444,40 +446,202 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 
 ---
 
-## 阶段二：UI 界面升级（进行中）
+## 阶段二：UI 界面升级（全面现代化重构，v0.10.0+）
 
-**背景**：当前后台 UI 是 GoEdge 原版风格（Vue 2 + 自定义 CSS）。功能验收完成后，系统性升级视觉风格。
+**背景**：当前后台 UI 是 GoEdge 原版风格（Vue 2 + 自定义 CSS）。v0.9.2 进行了初步升级，但视觉效果不够现代、不够一致。需要全面系统性的现代化重构。
 
-**升级原则**：不改变功能逻辑，只改 CSS/HTML 模板；保持 Vue 2（不升 Vue 3）；优先改高频页面。
+**新的升级目标（2026-03-18）**：
+1. **设计系统完整化** - 建立从色彩、排版、间距、阴影的完整设计规范
+2. **视觉层级清晰** - 增强对比度、改进信息层级、提升阅读体验
+3. **交互反馈一致** - 统一按钮、表单、表格的交互动画和反馈
+4. **深色模式支持** - 在亮色基础上支持系统深色模式
+5. **响应式增强** - 确保在各屏幕尺寸上都有优雅的表现
 
-**确定方案（2026-03-17）**：方案 A — 统一配色 + 字体，紫色渐变主题（`#667eea → #764ba2`），白卡片风格，提升整体现代感。
+**升级原则**：
+- 不改变功能逻辑，只改 CSS/HTML 模板
+- 保持 Vue 2（不升 Vue 3）
+- 优先改核心页面（Dashboard → Clusters → Servers → Users）
+- 每个模块完成后进行浏览器验证
 
-### UI 升级进展
+### UI 升级进展（v0.10.0 全面重构）
 
-#### 登录页（已完成，v0.9.2）
+#### 阶段 1：设计系统基础（进行中）
+
+##### 1-1：颜色系统定义（待完成）
+
+核心色板：
+- **品牌色**：`#667eea`（紫色主色）
+- **辅助色**：`#764ba2`（深紫辅助）
+- **成功色**：`#48bb78`（绿色）
+- **警告色**：`#ed8936`（橙色）
+- **危险色**：`#f56565`（红色）
+- **中立色**：灰色系 8 级（`#000` → `#fff`）
+
+背景和表面：
+- **主背景**：`#f7fafc`（极淡蓝）
+- **卡片背景**：`#ffffff`（纯白）
+- **悬停表面**：`#f0f4f8`（淡灰）
+- **边框色**：`#e2e8f0`（浅灰）
+
+#### 阶段 2：组件库重构（待完成）
+
+计划改造的核心组件（优先级顺序）：
+1. **Button** - 统一尺寸、色彩、圆角、阴影
+2. **Input** - 一致的焦点状态、错误提示、尺寸
+3. **Table** - 改进表头、行高、hover 效果、斑马条纹
+4. **Card/Box** - 标准阴影、圆角、间距
+5. **Navigation** - 顶栏、左菜单、面包屑的统一风格
+6. **Modal/Dialog** - 动画、背景蒙层、关闭按钮
+7. **Badge/Tag** - 状态标签、分类标签的样式
+
+#### 阶段 3：页面模块升级（待完成）
+
+按优先级逐页改造：
+- [ ] **登录页** - 已有基础，需优化
+- [ ] **Dashboard** - 统计卡片、图表、数据概览
+- [ ] **Clusters 集群管理** - 表格、操作按钮、详情页
+- [ ] **Servers 服务列表** - 表格、配置卡片、编辑表单
+- [ ] **Users 用户管理** - 表格、权限标签、操作弹窗
+
+#### 阶段 4：交互和动画（待完成）
+
+- 页面过渡动画（fade、slide）
+- 按钮按压效果（ripple）
+- 加载状态动画（spinner、skeleton）
+- 消息提示动画（toast、notification）
+- 表单验证反馈
+
+#### 已完成的工作（v0.9.2 基础）
 
 文件：`web/views/@default/index/index.less`
 
-- 背景：线性渐变 `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`
-- 卡片：白色圆角（20px）+ 大阴影（`0 20px 60px rgba(0,0,0,.15)`）
+- 登录页背景：线性渐变 `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`
+- 登录卡片：白色圆角（20px）+ 大阴影（`0 20px 60px rgba(0,0,0,.15)`）
 - 入场动画：`@keyframes slideUp`（0.5s ease-out）
-- 输入框：48px 高，2px 边框，聚焦时品牌色光晕
-- 图标：`position:absolute + top:50% + translateY(-50%)` 精确垂直居中
-- 按钮：渐变背景 + `box-shadow` 悬浮上移效果
-- 已编译并同步到 WSL 服务器，commit `754a222c`
-
-#### 管理页面主布局（已完成，v0.9.2）
 
 文件：`web/views/@default/@layout.less` + `web/views/@default/@left_menu.less`
 
-- 顶栏：深紫色渐变 (`linear-gradient(90deg, #667eea 0%, #764ba2 100%)`) + 白色文字 + 活跃项品牌色高亮
-- 左侧菜单：深紫色背景 (`#2d1b69`) + 白色文字 + 亮紫色活跃项 (`#667eea`) + 左边框高亮
-- 表格行：hover 改为淡紫色背景 (`rgba(102, 126, 234, 0.08)`)，表头品牌色文字 + 加粗
-- 已编译并 push 到 GitHub（commit `535b1f31`）
+- 顶栏：深紫色渐变 (`linear-gradient(90deg, #667eea 0%, #764ba2 100%)`) + 白色文字
+- 左侧菜单：深紫色背景 (`#2d1b69`) + 白色文字
+- 表格行 hover：淡紫色背景 (`rgba(102, 126, 234, 0.08)`)
 
 ---
 
-## 技术架构速查
+## v0.10.0 任务清单（阶段二 UI 全面现代化重构，规划中）
+
+### 10-1：设计系统文档编写
+
+- [ ] 创建 `docs/DESIGN_SYSTEM.md`
+  - 色彩系统（品牌色、辅助色、状态色、中立色）
+  - 排版系统（字体、字号、行高、字重）
+  - 间距系统（padding/margin 标准值）
+  - 圆角系统（0px / 4px / 8px / 12px / 16px / 20px）
+  - 阴影系统（5 层从轻到重）
+  - 边框系统（颜色、粗细）
+
+- [ ] 创建 `docs/COMPONENTS_LIBRARY.md`
+  - 每个核心组件的规范（Button、Input、Table、Card 等）
+  - 尺寸、颜色、间距的标准值
+  - 不同状态的样式（normal、hover、active、disabled）
+  - 动画和过渡效果说明
+
+### 10-2：CSS 系统重构
+
+计划改造文件：
+- [ ] `web/views/@default/@design_tokens.less` (新建)
+  - 定义所有设计令牌（CSS 变量）
+  - 色彩、尺寸、排版、阴影、圆角等
+
+- [ ] `web/views/@default/@components_base.less` (新建)
+  - Button、Input、Select 等基础表单控件
+  - 所有状态和尺寸变体
+
+- [ ] `web/views/@default/@components_data.less` (新建)
+  - Table、List、Grid 数据展示组件
+  - 斑马条纹、hover 效果、排序指示
+
+- [ ] `web/views/@default/@components_feedback.less` (新建)
+  - Modal、Toast、Notification 反馈组件
+  - 动画效果和过渡
+
+- [ ] `web/views/@default/@layout.less` (改造)
+  - 顶栏优化（改进色彩对比、间距、图标）
+  - 主内容区（padding、背景色）
+  - 响应式断点适配
+
+- [ ] `web/views/@default/@left_menu.less` (改造)
+  - 菜单项间距、圆角、悬停效果
+  - 活跃项指示器
+  - 嵌套子菜单样式
+
+### 10-3：页面模块升级
+
+#### Dashboard 页面（优先级 1）
+- [ ] 统计卡片样式统一
+- [ ] 图表容器样式
+- [ ] 数据列表样式
+- [ ] 浏览器验证
+
+#### Clusters 集群管理（优先级 2）
+- [ ] 集群列表表格优化
+- [ ] 集群详情页面
+- [ ] 节点列表和详情
+- [ ] 操作按钮和确认弹窗
+
+#### Servers 服务列表（优先级 3）
+- [ ] 服务列表表格
+- [ ] 服务配置表单
+- [ ] 证书管理界面
+- [ ] 统计和监控
+
+#### Users 用户管理（优先级 4）
+- [ ] 用户列表表格
+- [ ] 创建/编辑用户表单
+- [ ] 权限分配界面
+
+#### 其他页面（优先级 5）
+- [ ] Settings 设置页面
+- [ ] Logs 日志查看
+- [ ] DNS 管理
+- [ ] 数据库管理
+
+### 10-4：交互增强
+
+- [ ] 按钮按压反馈（active 状态）
+- [ ] 表单聚焦动画
+- [ ] 表格行过渡动画（expand/collapse）
+- [ ] 加载状态（skeleton screens）
+- [ ] 消息提示（toast notifications）
+- [ ] 页面过渡（fade/slide）
+
+### 10-5：深色模式支持
+
+- [ ] 添加深色模式 CSS 变量定义
+- [ ] 使用 `@media (prefers-color-scheme: dark)` 媒体查询
+- [ ] 在用户设置中添加主题切换选项
+- [ ] 验证深色模式下所有页面可读性
+
+### 10-6：响应式优化
+
+- [ ] 定义响应式断点（mobile / tablet / desktop）
+- [ ] 优化移动端导航（汉堡菜单）
+- [ ] 表格在小屏幕上的显示（卡片视图）
+- [ ] 验证在各断点的表现
+
+### 10-7：浏览器验证和测试
+
+- [ ] Chrome、Firefox、Safari 验证
+- [ ] 浏览器开发者工具检查（无警告）
+- [ ] 性能检查（减少重排/重绘）
+- [ ] 对比截图（v0.9.2 vs v0.10.0）
+
+### 10-8：文档更新
+
+- [ ] 更新 DESIGN_QUICK_REFERENCE.md
+- [ ] 更新 README.md（UI 改进说明）
+- [ ] 更新 PLAN.md（标记完成）
+
+---
 
 | 参数 | 值 |
 |------|-----|

@@ -20,7 +20,7 @@
 FROM debian:bookworm-slim AS downloader
 
 ARG TARGETARCH=amd64
-ARG FREECDN_VERSION=v0.8.0
+ARG FREECDN_VERSION=v0.10.0
 ARG GITHUB_REPO=hujiali30001/freecdn-admin
 
 # 安装下载工具

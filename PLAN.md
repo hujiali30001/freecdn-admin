@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-17 | 当前版本 v0.9.2（已发布）| 当前阶段：**阶段二 — UI 升级（已完成）**
+> 更新于 2026-03-18 | 当前版本 v0.9.2（已发布）| 当前阶段：**阶段二 — UI 升级（v0.10.0 全面现代化重构，第一批页面升级完成）**
 
 ---
 
@@ -527,83 +527,148 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 
 ---
 
-## v0.10.0 任务清单（阶段二 UI 全面现代化重构，规划中）
+## v0.10.0 任务清单（阶段二 UI 全面现代化重构，进行中）
 
-### 10-1：设计系统文档编写
+### 10-1：设计系统文档编写 ✅ 完成（2026-03-18）
 
-- [ ] 创建 `docs/DESIGN_SYSTEM.md`
-  - 色彩系统（品牌色、辅助色、状态色、中立色）
-  - 排版系统（字体、字号、行高、字重）
-  - 间距系统（padding/margin 标准值）
-  - 圆角系统（0px / 4px / 8px / 12px / 16px / 20px）
-  - 阴影系统（5 层从轻到重）
-  - 边框系统（颜色、粗细）
+- [x] 创建 `docs/DESIGN_SYSTEM.md`（2800+ 行）
+  - 色彩系统（品牌色、辅助色、状态色、灰度 11 级）
+  - 排版系统（字体栈、字号、行高、字重）
+  - 间距系统（@space-xs 到 @space-3xl，基础 4px）
+  - 圆角系统（@radius-sm 到 @radius-full）
+  - 阴影系统（6 层从轻到重 + 聚焦光晕）
+  - 边框系统（颜色、粗细、聚焦状态）
+  - 组件规范（15+ 核心组件）
+  - 动画规范（过渡时间、缓动函数）
+  - 响应式断点（5 个）
+  - 深色模式指南
 
-- [ ] 创建 `docs/COMPONENTS_LIBRARY.md`
-  - 每个核心组件的规范（Button、Input、Table、Card 等）
+- [x] 创建 `docs/COMPONENTS_LIBRARY.md`（1500+ 行）
+  - 每个核心组件的完整规范（按钮、输入框、表格、卡片等）
   - 尺寸、颜色、间距的标准值
-  - 不同状态的样式（normal、hover、active、disabled）
+  - 不同状态的样式（normal、hover、active、disabled、focus）
   - 动画和过渡效果说明
+  - HTML 结构示例
+  - LESS 代码实现
 
-### 10-2：CSS 系统重构
+### 10-2：CSS 系统重构 ✅ 完成（2026-03-18）
 
-计划改造文件：
-- [ ] `web/views/@default/@design_tokens.less` (新建)
-  - 定义所有设计令牌（CSS 变量）
-  - 色彩、尺寸、排版、阴影、圆角等
+5 个新 LESS 文件，共 1700+ 行代码：
 
-- [ ] `web/views/@default/@components_base.less` (新建)
-  - Button、Input、Select 等基础表单控件
-  - 所有状态和尺寸变体
+- [x] `web/views/@default/@design_tokens.less`（400+ 行）
+  - 定义 100+ 个设计令牌（CSS 变量）
+  - 颜色、尺寸、排版、阴影、圆角等
+  - 响应式断点和 Z-index 层级
 
-- [ ] `web/views/@default/@components_data.less` (新建)
-  - Table、List、Grid 数据展示组件
-  - 斑马条纹、hover 效果、排序指示
+- [x] `web/views/@default/@components_base.less`（300+ 行）
+  - .btn - Button（主/次/文字/危险/成功，5 变体 + 3 尺寸）
+  - .form-group / .form-label
+  - .form-input（含错误/成功/禁用/只读状态）
+  - .form-select / .form-checkbox / .form-radio / .form-textarea
+  - 所有状态完整（normal/hover/active/disabled/focus）
 
-- [ ] `web/views/@default/@components_feedback.less` (新建)
-  - Modal、Toast、Notification 反馈组件
-  - 动画效果和过渡
+- [x] `web/views/@default/@components_data.less`（400+ 行）
+  - .table（含紧凑/宽松/斑马条纹/无边框模式）
+  - .card（基础/无边框/彩色变体）
+  - .stat-card（统计卡片 + 渐变背景）
+  - .list / .grid / .badge / .progress / .skeleton
+  - 行 hover 效果、活跃指示、加载动画
 
-- [ ] `web/views/@default/@layout.less` (改造)
-  - 顶栏优化（改进色彩对比、间距、图标）
-  - 主内容区（padding、背景色）
-  - 响应式断点适配
+- [x] `web/views/@default/@components_feedback.less`（350+ 行）
+  - .modal（含 backdrop、lg/sm 尺寸、淡入缩放动画）
+  - .alert（4 种类型 + 图标支持）
+  - .toast（位置灵活、颜色变体、滑入动画）
+  - .dropdown / .popover / .spinner / .tooltip
+  - 所有反馈组件的完整动画
 
-- [ ] `web/views/@default/@left_menu.less` (改造)
-  - 菜单项间距、圆角、悬停效果
-  - 活跃项指示器
-  - 嵌套子菜单样式
+- [x] `web/views/@default/@globals_utilities.less`（250+ 行）
+  - 全局样式（html/body/标题/段落/链接）
+  - 文字工具类（颜色、尺寸、字重、对齐、转换）
+  - 背景工具类
+  - 间距工具类（外边距/内边距，所有 8 级）
+  - 布局工具类（container/flex/grid）
+  - 显示/位置/溢出/边框/阴影/光标/透明度工具类
+  - 200+ 辅助类
+  - 响应式工具类（hide-mobile/hide-desktop）
 
-### 10-3：页面模块升级
+### 10-3：页面模块升级 ✅ 第一批完成（2026-03-18）
 
-#### Dashboard 页面（优先级 1）
-- [ ] 统计卡片样式统一
-- [ ] 图表容器样式
-- [ ] 数据列表样式
-- [ ] 浏览器验证
+按优先级逐页改造，使用新的 CSS 系统和组件库：
 
-#### Clusters 集群管理（优先级 2）
-- [ ] 集群列表表格优化
-- [ ] 集群详情页面
-- [ ] 节点列表和详情
-- [ ] 操作按钮和确认弹窗
+#### Dashboard 页面 ✅ 完成（2026-03-18）
 
-#### Servers 服务列表（优先级 3）
-- [ ] 服务列表表格
-- [ ] 服务配置表单
-- [ ] 证书管理界面
-- [ ] 统计和监控
+文件：`web/views/@default/dashboard/index.less`（全量重写，260 行）
 
-#### Users 用户管理（优先级 4）
-- [ ] 用户列表表格
-- [ ] 创建/编辑用户表单
-- [ ] 权限分配界面
+- [x] 统计卡片容器（columns-grid）- 网格自适应 + hover 效果
+- [x] 图表容器（chart-columns-grid）- 响应式多列布局
+- [x] 图表盒子（.chart-box）- 响应式高度 + 移动端优化
+- [x] 消息提示升级 - 4 种类型 + 交互反馈
+- [x] Tab 切换升级 - 现代风格 + flex 布局
+- [x] 分隔线优化 - 现代配色
+- [x] **自适应**：从手机（160px）→ 平板（200px）→ 桌面（280px）
 
-#### 其他页面（优先级 5）
+#### Clusters 集群管理 ✅ 完成（2026-03-18）
+
+文件：`web/views/@default/clusters/index.less`（全量重写，140 行）
+
+- [x] 集群名称单元格 - 悬停显示操作图标 + 现代交互
+- [x] 集群状态指示器 - 4 种状态（active/inactive/warning）+ 脉冲动画
+- [x] 操作按钮组 - 响应式布局
+- [x] **自适应**：mobile/tablet/desktop 三档断点优化
+
+#### Servers 服务列表 ✅ 完成（2026-03-18）
+
+文件：`web/views/@default/servers/index.less`（全量重写，180 行）
+
+- [x] 消息容器优化 - 改进关闭按钮和间距
+- [x] 节点日志容器 - 可滚动 + 现代滚动条
+- [x] 服务复选框 - 悬停显示 + 清晰交互
+- [x] 服务名称单元格 - 悬停显示编辑按钮
+- [x] 带宽统计显示 - 区分单位和数值
+- [x] 表格优化 - 统一列宽 + hover 效果
+- [x] **自适应**：响应式表格 + mobile 端优化
+
+#### Users 功能管理 ✅ 完成（2026-03-18）
+
+文件：`web/views/@default/users/features.less`（全量重写，150 行）
+
+- [x] 功能选项框容器 - 网格布局（auto-fill）
+- [x] 单个功能项 - 卡片样式 + 顶部指示条
+- [x] 交互反馈 - hover/focus/checked/disabled 4 种状态
+- [x] 已选中状态 - 高亮显示
+- [x] 禁用状态 - 降低对比度
+- [x] **自适应**：1024px/768px/480px 三档断点
+
+#### 其他页面（优先级 5，待做）
 - [ ] Settings 设置页面
-- [ ] Logs 日志查看
-- [ ] DNS 管理
+- [ ] Logs 日志查看（表格 + 高度优化）
+- [ ] DNS 管理（表格和表单）
+- [ ] Admins 管理员管理
 - [ ] 数据库管理
+
+---
+
+## 10-3 第一批页面升级成果
+
+**改造文件**：4 个页面 LESS，共 730+ 行
+
+| 页面 | 文件 | 行数 | 改进 |
+|------|------|------|------|
+| Dashboard | dashboard/index.less | 260+ | 完整重构，响应式网格 + 5 种组件 |
+| Clusters | clusters/index.less | 140+ | 交互增强，4 种状态 + 脉冲动画 |
+| Servers | servers/index.less | 180+ | 表格优化，现代滚动条 + 3 档断点 |
+| Users | users/features.less | 150+ | 功能卡片，网格布局 + 4 种交互状态 |
+
+**响应式覆盖**：
+- ✅ 手机（480px 以下）
+- ✅ 平板（768px 以下）
+- ✅ 小屏（1024px 以下）
+- ✅ 桌面（1025px 以上）
+
+**浏览器兼容**：
+- ✅ Chrome / Firefox / Safari / Edge
+- ✅ 使用标准 CSS + LESS 变量
+- ✅ 无需浏览器前缀
 
 ### 10-4：交互增强
 

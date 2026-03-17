@@ -1,37 +1,167 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// FreeCDN Clusters — 集群管理现代化升级（v0.10.0）
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ┌─ 集群名称单元格
+// └─ 操作图标悬停显示 + 现代交互
 .cluster-name-td {
-	position: relative;
+  position: relative;
+  padding: @space-md !important;
+  transition: all @transition-normal;
 
-	.icon.pin {
-		display: none;
-		position: absolute;
-		right: 1em;
-		top: 50%;
-		margin-top: -0.7em;
-		opacity: 0.6;
-	}
+  .icon {
+    transition: all @transition-fast;
 
-	.icon.visible {
-		display: inline;
-	}
+    &.pin {
+      display: none;
+      position: absolute;
+      right: calc(@space-lg * 2);
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0;
+      cursor: pointer;
+      color: @color-text-secondary;
+      transition: all @transition-fast;
 
-	.icon.opacity {
-		opacity: 0.3;
-	}
+      &:hover {
+        color: @color-brand;
+        transform: translateY(-50%) scale(1.2);
+      }
+    }
 
-	.icon.setting {
-		display: none;
-		position: absolute;
-		right: 3em;
-		top: 50%;
-		margin-top: -0.7em;
-	}
+    &.visible {
+      display: inline;
+      opacity: 0.8;
+      transition: opacity @transition-fast;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+
+    &.opacity {
+      opacity: 0.4;
+    }
+
+    &.setting {
+      display: none;
+      position: absolute;
+      right: @space-lg;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0;
+      cursor: pointer;
+      color: @color-text-secondary;
+      transition: all @transition-fast;
+
+      &:hover {
+        color: @color-brand;
+        transform: translateY(-50%) scale(1.2);
+      }
+    }
+  }
+
+  &:hover {
+    background: rgba(102, 126, 234, 0.04);
+    border-radius: @radius-sm;
+
+    .icon.pin {
+      display: inline;
+      opacity: 1;
+    }
+
+    .icon.setting {
+      display: inline;
+      opacity: 1;
+    }
+  }
 }
 
-.cluster-name-td:hover {
-	.icon.pin {
-		display: inline;
-	}
-	.icon.setting {
-		display: inline;
-	}
+// ┌─ 集群状态指示
+// └─ 清晰的视觉反馈
+.cluster-status {
+  display: inline-flex;
+  align-items: center;
+  gap: @space-sm;
+  padding: @space-xs @space-sm;
+  border-radius: @radius-sm;
+  font-size: @font-size-xs;
+  font-weight: @font-weight-medium;
+
+  &.active {
+    background: rgba(72, 187, 120, 0.12);
+    color: @color-success;
+
+    &:before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: @color-success;
+      animation: pulse 2s infinite;
+    }
+  }
+
+  &.inactive {
+    background: rgba(160, 174, 192, 0.12);
+    color: @color-text-secondary;
+
+    &:before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: @color-text-secondary;
+    }
+  }
+
+  &.warning {
+    background: rgba(237, 137, 54, 0.12);
+    color: @color-warning;
+
+    &:before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: @color-warning;
+      animation: pulse 1s infinite;
+    }
+  }
+}
+
+// ┌─ 脉冲动画（用于活跃状态）
+// └─ 提高视觉吸引力
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+// ┌─ 操作按钮组
+// └─ 响应式布局
+.cluster-actions {
+  display: flex;
+  gap: @space-sm;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    gap: @space-xs;
+
+    .btn {
+      padding: @space-xs @space-sm !important;
+      font-size: @font-size-xs !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+    }
+  }
 }

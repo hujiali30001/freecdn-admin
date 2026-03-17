@@ -1,13 +1,164 @@
-.feature-boxes {
-	.feature-box {
-		margin-bottom: 1em;
-		width: 24em;
-		float: left;
-	}
+// ─────────────────────────────────────────────────────────────────────────────
+// FreeCDN Users Features — 用户功能管理现代化升级（v0.10.0）
+// ─────────────────────────────────────────────────────────────────────────────
 
-	.feature-box:hover {
-		label {
-			font-weight: bold;
-		}
-	}
+// ┌─ 功能选项框容器
+// └─ 网格布局 + 响应式
+.feature-boxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: @space-lg;
+  padding: @space-lg;
+  background: @color-surface;
+  border-radius: @radius-lg;
+  border: 1px solid @color-border;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: @space-md;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: @space-md;
+    padding: @space-md;
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: @space-sm;
+    padding: @space-md;
+  }
+
+  // ┌─ 单个功能项
+  // └─ 卡片样式 + 交互反馈
+  .feature-box {
+    padding: @space-lg;
+    background: @color-background;
+    border: 2px solid @color-border;
+    border-radius: @radius-md;
+    transition: all @transition-normal;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+
+    &:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: @color-brand;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform @transition-normal;
+    }
+
+    &:hover {
+      border-color: @color-brand;
+      background: rgba(102, 126, 234, 0.04);
+      box-shadow: @shadow-md;
+      transform: translateY(-2px);
+
+      &:before {
+        transform: scaleX(1);
+      }
+
+      label {
+        font-weight: @font-weight-semibold;
+        color: @color-brand;
+      }
+
+      .description {
+        color: @color-text;
+      }
+    }
+
+    label {
+      display: block;
+      margin: 0 0 @space-sm 0;
+      font-size: @font-size-base;
+      font-weight: @font-weight-medium;
+      color: @color-text;
+      transition: all @transition-normal;
+      cursor: pointer;
+    }
+
+    .description {
+      font-size: @font-size-xs;
+      color: @color-text-secondary;
+      transition: color @transition-normal;
+      line-height: @line-height-relaxed;
+    }
+
+    input[type='checkbox'],
+    input[type='radio'] {
+      margin-right: @space-sm;
+      cursor: pointer;
+      transition: all @transition-fast;
+
+      &:hover {
+        transform: scale(1.1);
+      }
+
+      &:checked {
+        accent-color: @color-brand;
+      }
+    }
+
+    @media (max-width: 768px) {
+      padding: @space-md;
+
+      label {
+        font-size: @font-size-sm;
+      }
+
+      .description {
+        font-size: 11px;
+      }
+    }
+  }
+
+  // ┌─ 已选中状态
+  // └─ 高亮显示
+  .feature-box.checked {
+    background: rgba(102, 126, 234, 0.08);
+    border-color: @color-brand;
+    box-shadow: inset 0 0 0 1px @color-brand;
+
+    label {
+      color: @color-brand;
+      font-weight: @font-weight-semibold;
+    }
+
+    input {
+      accent-color: @color-brand;
+    }
+  }
+
+  // ┌─ 禁用状态
+  // └─ 降低对比度
+  .feature-box:disabled,
+  .feature-box.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    border-color: @color-border;
+    background: @color-background;
+
+    label,
+    .description {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    input {
+      cursor: not-allowed;
+    }
+
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
 }

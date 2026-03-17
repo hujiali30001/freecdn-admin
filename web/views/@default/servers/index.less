@@ -1,64 +1,243 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// FreeCDN Servers — 服务管理现代化升级（v0.10.0）
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ┌─ 消息容器优化
+// └─ 改进关闭按钮和内容间距
 .ui.message {
-	.icon.remove {
-		position: absolute;
-		right: 1em;
-		top: 2.2em;
-	}
+  margin: @space-md 0 !important;
+  padding: @space-lg !important;
+  border-radius: @radius-lg !important;
+  border-left: 4px solid transparent !important;
+  background: @color-surface !important;
+  transition: all @transition-normal !important;
 
-	.content {
-		padding-right: 1em;
-	}
+  &.warning {
+    background: rgba(237, 137, 54, 0.08) !important;
+    border-left-color: @color-warning !important;
+  }
+
+  &.error {
+    background: rgba(245, 101, 101, 0.08) !important;
+    border-left-color: @color-error !important;
+  }
+
+  .icon.remove {
+    position: absolute;
+    right: @space-lg;
+    top: @space-md;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity @transition-fast;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  .content {
+    padding-right: @space-lg;
+  }
+
+  @media (max-width: 768px) {
+    padding: @space-md !important;
+    font-size: @font-size-sm !important;
+
+    .icon.remove {
+      right: @space-md;
+      top: @space-sm;
+    }
+  }
 }
 
+// ┌─ 节点日志容器
+// └─ 可滚动的日志列表
 .node-logs-box {
-	max-height: 14em;
-	overflow-y: auto;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: @space-md;
+  background: @color-background;
+  border: 1px solid @color-border;
+  border-radius: @radius-md;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: @font-size-xs;
+  line-height: @line-height-relaxed;
+  color: @color-text-secondary;
+
+  @media (max-width: 768px) {
+    max-height: 200px;
+    font-size: 11px;
+  }
 }
 
+// ┌─ 自定义滚动条（Webkit 浏览器）
+// └─ 现代风格滚动条
 .node-logs-box::-webkit-scrollbar {
-	width: 4px;
+  width: 6px;
 }
 
+.node-logs-box::-webkit-scrollbar-track {
+  background: @color-background;
+  border-radius: 10px;
+}
+
+.node-logs-box::-webkit-scrollbar-thumb {
+  background: rgba(102, 126, 234, 0.3);
+  border-radius: 10px;
+  transition: background @transition-normal;
+
+  &:hover {
+    background: rgba(102, 126, 234, 0.5);
+  }
+}
+
+// ┌─ 服务复选框单元格
+// └─ 悬停显示 + 响应式
 .server-checkbox-td {
-	.checkbox {
-		opacity: 50%;
-	}
+  text-align: center;
+  width: 50px;
 
-	.checkbox:hover {
-		opacity: 100%;
-	}
+  .checkbox {
+    opacity: 0.5;
+    cursor: pointer;
+    transition: opacity @transition-fast;
+  }
+
+  &:hover .checkbox {
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    width: 40px;
+  }
 }
 
+// ┌─ 服务名称单元格
+// └─ 悬停显示编辑按钮
 .server-name-td {
-	position: relative;
+  position: relative;
+  padding: @space-md !important;
+  transition: all @transition-normal;
 
-	.icon.setting {
-		display: none;
-		position: absolute;
-		right: 1em;
-		top: 50%;
-		margin-top: -1em;
-	}
+  .icon.setting {
+    display: none;
+    position: absolute;
+    right: @space-lg;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    cursor: pointer;
+    color: @color-text-secondary;
+    transition: all @transition-fast;
+  }
+
+  &:hover {
+    background: rgba(102, 126, 234, 0.04);
+    border-radius: @radius-sm;
+
+    .icon.setting {
+      display: inline;
+      opacity: 1;
+
+      &:hover {
+        color: @color-brand;
+        transform: translateY(-50%) scale(1.2);
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: @space-sm !important;
+
+    .icon.setting {
+      right: @space-sm;
+    }
+  }
 }
 
-.server-name-td:hover {
-	.icon.setting {
-		display: inline;
-	}
-}
-
+// ┌─ 带宽统计显示
+// └─ 区分单位和数值
 .bandwidth-span {
-	var {
-		font-size: 0.8em;
+  display: inline-flex;
+  align-items: baseline;
+  gap: @space-xs;
 
-		span {
-			font-size: 1.2em;
-		}
-	}
+  var {
+    font-style: normal;
+    font-size: @font-size-xs;
+    color: @color-text-secondary;
+
+    span {
+      font-size: @font-size-base;
+      color: @color-text;
+      font-weight: @font-weight-medium;
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0;
+
+    var {
+      span {
+        display: block;
+      }
+    }
+  }
 }
 
+// ┌─ 表格数值列宽度
+// └─ 统一列宽管理
 .table {
-	th.value-column {
-		width: 8em;
-	}
+  width: 100%;
+  border-collapse: collapse;
+  transition: all @transition-normal;
+
+  th.value-column {
+    width: 120px;
+    text-align: center;
+
+    @media (max-width: 1024px) {
+      width: 100px;
+    }
+
+    @media (max-width: 768px) {
+      width: 80px;
+      font-size: @font-size-xs;
+      padding: @space-sm !important;
+    }
+  }
+
+  tr {
+    transition: background @transition-fast;
+
+    &:hover {
+      background: rgba(102, 126, 234, 0.04);
+    }
+
+    td, th {
+      padding: @space-md !important;
+      vertical-align: middle;
+
+      @media (max-width: 768px) {
+        padding: @space-sm !important;
+        font-size: @font-size-sm;
+      }
+    }
+  }
+
+  thead {
+    background: @color-background;
+    border-bottom: 2px solid @color-border;
+    font-weight: @font-weight-semibold;
+    color: @color-brand;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid @color-border;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
 }

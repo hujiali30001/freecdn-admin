@@ -1,0 +1,5 @@
+docs: update PLAN.md - stage 2 UI upgrade completed
+
+- Mark admin UI layout upgrade as complete
+- Update version status and completed items list
+- Track top nav, left menu, and table styling improvements

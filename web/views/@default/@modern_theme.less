@@ -1,0 +1,382 @@
+/**
+ * FreeCDN 现代化主题样式
+ * 基于渐变蓝紫色调，提供统一的视觉体验
+ */
+
+/* ==================== 颜色定义 ==================== */
+@primary-gradient-start: #f5f7ff;
+@primary-gradient-end: #f0f5ff;
+@sidebar-gradient-start: #c5d0f5;
+@sidebar-gradient-end: #d8c8f0;
+
+/* 统计卡片颜色 */
+@card-cluster-start: #d4e5f9;
+@card-cluster-end: #c5d8f5;
+@card-node-start: #e5d8f9;
+@card-node-end: #d8c8f5;
+@card-user-start: #f9e5ec;
+@card-user-end: #f5d8e3;
+@card-server-start: #f0e5f9;
+@card-server-end: #e5d8f5;
+
+/* 文字颜色 */
+@text-primary: #1a202c;
+@text-main: #2d3748;
+@text-secondary: #4a5568;
+@text-light: #718096;
+
+/* 其他颜色 */
+@shadow-soft: rgba(0, 0, 0, 0.05);
+@shadow-medium: rgba(0, 0, 0, 0.08);
+@border-light: rgba(226, 232, 240, 0.6);
+
+/* ==================== 全局样式 ==================== */
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 
+                 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: linear-gradient(135deg, @primary-gradient-start 0%, @primary-gradient-end 100%);
+    color: @text-main;
+}
+
+/* ==================== 现代化卡片样式 ==================== */
+.modern-card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 24px @shadow-soft;
+    border: 1px solid @border-light;
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px @shadow-medium;
+    }
+}
+
+.stat-card {
+    .modern-card;
+    background: linear-gradient(135deg, var(--card-start, @card-cluster-start) 0%, 
+                                        var(--card-end, @card-cluster-end) 100%);
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    &.cluster {
+        --card-start: @card-cluster-start;
+        --card-end: @card-cluster-end;
+    }
+
+    &.node {
+        --card-start: @card-node-start;
+        --card-end: @card-node-end;
+    }
+
+    &.user {
+        --card-start: @card-user-start;
+        --card-end: @card-user-end;
+    }
+
+    &.server {
+        --card-start: @card-server-start;
+        --card-end: @card-server-end;
+    }
+
+    .stat-title {
+        font-size: 14px;
+        color: @text-secondary;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .stat-value {
+        font-size: 36px;
+        font-weight: 700;
+        color: @text-primary;
+        margin-bottom: 6px;
+        letter-spacing: -0.5px;
+        line-height: 1.2;
+    }
+
+    .stat-desc {
+        font-size: 12px;
+        color: @text-light;
+        font-weight: 500;
+    }
+}
+
+/* ==================== 响应式网格 ==================== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.chart-card {
+    .modern-card;
+    display: flex;
+    flex-direction: column;
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-shrink: 0;
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: @text-primary;
+        }
+
+        .chart-subtitle {
+            font-size: 13px;
+            color: @text-light;
+            margin-left: 8px;
+            font-weight: 500;
+        }
+    }
+
+    .chart-container {
+        width: 100%;
+        height: 350px;
+        flex: 1;
+    }
+}
+
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+
+    .pie-chart-container {
+        width: 100%;
+        height: 250px;
+    }
+
+    .progress-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        flex: 1;
+
+        .progress-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .progress-header {
+                display: flex;
+                justify-content: space-between;
+                font-size: 14px;
+                color: @text-main;
+                font-weight: 600;
+            }
+
+            .progress-bar {
+                height: 12px;
+                background: linear-gradient(90deg, #e8edf9 0%, #f0e8f9 50%, #f9e8ec 100%);
+                border-radius: 6px;
+                overflow: hidden;
+
+                .progress-fill {
+                    height: 100%;
+                    background: linear-gradient(90deg, #8b9ff0 0%, #a88be8 100%);
+                    border-radius: 6px;
+                    transition: width 1s ease;
+                }
+            }
+        }
+    }
+}
+
+/* ==================== 响应式设计断点 ==================== */
+/* 平板端: 768px - 1400px */
+@media (max-width: 1400px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .right-panel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+}
+
+/* 移动端: < 768px */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .stat-card {
+        padding: 16px;
+        min-height: 120px;
+
+        .stat-title {
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            margin-bottom: 4px;
+        }
+
+        .stat-desc {
+            font-size: 11px;
+        }
+    }
+
+    .charts-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .chart-card {
+        padding: 16px;
+
+        .chart-header {
+            margin-bottom: 15px;
+
+            .chart-title {
+                font-size: 16px;
+            }
+        }
+
+        .chart-container {
+            height: 280px;
+        }
+    }
+
+    .right-panel {
+        grid-template-columns: 1fr;
+        gap: 15px;
+
+        .pie-chart-container {
+            height: 220px;
+        }
+
+        .progress-list {
+            gap: 12px;
+
+            .progress-item {
+                gap: 6px;
+
+                .progress-header {
+                    font-size: 13px;
+                }
+
+                .progress-bar {
+                    height: 10px;
+                }
+            }
+        }
+    }
+}
+
+/* 超小屏幕: < 480px */
+@media (max-width: 480px) {
+    .stat-card {
+        padding: 12px;
+        min-height: 100px;
+
+        .stat-value {
+            font-size: 24px;
+        }
+    }
+
+    .chart-card {
+        padding: 12px;
+
+        .chart-container {
+            height: 240px;
+        }
+    }
+
+    .right-panel {
+        .pie-chart-container {
+            height: 200px;
+        }
+    }
+}
+
+/* ==================== 渐变背景应用 ==================== */
+.gradient-background {
+    background: linear-gradient(135deg, @primary-gradient-start 0%, @primary-gradient-end 100%);
+    min-height: 100vh;
+}
+
+.sidebar-gradient {
+    background: linear-gradient(180deg, @sidebar-gradient-start 0%, @sidebar-gradient-end 100%);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.12);
+}
+
+/* ==================== 文字样式 ==================== */
+.text-primary {
+    color: @text-primary;
+    font-weight: 700;
+}
+
+.text-main {
+    color: @text-main;
+    font-weight: 600;
+}
+
+.text-secondary {
+    color: @text-secondary;
+}
+
+.text-light {
+    color: @text-light;
+}
+
+/* ==================== 阴影定义 ==================== */
+.shadow-soft {
+    box-shadow: 0 8px 24px @shadow-soft;
+}
+
+.shadow-medium {
+    box-shadow: 0 12px 32px @shadow-medium;
+}
+
+/* ==================== 动画过渡 ==================== */
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+.transition-transform {
+    transition: transform 0.3s ease;
+}
+
+.transition-shadow {
+    transition: box-shadow 0.3s ease;
+}

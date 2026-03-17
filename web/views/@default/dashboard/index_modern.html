@@ -1,0 +1,371 @@
+{$layout}
+{$template "/echarts"}
+
+<!-- 顶部提示区域 -->
+<div class="dashboard-alerts" v-if="!isLoading">
+    <!-- 加载中提示 -->
+    <div class="ui message loading" v-if="isLoading">
+        <div class="ui active inline loader small"></div>  &nbsp; 数据加载中...
+    </div>
+
+    <!-- XFF设置提示 -->
+    <div class="ui message warning" v-if="teaXFFPrompt">
+        <i class="icon warning circle"></i>
+        检测到你正在使用反向代理访问当前系统，如果你的系统确定在一个反向代理服务的上游，为了系统的正常运行，请在安全设置中设置"自定义客户端IP报头"。
+        <a href="/settings/security?showAll=1#client-header-names">[去设置]</a> &nbsp; 
+        <a href="" @click.prevent="dismissXFFPrompt">[关闭提示]</a>
+    </div>
+
+    <!-- 没有节点提醒 -->
+    <div class="ui icon message warning" v-if="dashboard.defaultClusterId > 0 && dashboard.countNodes == 0">
+        <i class="icon warning circle"></i>
+        <a :href="'/clusters/cluster/createNode?clusterId=' + dashboard.defaultClusterId">还没有在集群中添加节点，现在去添加？添加节点后才可部署网站。</a>
+    </div>
+
+    <!-- 新版本更新提醒 -->
+    <div class="ui icon message error" v-if="newVersionCode.length > 0">
+        <i class="icon warning circle"></i>
+        升级提醒：有新版本管理系统可以更新：v{{currentVersionCode}} -&gt; v{{newVersionCode}} &nbsp;
+        <a href="/settings/updates?doCheck=1">[查看详情]</a>
+        <a href="" title="关闭" @click.prevent="closeMessage"><i class="ui icon remove small"></i></a>
+    </div>
+
+    <!-- 边缘节点升级提醒 -->
+    <div class="ui icon message error" v-if="nodeUpgradeInfo.count > 0">
+        <i class="icon warning circle"></i>
+        <a href="/clusters">升级提醒：有 {{nodeUpgradeInfo.count}} 个边缘节点需要升级到 v{{nodeUpgradeInfo.version}} 版本，系统正在尝试自动升级，请耐心等待...</a>
+        <a href="" title="关闭" @click.prevent="closeMessage"><i class="ui icon remove small"></i></a>
+    </div>
+
+    <!-- API节点升级提醒 -->
+    <div class="ui icon message error" v-if="apiNodeUpgradeInfo.count > 0">
+        <i class="icon warning circle"></i>
+        <a href="/settings/api">升级提醒：有 {{apiNodeUpgradeInfo.count}} 个API节点需要升级到 v{{apiNodeUpgradeInfo.version}} 版本；如果已经升级，请尝试重启API节点进程。</a>
+        <a href="" title="关闭" @click.prevent="closeMessage"><i class="ui icon remove small"></i></a>
+    </div>
+
+    <!-- 本地API节点 -->
+    <div class="ui icon message error" v-if="localLowerVersionAPINode != null">
+        <i class="icon warning circle"></i>
+        <span v-if="localLowerVersionAPINode.runtimeVersion == localLowerVersionAPINode.fileVersion">升级提醒：发现一个正在使用的本地API节点版本需要升级，文件位置：{{localLowerVersionAPINode.exePath}}，当前版本：v{{localLowerVersionAPINode.runtimeVersion}}。</span>
+        <span v-if="localLowerVersionAPINode.runtimeVersion != localLowerVersionAPINode.fileVersion">升级提醒：发现一个正在使用的本地API节点版本文件已经更新，但需要重启后生效，文件位置：{{localLowerVersionAPINode.exePath}}。 <a href="" @click.prevent="restartAPINode" v-if="!isRestartingLocalAPINode">[帮我重启]</a><span v-if="isRestartingLocalAPINode">尝试重启中...</span></span>
+        <a href="" title="关闭" @click.prevent="closeMessage"><i class="ui icon remove small"></i></a>
+    </div>
+
+    <!-- 没有硬盘空间提醒 -->
+    <div class="ui icon message error" v-if="dashboard.diskUsageWarning != null && dashboard.diskUsageWarning.length > 0">
+        <i class="icon warning circle"></i>
+        <span style="line-height: 1.8">{{dashboard.diskUsageWarning}}</span>
+        <a href="" title="关闭" @click.prevent="closeMessage"><i class="ui icon remove small"></i></a>
+    </div>
+
+    <!-- 弱密码提示 -->
+    <div class="ui icon message error" v-if="countWeakAdmins > 0">
+        <i class="icon warning circle"></i>
+        <a href="/admins?hasWeakPassword=1">安全提醒：有 {{countWeakAdmins}} 个管理员登录账号正在使用弱密码，请及时修改密码，避免产生安全风险。</a>
+        <a href="" title="关闭" @click.prevent="closeMessage"><i class="ui icon remove small"></i></a>
+    </div>
+</div>
+
+<!-- 主仪表板区域 -->
+<div class="dashboard-container">
+    <!-- 统计卡片网格 - 4列等宽 -->
+    <div class="stats-grid modern" v-if="!isLoading">
+        <div class="stat-card cluster">
+            <div>
+                <div class="stat-title">集群</div>
+                <div class="stat-value">{{dashboard.countNodeClusters}}</div>
+            </div>
+            <div class="stat-desc">全球分布式集群 <link-icon href="/clusters" v-if="dashboard.canGoNodes"></link-icon></div>
+        </div>
+
+        <div class="stat-card node">
+            <div>
+                <div class="stat-title">边缘节点</div>
+                <div class="stat-value">{{dashboard.countNodes}}</div>
+            </div>
+            <div class="stat-desc">
+                在线边缘节点
+                <span v-if="dashboard.countOfflineNodes > 0"> / <span class="red">{{dashboard.countOfflineNodes}}离线</span></span>
+            </div>
+        </div>
+
+        <div class="stat-card user">
+            <div>
+                <div class="stat-title">用户</div>
+                <div class="stat-value">{{dashboard.countUsers}}</div>
+            </div>
+            <div class="stat-desc">平台总用户数 <link-icon href="/users" v-if="dashboard.canGoUsers"></link-icon></div>
+        </div>
+
+        <div class="stat-card server">
+            <div>
+                <div class="stat-title">网站</div>
+                <div class="stat-value">{{dashboard.countServers}}</div>
+            </div>
+            <div class="stat-desc">已部署网站数 <link-icon href="/servers" v-if="dashboard.canGoServers"></link-icon></div>
+        </div>
+    </div>
+
+    <!-- 图表区域 - 左宽右窄布局 -->
+    <div class="charts-grid modern" v-if="!isLoading">
+        <!-- 左侧：流量趋势图 -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <span class="chart-title">实时流量趋势</span>
+                    <span class="chart-subtitle">（最近24小时）</span>
+                </div>
+            </div>
+            <div class="tab-switcher">
+                <a href="" class="item" :class="{active: trafficTab == 'hourly'}" @click.prevent="selectTrafficTab('hourly')">24小时</a>
+                <a href="" class="item" :class="{active: trafficTab == 'daily'}" @click.prevent="selectTrafficTab('daily')">15天</a>
+            </div>
+            <div class="chart-box" id="hourly-traffic-chart-box" v-show="trafficTab == 'hourly'"></div>
+            <div class="chart-box" id="daily-traffic-chart-box" v-show="trafficTab == 'daily'"></div>
+        </div>
+
+        <!-- 右侧面板：数据统计 + 排行 -->
+        <div class="right-panel">
+            <!-- 当天数据 -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <span class="chart-title">当天数据</span>
+                </div>
+                <div class="data-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">流量</div>
+                        <div class="stat-val">{{todayTraffic}}<span class="unit">{{todayTrafficUnit}}</span></div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">独立IP</div>
+                        <div class="stat-val" v-if="todayCountIPs > 0">{{todayCountIPsFormat}}</div>
+                        <div class="stat-val disabled" v-else>尚无数据</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">API节点</div>
+                        <div class="stat-val">{{dashboard.countAPINodes}}<span class="unit">个</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 域名排行 -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <span class="chart-title">域名排行</span>
+                    <span class="chart-subtitle">（24小时）</span>
+                </div>
+                <div class="chart-box" id="top-domains-chart"></div>
+            </div>
+
+            <!-- 自定义指标 -->
+            <metric-chart v-for="chart in metricCharts"
+                          :key="chart.id"
+                          :v-chart="chart.chart"
+                          :v-stats="chart.stats"
+                          :v-item="chart.item"
+                          :v-column="true">
+            </metric-chart>
+        </div>
+    </div>
+</div>
+
+<style scoped>
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.stats-grid.modern {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    width: 100%;
+}
+
+.charts-grid.modern {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+    width: 100%;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.chart-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a202c;
+}
+
+.chart-subtitle {
+    font-size: 13px;
+    color: #718096;
+    margin-left: 8px;
+    font-weight: 500;
+}
+
+.tab-switcher {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e8edf5;
+}
+
+.tab-switcher .item {
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #718096;
+    transition: all 0.3s ease;
+}
+
+.tab-switcher .item:hover {
+    background: #f5f7ff;
+    color: #4a5568;
+}
+
+.tab-switcher .item.active {
+    background: linear-gradient(135deg, #8b9ff0 0%, #a88be8 100%);
+    color: white;
+}
+
+.chart-box {
+    width: 100%;
+    height: 350px;
+    flex: 1;
+}
+
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.data-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border-left: 4px solid linear-gradient(135deg, #8b9ff0 0%, #a88be8 100%);
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #718096;
+    font-weight: 500;
+}
+
+.stat-val {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a202c;
+}
+
+.stat-val.disabled {
+    color: #c0c0c0;
+}
+
+.unit {
+    font-size: 12px;
+    color: #718096;
+    margin-left: 4px;
+    font-weight: 500;
+}
+
+.top-domains-chart {
+    height: 250px;
+}
+
+/* 响应式设计 */
+@media (max-width: 1400px) {
+    .stats-grid.modern {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .charts-grid.modern {
+        grid-template-columns: 1fr;
+    }
+
+    .right-panel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid.modern {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .stat-card {
+        padding: 16px !important;
+    }
+
+    .charts-grid.modern {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .chart-card {
+        padding: 16px;
+    }
+
+    .chart-box {
+        height: 280px;
+    }
+
+    .right-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .tab-switcher {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .chart-box {
+        height: 240px;
+    }
+
+    .stat-item {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .stat-val {
+        font-size: 16px;
+    }
+}
+</style>

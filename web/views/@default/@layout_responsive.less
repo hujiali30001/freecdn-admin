@@ -1,0 +1,415 @@
+/**
+ * FreeCDN 响应式布局系统
+ * 为所有页面提供统一的响应式容器和间距系统
+ * 支持 4 个主要断点：桌面 > 1400px | 平板 768-1400px | 手机 < 768px | 超小屏 < 480px
+ */
+
+// ==================== 响应式容器系统 ====================
+
+// 主应用容器
+.app-container {
+    padding: 24px;
+    transition: all 0.3s ease;
+    
+    // 桌面端 (> 1400px)
+    @media (min-width: 1401px) {
+        max-width: 1920px;
+        margin: 0 auto;
+        padding: 32px;
+    }
+    
+    // 平板端 (768px - 1400px)
+    @media (max-width: 1400px) {
+        padding: 20px;
+    }
+    
+    // 移动端 (< 768px)
+    @media (max-width: 768px) {
+        padding: 16px;
+    }
+    
+    // 超小屏 (< 480px)
+    @media (max-width: 480px) {
+        padding: 12px;
+    }
+}
+
+// 内容包装容器
+.content-wrapper {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    animation: fadeIn 0.3s ease;
+    
+    @media (max-width: 1400px) {
+        gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        gap: 16px;
+    }
+    
+    @media (max-width: 480px) {
+        gap: 12px;
+    }
+}
+
+// 主要内容区域
+.main-content {
+    flex: 1;
+    min-width: 0; // 防止 flex 内容溢出
+    
+    // 手机端优化
+    @media (max-width: 768px) {
+        width: 100%;
+    }
+}
+
+// ==================== 网格系统 ====================
+
+// 统计卡片网格（4 列 → 2 列 → 1 列）
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    width: 100%;
+    
+    // 平板端：2 列
+    @media (max-width: 1400px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    // 手机端：1 列
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    // 超小屏：1 列，更小间距
+    @media (max-width: 480px) {
+        gap: 12px;
+    }
+}
+
+// 图表卡片双列网格（1fr 380px → 1 列）
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+    width: 100%;
+    
+    // 平板端：单列 + 右侧面板 2 列
+    @media (max-width: 1400px) {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        
+        .right-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+    }
+    
+    // 手机端：完全单列
+    @media (max-width: 768px) {
+        gap: 16px;
+        
+        .right-panel {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    // 超小屏
+    @media (max-width: 480px) {
+        gap: 12px;
+    }
+}
+
+// 三列卡片网格
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    
+    @media (max-width: 1400px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+// 通用 2 列网格
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+// 完全响应式单列网格
+.grid-full {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    
+    @media (max-width: 768px) {
+        gap: 16px;
+    }
+}
+
+// ==================== 间距系统 ====================
+
+// 间距定义
+:root {
+    // 桌面间距
+    --spacing-xs: 8px;
+    --spacing-sm: 12px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+}
+
+// 响应式间距调整
+@media (max-width: 768px) {
+    :root {
+        --spacing-xs: 6px;
+        --spacing-sm: 10px;
+        --spacing-md: 12px;
+        --spacing-lg: 16px;
+        --spacing-xl: 24px;
+    }
+}
+
+// ==================== 尺寸调整 ====================
+
+// 响应式字号系统
+.responsive-text {
+    // 标题
+    h1 {
+        font-size: 32px;
+        
+        @media (max-width: 768px) {
+            font-size: 24px;
+        }
+        
+        @media (max-width: 480px) {
+            font-size: 20px;
+        }
+    }
+    
+    h2 {
+        font-size: 24px;
+        
+        @media (max-width: 768px) {
+            font-size: 20px;
+        }
+        
+        @media (max-width: 480px) {
+            font-size: 18px;
+        }
+    }
+    
+    h3 {
+        font-size: 18px;
+        
+        @media (max-width: 768px) {
+            font-size: 16px;
+        }
+        
+        @media (max-width: 480px) {
+            font-size: 15px;
+        }
+    }
+    
+    // 正文
+    p {
+        font-size: 14px;
+        
+        @media (max-width: 480px) {
+            font-size: 13px;
+        }
+    }
+}
+
+// 卡片高度调整
+.card-height-adjust {
+    min-height: 140px;
+    
+    @media (max-width: 768px) {
+        min-height: 120px;
+    }
+    
+    @media (max-width: 480px) {
+        min-height: 100px;
+    }
+}
+
+// 图表容器高度调整
+.chart-height-adjust {
+    height: 350px;
+    
+    @media (max-width: 1400px) {
+        height: 320px;
+    }
+    
+    @media (max-width: 768px) {
+        height: 280px;
+    }
+    
+    @media (max-width: 480px) {
+        height: 240px;
+    }
+}
+
+// ==================== 滚动优化 ====================
+
+// 响应式滚动条
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(226, 232, 240, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(139, 159, 240, 0.3);
+    border-radius: 4px;
+    
+    &:hover {
+        background: rgba(139, 159, 240, 0.5);
+    }
+}
+
+// ==================== 动画系统 ====================
+
+// 淡入动画
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// 滑入动画
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// 应用淡入动画
+.fade-in {
+    animation: fadeIn 0.3s ease;
+}
+
+.slide-in {
+    animation: slideInUp 0.3s ease;
+}
+
+// ==================== 隐藏和显示 ====================
+
+// 响应式显示隐藏
+.hide-mobile {
+    @media (max-width: 768px) {
+        display: none !important;
+    }
+}
+
+.show-mobile {
+    @media (min-width: 769px) {
+        display: none !important;
+    }
+}
+
+.hide-tablet {
+    @media (max-width: 1400px) and (min-width: 769px) {
+        display: none !important;
+    }
+}
+
+.hide-desktop {
+    @media (min-width: 1401px) {
+        display: none !important;
+    }
+}
+
+// ==================== 容器查询备用方案 ====================
+
+// Flexbox 响应式容器
+.flex-responsive {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    
+    @media (max-width: 1400px) {
+        gap: 16px;
+    }
+    
+    @media (max-width: 768px) {
+        gap: 12px;
+        flex-direction: column;
+    }
+    
+    > * {
+        flex: 1;
+        min-width: 250px;
+        
+        @media (max-width: 768px) {
+            flex: 1 1 100%;
+            min-width: auto;
+        }
+    }
+}
+
+// ==================== 打印样式 ====================
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .app-container {
+        padding: 0;
+        max-width: none;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+// ==================== 深色模式支持 ====================
+
+@media (prefers-color-scheme: dark) {
+    .content-wrapper {
+        // 可在此添加深色模式样式
+    }
+}
+
+// ==================== 触摸设备优化 ====================
+
+@media (hover: none) {
+    // 移除悬停效果，防止移动设备卡顿
+    .interactive-element:hover {
+        transform: none;
+    }
+}

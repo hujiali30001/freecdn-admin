@@ -1,19 +1,19 @@
-// ── FreeCDN 登录页 v2.0 ── TDesign 风格 ──
+// ── FreeCDN 登录页 v3.0 ── 渐变背景 + 白卡片风格 ──
 :root {
-  --fc-brand:        #0052D9;
-  --fc-brand-hover:  #1167F0;
-  --fc-brand-active: #0035A4;
-  --fc-brand-light:  #E7F0FF;
-  --fc-text-primary: #1A1A1A;
-  --fc-text-second:  #4B4B4B;
-  --fc-text-disable: #C5C5C5;
-  --fc-border:       #DCDCDC;
-  --fc-bg:           #F5F5F5;
+  --fc-brand:        #667eea;
+  --fc-brand-end:    #764ba2;
+  --fc-brand-hover:  #7c93f0;
+  --fc-brand-active: #5568d4;
+  --fc-brand-light:  rgba(102,126,234,.10);
+  --fc-text-primary: #1a202c;
+  --fc-text-second:  #4a5568;
+  --fc-text-hint:    #a0aec0;
+  --fc-border:       #e2e8f0;
   --fc-white:        #FFFFFF;
-  --fc-radius:       6px;
-  --fc-radius-lg:    10px;
-  --fc-shadow-lg:    0 8px 32px rgba(0,40,140,.14);
-  --fc-transition:   0.18s ease;
+  --fc-radius:       12px;
+  --fc-radius-lg:    20px;
+  --fc-shadow-lg:    0 20px 60px rgba(0,0,0,.15);
+  --fc-transition:   0.3s ease;
 }
 
 * { box-sizing: border-box; }
@@ -29,10 +29,11 @@ html, body {
 
 body {
   min-height: 100vh;
-  background: #F5F5F5 !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
 }
 
 body > div {
@@ -41,6 +42,18 @@ body > div {
   justify-content: center;
   width: 100%;
   min-height: 100vh;
+}
+
+// ── 入场动画
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .form-box {
@@ -55,148 +68,171 @@ body > div {
 form {
   position: static;
   width: 100%;
-  max-width: 360px;
+  max-width: 420px;
   margin: 0;
   top: auto;
   left: auto;
+  animation: slideUp 0.5s ease-out;
 
-  // 品牌 Logo 区
-  &::before {
-    content: "";
-    display: block;
-    width: 56px;
-    height: 56px;
-    margin: 0 auto 1.2em;
-    background: rgba(0,82,217,.08);
-    border-radius: 16px;
-    border: 2px solid rgba(0,82,217,.18);
-    background-image: url("/images/logo.png");
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-  }
-
+  // ── 白色卡片
   .ui.segment.stacked {
     background: var(--fc-white);
-    border-radius: var(--fc-radius-lg);
-    border: none;
-    box-shadow: var(--fc-shadow-lg);
-    padding: 2em 2.2em 1.8em;
+    border-radius: var(--fc-radius-lg) !important;
+    border: none !important;
+    box-shadow: var(--fc-shadow-lg) !important;
+    padding: 44px 36px 36px !important;
     position: relative;
     overflow: visible;
 
     &::after { display: none; }
   }
 
+  // ── 标题
   .ui.header {
-    text-align: center;
-    font-size: 1.15em !important;
-    font-weight: 600 !important;
+    text-align: center !important;
+    font-size: 1.6em !important;
+    font-weight: 700 !important;
     color: var(--fc-text-primary) !important;
-    margin-bottom: 1.4em !important;
-    letter-spacing: .02em;
+    margin-bottom: 0.4em !important;
+    letter-spacing: .01em;
   }
 
+  // ── 副标题
+  .comment {
+    text-align: center;
+    font-size: 13px !important;
+    color: var(--fc-text-hint) !important;
+    margin-bottom: 1.8em !important;
+    margin-top: 0 !important;
+  }
+
+  // ── 字段间距
   .ui.field {
-    margin-bottom: .9em !important;
+    margin-bottom: 1.1em !important;
   }
 
+  // ── 输入框（含图标）
   .ui.left.icon.input {
     width: 100%;
 
     input {
       width: 100% !important;
-      height: 40px !important;
-      border: 1px solid var(--fc-border) !important;
+      height: 48px !important;
+      border: 2px solid var(--fc-border) !important;
       border-radius: var(--fc-radius) !important;
-      font-size: 13px !important;
-      padding-left: 2.6em !important;
+      font-size: 14px !important;
+      padding: 0 16px 0 46px !important;
       color: var(--fc-text-primary) !important;
       background: var(--fc-white) !important;
-      transition: border-color var(--fc-transition), box-shadow var(--fc-transition) !important;
+      transition: border-color var(--fc-transition),
+                  box-shadow var(--fc-transition) !important;
       outline: none;
 
       &:focus {
         border-color: var(--fc-brand) !important;
-        box-shadow: 0 0 0 3px rgba(0,82,217,.12) !important;
+        box-shadow: 0 0 0 4px rgba(102,126,234,.12) !important;
       }
 
-      &::placeholder { color: #ABABAB; }
+      &::placeholder { color: var(--fc-text-hint); }
     }
 
+    // 图标
     i.icon {
-      color: #ABABAB !important;
+      color: var(--fc-text-hint) !important;
       font-size: 1em !important;
-      line-height: 40px !important;
-      height: 40px !important;
-      width: 2.6em !important;
+      line-height: 48px !important;
+      height: 48px !important;
+      width: 46px !important;
+      text-align: center !important;
+      transition: color var(--fc-transition) !important;
+    }
+
+    // 聚焦时图标变色
+    input:focus ~ i.icon {
+      color: var(--fc-brand) !important;
     }
   }
 
-  // 提交按钮
-  .ui.button.primary.fluid {
-    width: 100% !important;
-    height: 40px !important;
-    background: var(--fc-brand) !important;
-    color: #fff !important;
-    border-radius: var(--fc-radius) !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
-    border: none !important;
-    cursor: pointer;
-    margin-top: .8em !important;
-    transition: background var(--fc-transition), box-shadow var(--fc-transition) !important;
-    box-shadow: 0 2px 8px rgba(0,82,217,.3) !important;
-
-    &:hover {
-      background: var(--fc-brand-hover) !important;
-      box-shadow: 0 4px 14px rgba(0,82,217,.35) !important;
-    }
-
-    &:active {
-      background: var(--fc-brand-active) !important;
-    }
-
-    &.disabled {
-      opacity: .7 !important;
-      cursor: not-allowed !important;
-    }
-  }
-
-  // 更多选项链接
+  // ── 更多选项链接
   a {
     color: var(--fc-brand) !important;
-    font-size: 12px;
+    font-size: 13px;
+    font-weight: 500;
     text-decoration: none;
+    transition: color var(--fc-transition) !important;
 
-    &:hover { color: var(--fc-brand-hover) !important; }
+    &:hover {
+      color: var(--fc-brand-hover) !important;
+      text-decoration: underline;
+    }
   }
 
-  // checkbox
+  // ── 记住登录 checkbox
   .ui.checkbox label {
-    font-size: 12px !important;
+    font-size: 13px !important;
     color: var(--fc-text-second) !important;
+    cursor: pointer;
   }
 
+  .ui.checkbox input:checked ~ .box:before,
   .ui.checkbox input:checked ~ label:before {
     background: var(--fc-brand) !important;
     border-color: var(--fc-brand) !important;
   }
 
+  // ── 登录按钮
+  .ui.button.primary.fluid {
+    width: 100% !important;
+    height: 48px !important;
+    background: linear-gradient(135deg, var(--fc-brand) 0%, var(--fc-brand-end) 100%) !important;
+    color: #fff !important;
+    border-radius: var(--fc-radius) !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    cursor: pointer;
+    margin-top: 1em !important;
+    transition: transform var(--fc-transition),
+                box-shadow var(--fc-transition) !important;
+    box-shadow: 0 4px 15px rgba(102,126,234,.4) !important;
+    letter-spacing: .03em;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(102,126,234,.5) !important;
+      background: linear-gradient(135deg, var(--fc-brand-hover) 0%, #8a5fb8 100%) !important;
+    }
+
+    &:active {
+      transform: translateY(0);
+      background: linear-gradient(135deg, var(--fc-brand-active) 0%, #6a3d92 100%) !important;
+    }
+
+    &.disabled {
+      opacity: .7 !important;
+      cursor: not-allowed !important;
+      transform: none !important;
+    }
+  }
+
   p { font-size: 0.8em; margin-top: 0.3em; margin-bottom: 0; padding: 0; }
-  .comment { font-size: 12px; color: #999; margin-top: 0.5em; }
 }
 
-// 错误/成功消息
+// ── 错误/成功消息
 .ui.message {
   border-radius: var(--fc-radius) !important;
   font-size: 13px !important;
-  max-width: 380px;
+  max-width: 420px;
   width: 100%;
   margin-bottom: 1em;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08) !important;
+
+  &.error   { background: #fff5f5 !important; color: #c53030 !important; }
+  &.success { background: #f0fff4 !important; color: #276749 !important; }
 }
 
-// 底部版权文字
+// ── 底部版权文字（白色，融入背景）
 body::after {
   content: "FreeCDN";
   position: fixed;
@@ -204,15 +240,16 @@ body::after {
   left: 0;
   right: 0;
   text-align: center;
-  color: rgba(0,0,0,.2);
+  color: rgba(255,255,255,.35);
   font-size: 12px;
-  letter-spacing: .08em;
+  letter-spacing: .12em;
   pointer-events: none;
 }
 
+// ── 响应式
 @media screen and (max-width: 480px) {
   form {
     max-width: 100%;
-    .ui.segment.stacked { padding: 1.6em 1.4em; }
+    .ui.segment.stacked { padding: 36px 24px 28px !important; }
   }
 }

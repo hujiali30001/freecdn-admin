@@ -38,6 +38,7 @@ body {
 }
 
 // ── 3. 顶部导航栏
+// 注意：不强制 height，用 padding 自然撑高，避免破坏 Semantic UI flex 布局
 .ui.menu.top-nav.blue.inverted,
 .ui.menu.top-nav.theme1,
 .ui.menu.top-nav.theme2,
@@ -49,19 +50,55 @@ body {
   background: var(--fc-brand) !important;
   border-bottom: 1px solid var(--fc-brand-active) !important;
   box-shadow: 0 2px 6px rgba(0,82,217,.18) !important;
-  height: 48px !important;
+  // 不设置 height，让 Semantic UI 自然决定高度（约 2em = 32px）
 }
 
 .top-nav {
+  // 确保导航栏不截断右侧内容
+  overflow: visible !important;
+  flex-wrap: nowrap !important;
+
   .item {
+    color: rgba(255,255,255,.92) !important;
     font-size: 13px !important;
     letter-spacing: .02em;
     transition: background var(--fc-transition) !important;
+    white-space: nowrap;
+
+    // 图标也要白色
+    i.icon {
+      color: rgba(255,255,255,.8) !important;
+    }
+
+    // sup 版本号白色可见
+    sup {
+      color: rgba(255,255,255,.7) !important;
+      font-size: 10px !important;
+    }
 
     &:hover, &.active {
       background: rgba(255,255,255,.12) !important;
-      border-radius: var(--fc-radius) !important;
+      color: #fff !important;
+      i.icon { color: #fff !important; }
     }
+
+    // disabled 文字颜色（灰色提示文字）
+    .disabled {
+      color: rgba(255,255,255,.55) !important;
+    }
+
+    // 红色告警文字保持红色
+    &.red, .red {
+      color: #ff6b6b !important;
+    }
+  }
+
+  // right menu 不压缩、不截断
+  .right.menu {
+    flex-shrink: 0 !important;
+    flex-wrap: nowrap !important;
+    overflow: visible !important;
+    margin-left: auto !important;
   }
 }
 
@@ -75,7 +112,7 @@ body {
 .main-menu.theme6,
 .main-menu.theme7 {
   background: #0D2B6B !important;
-  border-right: 1px solid rgba(255,255,255,.06);
+  border-right: 1px solid rgba(255,255,255,.06) !important;
 
   .menu, .ui.menu {
     background: transparent !important;
@@ -608,4 +645,18 @@ pre {
   border: 1px dashed var(--fc-border) !important;
   box-shadow: none !important;
   border-radius: var(--fc-radius-lg) !important;
+}
+
+// ── 31. 底部 Footer（light-blue 背景，文字需白色）
+#footer.ui.menu {
+  .item,
+  a.item {
+    color: rgba(255,255,255,.85) !important;
+    transition: background var(--fc-transition), color var(--fc-transition) !important;
+
+    &:hover {
+      background: rgba(255,255,255,.12) !important;
+      color: #fff !important;
+    }
+  }
 }

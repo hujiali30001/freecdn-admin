@@ -7,7 +7,7 @@
   --fc-text-second: #4B4B4B;
   --fc-text-disable: #C5C5C5;
   --fc-border: #DCDCDC;
-  --fc-bg: #F0F4FF;
+  --fc-bg: #F5F5F5;
   --fc-white: #FFFFFF;
   --fc-radius: 6px;
   --fc-radius-lg: 10px;
@@ -27,7 +27,7 @@ body {
 }
 body {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0052D9 0%, #1B4FD8 40%, #0A3AB4 100%);
+  background: #F5F5F5 !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -50,7 +50,7 @@ body > div {
 form {
   position: static;
   width: 100%;
-  max-width: 380px;
+  max-width: 360px;
   margin: 0;
   top: auto;
   left: auto;
@@ -61,9 +61,9 @@ form::before {
   width: 56px;
   height: 56px;
   margin: 0 auto 1.2em;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 82, 217, 0.08);
   border-radius: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(0, 82, 217, 0.18);
   background-image: url("/images/logo.png");
   background-size: contain;
   background-repeat: no-repeat;
@@ -176,7 +176,7 @@ form .comment {
 .ui.message {
   border-radius: var(--fc-radius) !important;
   font-size: 13px !important;
-  max-width: 380px;
+  max-width: 360px;
   width: 100%;
   margin-bottom: 1em;
 }
@@ -187,7 +187,7 @@ body::after {
   left: 0;
   right: 0;
   text-align: center;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(0, 0, 0, 0.2);
   font-size: 12px;
   letter-spacing: 0.08em;
   pointer-events: none;

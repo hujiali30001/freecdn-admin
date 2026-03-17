@@ -32,10 +32,51 @@ research_report_*.md
 # 本地编译产物（非发布用途）
 edge-admin.exe
 dist/edge-admin-linux-amd64
+dist/edge-admin-linux-amd64-new
+dist/edge-node-linux-amd64-new
+freecdn-init.exe
 commit_api.txt
 commit_out.txt
 
 # 构建产物
 dist/build/
 dist/src/
+dist/build_v*.log
 $null
+
+# 临时调试/运维脚本（本地保留，不提交）
+dist/check_*.py
+dist/wsl_*.py
+dist/wsl_*.sh
+dist/deploy_*.py
+dist/ssh_*.py
+dist/step*.py
+dist/rebuild_*.py
+dist/reinstall_*.py
+dist/repack_*.py
+dist/verify_*.py
+dist/diag_*.py
+dist/debug_*.py
+dist/fix_*.py
+dist/gen_*.py
+dist/list_*.py
+dist/push_*.py
+dist/raw_*.py
+dist/try_*.py
+dist/do_push*.py
+dist/chk_*.py
+dist/sync_*.py
+dist/tail_*.py
+dist/test_*.py
+dist/build_admin_only.py
+dist/build_v092.py
+dist/compile_less.py
+dist/upload_install_sh.py
+dist/update_deploy_zip.py
+dist/check_zip_go_mode/
+dist/*.png
+dist/topnav_*.png
+dist/ui_*.png
+
+# 异常文件名（URL 残留）
+"%{redirect_url}*"

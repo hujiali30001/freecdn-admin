@@ -1,114 +1,135 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-更新 GitHub Release v0.9.1 上的 tar.gz 和 SHA256SUMS：
-1. 删除旧的 tar.gz asset
-2. 上传新的 tar.gz
-3. 更新 SHA256SUMS
+把新编译的 edge-api 打包进 tar.gz，上传到 GitHub Release v0.9.1
 """
-import http.client, json, os, hashlib
+import os, sys, shutil, subprocess, tarfile, tempfile, time
+import urllib.request
 
 TOKEN = os.environ.get("GITHUB_TOKEN", "")  # set via env: $env:GITHUB_TOKEN=...
+if not TOKEN:
+    print("Error: GITHUB_TOKEN env var not set. Usage: $env:GITHUB_TOKEN='ghp_...'")
+    sys.exit(1)
+
 REPO = "hujiali30001/freecdn-admin"
-VERSION = "v0.9.1"
-WORK_DIR = r"C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\amd64"
-TAR_NAME = "freecdn-v0.9.1-linux-amd64.tar.gz"
-TAR_PATH = os.path.join(WORK_DIR, TAR_NAME)
+TAG = "v0.9.1"
+ASSET_NAME = "freecdn-v0.9.1-linux-amd64.tar.gz"
 
-def github_api(method, path, body=None, extra_headers=None):
-    conn = http.client.HTTPSConnection("api.github.com")
-    headers = {
-        "Authorization": f"Bearer {TOKEN}",
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "FreeCDN-Builder/1.0",
+BUILD_DIR = r"C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\amd64\freecdn-v0.9.1-linux-amd64"
+NEW_EDGE_API = r"C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\amd64\edge-api-new"
+EDGE_API_IN_BUILD = os.path.join(BUILD_DIR, "edge-api", "bin", "edge-api")
+OUTPUT_TAR = r"C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\freecdn-v0.9.1-linux-amd64.tar.gz"
+
+def safe_print(s):
+    b = (str(s) + "\n").encode('utf-8', errors='replace')
+    sys.stdout.buffer.write(b)
+    sys.stdout.buffer.flush()
+
+def api(method, path, data=None, headers=None):
+    import json
+    url = f"https://api.github.com{path}"
+    h = {
+        "Authorization": f"token {TOKEN}",
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "python-updater",
     }
-    if extra_headers:
-        headers.update(extra_headers)
-    if body and not isinstance(body, (bytes, bytearray)):
-        body = json.dumps(body).encode()
-        headers["Content-Type"] = "application/json"
-    conn.request(method, path, body=body, headers=headers)
-    resp = conn.getresponse()
-    data = resp.read()
+    if headers:
+        h.update(headers)
+    body = json.dumps(data).encode() if data else None
+    req = urllib.request.Request(url, data=body, headers=h, method=method)
+    # 通过代理发送（GitHub API 也需要代理）
+    proxy = urllib.request.ProxyHandler({
+        "http": "http://127.0.0.1:4780",
+        "https": "http://127.0.0.1:4780",
+    })
+    opener = urllib.request.build_opener(proxy)
     try:
-        return resp.status, json.loads(data)
-    except:
-        return resp.status, data.decode()
+        with opener.open(req, timeout=60) as resp:
+            body = resp.read()
+            return (json.loads(body) if body else {}), resp.status
+    except urllib.error.HTTPError as e:
+        body = e.read()
+        return (json.loads(body) if body else {"error": str(e)}), e.code
 
-# 1. 找到 release
-print(f"Finding release {VERSION}...")
-status, data = github_api("GET", f"/repos/{REPO}/releases/tags/{VERSION}")
-if status != 200:
-    print(f"ERROR: {status} {data}")
-    exit(1)
-release_id = data["id"]
-upload_url_base = data["upload_url"].split("{")[0]
-print(f"  Release ID: {release_id}")
-print(f"  Upload URL: {upload_url_base}")
+safe_print("=" * 60)
+safe_print("Step 1: 更新本地 build 目录的 edge-api")
+safe_print("=" * 60)
+shutil.copy2(NEW_EDGE_API, EDGE_API_IN_BUILD)
+safe_print(f"  OK: {EDGE_API_IN_BUILD}  size={os.path.getsize(EDGE_API_IN_BUILD)/1024/1024:.1f}MB")
 
-# 2. 列出现有 assets，找 tar.gz 和 SHA256SUMS
-print("\nListing assets...")
-status, assets = github_api("GET", f"/repos/{REPO}/releases/{release_id}/assets")
-asset_map = {a["name"]: a["id"] for a in assets}
-print(f"  Found assets: {list(asset_map.keys())}")
+safe_print("\n" + "=" * 60)
+safe_print("Step 2: 重新打包 tar.gz（Linux 格式，保留权限）")
+safe_print("=" * 60)
 
-# 3. 删除旧 tar.gz
-if TAR_NAME in asset_map:
-    print(f"\nDeleting old {TAR_NAME}...")
-    status, _ = github_api("DELETE", f"/repos/{REPO}/releases/assets/{asset_map[TAR_NAME]}")
-    print(f"  Status: {status}")
+os.makedirs(os.path.dirname(OUTPUT_TAR), exist_ok=True)
 
-# 4. 上传新 tar.gz
-print(f"\nUploading {TAR_NAME} ({os.path.getsize(TAR_PATH)/1024/1024:.1f} MB)...")
-with open(TAR_PATH, "rb") as f:
+# 用 Python tarfile 打包（保持 Unix 权限位）
+BASE = os.path.basename(BUILD_DIR)  # freecdn-v0.9.1-linux-amd64
+with tarfile.open(OUTPUT_TAR, "w:gz") as tar:
+    # 递归添加整个目录
+    tar.add(BUILD_DIR, arcname=BASE)
+
+size_mb = os.path.getsize(OUTPUT_TAR) / 1024 / 1024
+safe_print(f"  OK: {OUTPUT_TAR}  size={size_mb:.1f}MB")
+
+safe_print("\n" + "=" * 60)
+safe_print("Step 3: 获取 GitHub Release ID")
+safe_print("=" * 60)
+resp, status = api("GET", f"/repos/{REPO}/releases/tags/{TAG}")
+if "id" not in resp:
+    safe_print(f"  ERROR: {status} {resp}")
+    sys.exit(1)
+release_id = resp["id"]
+safe_print(f"  Release ID: {release_id}")
+
+# 找到已有的同名 asset 并删除
+safe_print("\n  查找已有 asset...")
+for asset in resp.get("assets", []):
+    if asset["name"] == ASSET_NAME:
+        safe_print(f"  删除旧 asset: {asset['name']} (id={asset['id']})")
+        api("DELETE", f"/repos/{REPO}/releases/assets/{asset['id']}")
+        time.sleep(1)
+
+safe_print("\n" + "=" * 60)
+safe_print("Step 4: 上传新 tar.gz 到 Release")
+safe_print("=" * 60)
+
+upload_url = f"https://uploads.github.com/repos/{REPO}/releases/{release_id}/assets?name={ASSET_NAME}"
+
+with open(OUTPUT_TAR, "rb") as f:
     data = f.read()
 
-conn = http.client.HTTPSConnection("uploads.github.com")
-headers = {
-    "Authorization": f"Bearer {TOKEN}",
-    "Accept": "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "FreeCDN-Builder/1.0",
-    "Content-Type": "application/octet-stream",
-    "Content-Length": str(len(data)),
-}
-conn.request("POST", f"/repos/{REPO}/releases/{release_id}/assets?name={TAR_NAME}", body=data, headers=headers)
-resp = conn.getresponse()
-resp_data = resp.read()
-print(f"  Status: {resp.status}")
-if resp.status in (200, 201):
-    print(f"  Upload OK")
-else:
-    print(f"  Error: {resp_data.decode()[:300]}")
+import json
+safe_print(f"  上传 {size_mb:.1f}MB...")
+req = urllib.request.Request(
+    upload_url,
+    data=data,
+    headers={
+        "Authorization": f"token {TOKEN}",
+        "Content-Type": "application/octet-stream",
+        "User-Agent": "python-updater",
+    },
+    method="POST"
+)
 
-# 5. 计算 SHA256 并更新 SHA256SUMS
-sha256 = hashlib.sha256(open(TAR_PATH, "rb").read()).hexdigest()
-checksums_content = f"{sha256}  {TAR_NAME}\n"
+proxies_env = os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY")
 
-# 找 install.sh SHA256
-install_sh = os.path.join(r"C:\Users\Administrator\.workbuddy\FreeCDN\dist\build\amd64\freecdn-v0.9.1-linux-amd64", "install.sh")
-if os.path.exists(install_sh):
-    sha256_sh = hashlib.sha256(open(install_sh, "rb").read()).hexdigest()
-    checksums_content += f"{sha256_sh}  install.sh\n"
-
-if "SHA256SUMS" in asset_map:
-    print(f"\nDeleting old SHA256SUMS...")
-    status, _ = github_api("DELETE", f"/repos/{REPO}/releases/assets/{asset_map['SHA256SUMS']}")
-
-print(f"\nUploading SHA256SUMS...")
-sha_data = checksums_content.encode()
-conn2 = http.client.HTTPSConnection("uploads.github.com")
-conn2.request("POST", f"/repos/{REPO}/releases/{release_id}/assets?name=SHA256SUMS",
-              body=sha_data, headers={
-    "Authorization": f"Bearer {TOKEN}",
-    "Accept": "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "FreeCDN-Builder/1.0",
-    "Content-Type": "text/plain",
-    "Content-Length": str(len(sha_data)),
+import urllib.request
+# 走代理
+proxy = urllib.request.ProxyHandler({
+    "http": "http://127.0.0.1:4780",
+    "https": "http://127.0.0.1:4780",
 })
-resp2 = conn2.getresponse()
-print(f"  Status: {resp2.status}")
+opener = urllib.request.build_opener(proxy)
 
-print(f"\n=== SHA256SUMS ===\n{checksums_content}")
-print("Done.")
+try:
+    with opener.open(req, timeout=300) as resp:
+        result = json.loads(resp.read())
+        safe_print(f"  OK: asset id={result.get('id')} name={result.get('name')}")
+        safe_print(f"      download_url={result.get('browser_download_url','')}")
+except urllib.error.HTTPError as e:
+    safe_print(f"  ERROR {e.code}: {e.read().decode()[:500]}")
+    sys.exit(1)
+
+safe_print("\n[DONE] Release tar.gz 已更新！")
+safe_print(f"  以后 install.sh 下载的就是含 chown 修复的版本。")

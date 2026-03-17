@@ -443,6 +443,7 @@ if [ "$MODE" = "admin" ]; then
   ADMIN_BIN="${SRC_ROOT}/edge-admin"
   API_BIN="${SRC_ROOT}/edge-api/bin/edge-api"
   NODE_DEPLOY_DIR="${SRC_ROOT}/edge-api/deploy"
+  INSTALLER_HELPER_DIR="${SRC_ROOT}/edge-api/installers"
   WEB_DIR="${SRC_ROOT}/web"
 
   [ -f "$ADMIN_BIN" ] || error "未找到 edge-admin 二进制，包结构异常（期望路径: $ADMIN_BIN）"
@@ -480,11 +481,30 @@ if [ "$MODE" = "admin" ]; then
     info "freecdn-init 安装完成"
   fi
 
-  # 保存 edge-node zip 供后续节点使用
+  # 安装 edge-installer-helper（SSH 安装节点功能所需，edge-api 通过它推送到目标服务器）
+  # 包中文件名：edge-api/installers/edge-installer-helper-linux-<arch>
+  # 目标路径：  ${API_DIR}/installers/edge-installer-helper-linux-<arch>
+  HELPER_SRC=$(find "$INSTALLER_HELPER_DIR" -name "edge-installer-helper-linux-*" 2>/dev/null | head -1 || true)
+  if [ -n "$HELPER_SRC" ]; then
+    mkdir -p "${API_DIR}/installers"
+    cp "$HELPER_SRC" "${API_DIR}/installers/"
+    chmod +x "${API_DIR}/installers/"edge-installer-helper-linux-*
+    info "edge-installer-helper 安装完成 → ${API_DIR}/installers/"
+  else
+    warn "包中未找到 edge-installer-helper，SSH 安装节点功能将不可用（请升级到最新版本）"
+  fi
+
+  # 保存 edge-node zip 到 edge-api/deploy/（供 SSH 安装节点功能使用）
+  # edge-api 代码通过 Tea.Root/deploy/edge-node-linux-<arch>-v*.zip 查找安装包
   NODE_ZIP_FOUND=$(find "$NODE_DEPLOY_DIR" -name "edge-node-linux-${ARCH_TAG}-*.zip" 2>/dev/null | head -1 || true)
   if [ -n "$NODE_ZIP_FOUND" ]; then
-    cp "$NODE_ZIP_FOUND" "${DATA_DIR}/edge-node.zip"
-    info "edge-node 安装包已保存至: ${DATA_DIR}/edge-node.zip（供节点服务器使用）"
+    DEPLOY_DEST="${API_DIR}/deploy"
+    mkdir -p "$DEPLOY_DEST"
+    NODE_ZIP_BASENAME=$(basename "$NODE_ZIP_FOUND")
+    cp "$NODE_ZIP_FOUND" "${DEPLOY_DEST}/${NODE_ZIP_BASENAME}"
+    info "edge-node 安装包已保存至: ${DEPLOY_DEST}/${NODE_ZIP_BASENAME}"
+  else
+    warn "未找到 edge-node zip，SSH 安装节点功能将不可用"
   fi
 
 else

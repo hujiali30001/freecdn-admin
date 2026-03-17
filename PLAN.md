@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-17 | 当前版本 v0.9.0（已发布）| 当前阶段：**阶段 C — 一键部署终极版（持续推进）**
+> 更新于 2026-03-17 | 当前版本 v0.9.1（已发布）| 当前阶段：**阶段 C — 一键部署终极版（持续推进）**
 
 ---
 
@@ -300,9 +300,10 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 | **v0.7.0** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段 B：EdgeCommon module 名改为 freecdn-common，freecdn-api/node 自身 module 名改为 hujiali30001 命名空间** |
 | **v0.9.0** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段 C-2：freecdn-init Go 工具（替代 bash DB 初始化）；版本号统一 v0.9.0** |
 | **v0.8.0** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段 C：/health 端点（freecdn-admin:7788/health、freecdn-api:8004/health），freecdn-api/node module 名重命名确认完成，faq.md 版本更新** |
+| **v0.9.1** | 2026-03-17 | **amd64 tar.gz ✓ + SHA256SUMS ✓ + install.sh ✓** | **SSH 安装节点专项修复（7 个坑全部解决）**：install.sh 自动上传到 Release；CRLF 换行符修复；zip 存放路径修正；zip 内部目录结构修正；unzip.go MkdirAll 防御性修复；helper 需重新编译后推到服务器；zipfile create_system=3 修复目录权限 |
 | **v1.0.0** | 待规划 | — | **完整重命名（三主仓库 module 名全部改为 freecdn-* 命名空间）** |
 
-**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.9.0"`
+**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.9.1"`
 
 > v0.1.6 起所有 Release 包均从**源码自主编译**（local_build_release.py），包含 edge-admin / edge-api / edge-node 三个组件，不依赖 GoEdge 官方二进制。
 
@@ -339,6 +340,7 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 - [x] **阶段 B 完成（v0.7.0，2026-03-17）**：EdgeCommon go.mod module 名改为 freecdn-common，595 处 import 路径批量替换，基于 v1.3.9 分支打 freecdn 专用 tag（v1.3.9-freecdn.2），三主仓库 go.mod/go.sum 全部更新，freecdn-admin/api/node 编译全部通过；amd64/arm64 Release 发布完成
 - [x] **阶段 C-3 完成（v0.8.0，2026-03-17）**：freecdn-admin 在 7788 端口加 `/health` 端点，freecdn-api 在 8004 端口加 `/health` 端点，freecdn-api/node module 名确认重命名完成（B-3/B-4），faq.md 版本更新；amd64/arm64 Release 发布完成
 - [x] **阶段 C-2 完成（v0.9.0，2026-03-17）**：新增 `freecdn-init` Go 工具（cmd/freecdn-init + internal/initdb），替代 install.sh 中 7 步 bash 数据库初始化，支持 upgrade/setup/api_admin.yaml 写入/api.yaml 同步/管理员创建/品牌写入全流程，保留 bash 兜底路径；版本号统一至 v0.9.0；amd64/arm64 Release 发布完成
+- [x] **SSH 安装节点专项修复（v0.9.1，2026-03-17）**：完整走通从管理后台 SSH 安装边缘节点全流程，累计修复 7 个坑：(1) install.sh 自动上传到 Release；(2) CRLF 换行符转 LF；(3) edge-node zip 存放路径修正（`${API_DIR}/deploy/` + 版本号文件名）；(4) zip 内部目录结构修正（`edge-node/bin/edge-node` + `edge-node/configs/`）；(5) `unzip.go` 加 `MkdirAll` 防止 zip 缺目录条目时 OpenFile 失败；(6) 修复代码需重新编译并手动推到服务器（仅重启 api 不够）；(7) Python zipfile 在 Windows 上 create_system=0 导致目录权限 0664（缺 x 位），修复为 create_system=3（Unix）；amd64 Release 已更新并部署
 
 ---
 
@@ -482,6 +484,15 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 - 所有配置文件应以 0600 权限写入（含 RPC 密钥 `api_admin.yaml`、数据库配置 `db.yaml`）
 - `docker-entrypoint-node.sh` 中 `api_admin.yaml` 必须用嵌套 YAML，点号格式会导致解析失败
 - edge-api setup 命令输出 JSON：`{"isOk":true,"adminNodeId":"...","adminNodeSecret":"..."}`，是正确的初始化入口
+
+**SSH 安装节点专项踩坑（v0.9.0～v0.9.1，2026-03-17）**：
+- **坑1：Release 缺 install.sh**：`install.sh` 不会自动打进 tar.gz，需要在构建脚本末尾单独上传为 Release asset；已加入 `local_build_release.py` 自动化上传逻辑
+- **坑2：install.sh CRLF 换行符**：在 Windows 上编辑过的 `.sh` 文件会带 CRLF，服务器 bash 解析时报 `\r: command not found`；已用 WSL `sed -i s/$'\r'//` 转换，`.gitattributes` 已配置 `*.sh eol=lf`（对现有文件需手动刷新）
+- **坑3：edge-node zip 放置路径错误**：`install.sh` 之前将 zip 存到 `/var/lib/freecdn/edge-node.zip`，但 `LookupLatestInstaller()` 查找路径是 `Tea.Root/deploy/edge-node-linux-<arch>-v*.zip`（即 `/usr/local/freecdn/edge-admin/edge-api/deploy/`）；已修复 `install.sh`，zip 存到 `${API_DIR}/deploy/` 并保留带版本号的原始文件名
+- **坑4：zip 内部目录结构错误（最初版本）**：`_make_node_zip()` 最初将二进制以 `arcname="edge-node"` 写在根目录，但 `installer_node.go` 期望解压后路径为 `<dir>/edge-node/bin/edge-node` 和 `<dir>/edge-node/configs/api_node.yaml`；已修复为 `edge-node/bin/edge-node` + `edge-node/configs/api_node.yaml`
+- **坑5：zip 缺少目录条目导致 unzip 失败**：Python `zipfile.writestr("edge-node/configs/api_node.yaml", "")` 只写文件条目，不自动创建父目录条目；`unzip.go` 在写文件前不做 `MkdirAll`，导致 `write '...configs/api_node.yaml': file does not exist`；**双修**：(a) `unzip.go` 写文件前加 `filepath.Dir` + `MkdirAll`；(b) `_make_node_zip()` 显式写入 `edge-node/`、`edge-node/bin/`、`edge-node/configs/` 目录条目
+- **坑6：修复代码未编译进已部署的 helper**：`unzip.go` 修复在 push 之前就触发了构建，服务器上的 `edge-installer-helper-linux-amd64` 还是旧版本（无 MkdirAll）；仅重启 freecdn-api 不够——helper 是独立二进制，必须重新编译整个 api 包再手动推到服务器；二进制大小相同不代表内容相同（Go `-trimpath -s -w` 编译会压缩）；**修复**：重新构建 v0.9.1、手动上传 helper+edge-api+zip 到服务器、验证方式是在服务器用 helper 解压无目录条目的测试 zip
+- **坑7：Python zipfile 在 Windows 上 create_system=0 导致目录权限 0664**：Python `zipfile.ZipInfo` 在 Windows 宿主机上默认 `create_system=0`（Windows），Go 的 `archive/zip` 读到 `CreatorVersion>>8 != 3(Unix)` 时走 Windows 分支，忽略 `external_attr` 里的 Unix 权限位，用默认 `0666` 创建目录（umask 后变 `0664`），目录缺少执行位导致 `stat .../bin/: permission denied`；**修复**：`_make_node_zip()` 里所有 `ZipInfo` 对象显式设置 `create_system=3`（Unix），并同时设置 `compress_type=ZIP_STORED`（目录条目）；这也是本次安装失败的根本原因
 
 ---
 

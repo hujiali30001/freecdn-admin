@@ -86,6 +86,11 @@ func (this *CheckUpdatesTask) Loop() error {
 		return nil
 	}
 
+	// UpdatesURL 为空表示不使用外部更新服务器，直接跳过
+	if len(teaconst.UpdatesURL) == 0 {
+		return nil
+	}
+
 	var apiURL = teaconst.UpdatesURL
 	apiURL = strings.ReplaceAll(apiURL, "${os}", runtime.GOOS)
 	apiURL = strings.ReplaceAll(apiURL, "${arch}", runtime.GOARCH)

@@ -298,6 +298,10 @@ def build_package(go_bin, src_dir, work_dir, freecdn_ver, arch, repo_root, token
     compile_binary(go_bin, api_dir, "edge-api",
                    os.path.join(bin_dir, "edge-api"), "linux", arch)
 
+    log(f"\n-- Compiling edge-installer-helper ({arch}) --")
+    compile_binary(go_bin, api_dir, "installer-helper",
+                   os.path.join(bin_dir, "edge-installer-helper"), "linux", arch)
+
     log(f"\n-- Compiling edge-node ({arch}) via WSL (CGO) --")
     # edge-node 在 WSL 本地文件系统里编译（避免跨 /mnt/c 的 I/O 性能问题）
     node_dir_wsl = _ensure_repo_wsl("node", REPOS["node"], token, arch)
@@ -336,6 +340,17 @@ def build_package(go_bin, src_dir, work_dir, freecdn_ver, arch, repo_root, token
     shutil.copy2(os.path.join(bin_dir, "edge-api"),
                  os.path.join(api_bin_dir, "edge-api"))
 
+    # edge-installer-helper（放入 edge-api/installers/，安装脚本将其复制到服务器同目录）
+    installers_dir = os.path.join(pkg_dir, "edge-api", "installers")
+    os.makedirs(installers_dir, exist_ok=True)
+    helper_src = os.path.join(bin_dir, "edge-installer-helper")
+    if os.path.exists(helper_src):
+        helper_dst_name = f"edge-installer-helper-linux-{arch}"
+        shutil.copy2(helper_src, os.path.join(installers_dir, helper_dst_name))
+        log(f"  edge-installer-helper -> edge-api/installers/{helper_dst_name}")
+    else:
+        log("  WARN: edge-installer-helper not found, SSH node install will be broken")
+
     # edge-node（打包成 zip 放进 edge-api/deploy/，供安装脚本分发到边缘节点）
     deploy_dir = os.path.join(pkg_dir, "edge-api", "deploy")
     os.makedirs(deploy_dir, exist_ok=True)
@@ -372,20 +387,68 @@ def build_package(go_bin, src_dir, work_dir, freecdn_ver, arch, repo_root, token
 
 
 def _make_node_zip(node_repo_dir, node_bin_path, zip_path, arch):
-    """把 edge-node 二进制 + conf/ 模板打成 zip，供安装脚本下发到边缘节点"""
+    """把 edge-node 二进制 + configs/ 模板打成 zip，供 SSH 安装节点时解压到目标目录。
+
+    解压后的目录结构（installer_node.go 期望的路径）：
+        edge-node/
+            bin/edge-node          ← 可执行文件
+            configs/api_node.yaml  ← 安装器写入 RPC 配置的目标文件
+
+    注意：必须显式写入目录条目（以 "/" 结尾的 ZipInfo），否则 unzip.go 的
+    目录分支不会触发，仅靠文件条目写文件时父目录可能不存在（即使新版 unzip.go
+    已加 MkdirAll，显式目录条目也是 zip 格式的最佳实践）。
+    """
     import zipfile
+    from zipfile import ZipInfo
+    import stat as stat_mod
+
+    def _dir_info(arcname):
+        """创建目录条目（必须以 / 结尾，mode 设为目录位）。
+        
+        关键：必须将 create_system 设为 3（Unix），否则 Go 的 archive/zip 会走
+        Windows 分支，忽略 external_attr 里的 Unix 权限位，创建目录时使用默认
+        0666（umask 后变为 0664），导致目录缺少执行位（x），stat 报 permission denied。
+        """
+        info = ZipInfo(arcname + "/")
+        info.create_system = 3          # 3 = Unix（告诉 Go 按 Unix 解释 external_attr）
+        info.external_attr = (stat_mod.S_IFDIR | 0o755) << 16
+        info.compress_type = zipfile.ZIP_STORED  # 目录条目不压缩
+        return info
+
+    def _file_info(arcname, mode=0o755):
+        """创建文件条目，指定 Unix 权限位。"""
+        info = ZipInfo(arcname)
+        info.create_system = 3          # 3 = Unix
+        info.external_attr = (stat_mod.S_IFREG | mode) << 16
+        info.compress_type = zipfile.ZIP_DEFLATED
+        return info
+
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        # 二进制
-        zf.write(node_bin_path, arcname="edge-node")
-        # conf 目录（如果仓库里有模板）
+        # 显式写入目录条目（create_system=3 使 Go 能正确应用 Unix 权限）
+        for dir_arc in ["edge-node", "edge-node/bin", "edge-node/configs"]:
+            zf.writestr(_dir_info(dir_arc), "")
+
+        # 二进制放到 edge-node/bin/edge-node（设置可执行权限 0755）
+        bin_info = _file_info("edge-node/bin/edge-node", mode=0o755)
+        with open(node_bin_path, "rb") as f:
+            zf.writestr(bin_info, f.read())
+
+        # configs/ 目录：优先从仓库里拿模板；如果没有则创建空占位文件
+        # installer_node.go 会覆写 configs/api_node.yaml，但父目录必须存在
         conf_src = os.path.join(node_repo_dir, "configs")
         if os.path.isdir(conf_src):
+            has_any = False
             for root, dirs, files in os.walk(conf_src):
                 for fname in files:
                     fpath = os.path.join(root, fname)
-                    arcname = os.path.join("configs",
-                                           os.path.relpath(fpath, conf_src))
-                    zf.write(fpath, arcname=arcname)
+                    rel = "edge-node/configs/" + os.path.relpath(fpath, conf_src).replace("\\", "/")
+                    with open(fpath, "rb") as f:
+                        zf.writestr(_file_info(rel, mode=0o644), f.read())
+                    has_any = True
+            if not has_any:
+                zf.writestr(_file_info("edge-node/configs/api_node.yaml", mode=0o644), "")
+        else:
+            zf.writestr(_file_info("edge-node/configs/api_node.yaml", mode=0o644), "")
 
 
 # ── GitHub API ────────────────────────────────────────────────────────────────
@@ -592,6 +655,22 @@ def main():
         if not upload_asset(args.token, upload_url, p):
             log(f"Upload failed: {p}")
             sys.exit(1)
+
+    # 上传 install.sh（方便用户 curl 一键安装）
+    install_sh_path = os.path.join(repo_root, "install.sh")
+    if os.path.isfile(install_sh_path):
+        fname = "install.sh"
+        if fname in existing_assets:
+            log(f"Deleting existing asset: {fname}")
+            github_api(args.token, "DELETE",
+                       f"/repos/{RELEASE_REPO}/releases/assets/{existing_assets[fname]}")
+        log("Uploading install.sh ...")
+        if not upload_asset(args.token, upload_url, install_sh_path):
+            log("WARNING: install.sh upload failed")
+        else:
+            log("  install.sh uploaded OK")
+    else:
+        log("WARN: install.sh not found in repo root, skipping")
 
     log("\n=== All done! ===")
     log(f"Release: {release.get('html_url', 'https://github.com/' + RELEASE_REPO + '/releases/tag/' + args.version)}")

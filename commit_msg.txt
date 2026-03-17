@@ -1,9 +1,6 @@
-feat: v0.8.0 - /health endpoints, version bump, faq update (stage C-3)
+fix: set create_system=3 in zipfile to fix directory permissions on Linux
 
-- freecdn-admin: add /health endpoint at port 7788 (no auth required)
-- freecdn-api: add /health endpoint at port 8004 (standalone HTTP goroutine)
-- bump version to 0.8.0 in const.go, install.sh, Dockerfile, docker-compose.yml
-- update faq.md example URLs from v0.5.0 to v0.8.0
-- security: bat scripts now use GITHUB_TOKEN env var instead of hardcoded token
-- confirm freecdn-api/node Go module rename (B-3/B-4) already complete
-- update PLAN.md: mark stage C-3 complete, update version table
+Python zipfile on Windows defaults create_system=0 (Windows), causing Go's
+archive/zip to ignore Unix permission bits and create dirs with 0664 (no x bit),
+leading to 'permission denied' when accessing subdirectories. Fix: explicitly
+set create_system=3 (Unix) on all ZipInfo entries in _make_node_zip().

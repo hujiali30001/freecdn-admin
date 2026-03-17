@@ -103,6 +103,9 @@ func (this *UpgradeManager) Start() error {
 	var downloadURL = this.downloadURL
 	if len(downloadURL) == 0 {
 		var url = teaconst.UpdatesURL
+		if len(url) == 0 {
+			return errors.New("no download URL provided and UpdatesURL is empty")
+		}
 		var osName = runtime.GOOS
 		if Tea.IsTesting() && osName == "darwin" {
 			osName = "linux"

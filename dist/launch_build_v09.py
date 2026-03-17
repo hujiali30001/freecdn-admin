@@ -20,7 +20,7 @@ cmd = [
     sys.executable,
     r"C:\Users\Administrator\.workbuddy\FreeCDN\scripts\local_build_release.py",
     "--token", TOKEN,
-    "--version", "v0.9.0",
+    "--version", "v0.9.1",
     "--arch", "all",
 ]
 

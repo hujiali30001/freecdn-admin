@@ -1,8 +1,556 @@
-.log-row {
-	position: relative;
+@import "../@design_tokens.less";
+@import "../@components_base.less";
+@import "../@components_data.less";
+@import "../@components_feedback.less";
 
-	.buttons {
-		position: absolute;
-		right: 1em;
-	}
+// ==================== 日志页容器 ====================
+.page-log {
+  padding: @space-4;
+  background-color: @bg-primary;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding: @space-3;
+  }
+}
+
+// ==================== 页面标题 ====================
+.page-header {
+  margin-bottom: @space-5;
+
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: @text-primary;
+    margin: 0 0 @space-1 0;
+    letter-spacing: -0.5px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: @text-secondary;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 24px;
+    }
+  }
+}
+
+// ==================== 工具栏 ====================
+.log-toolbar {
+  display: flex;
+  gap: @space-3;
+  align-items: center;
+  margin-bottom: @space-4;
+  flex-wrap: wrap;
+  padding: @space-4;
+  background-color: @bg-secondary;
+  border-radius: @radius-md;
+  border: 1px solid @border-color;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.search-box {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  gap: @space-2;
+
+  input {
+    flex: 1;
+    padding: @space-2 @space-3;
+    border: 1px solid @border-color;
+    border-radius: @radius-sm;
+    background-color: @bg-primary;
+    color: @text-primary;
+    font-size: 14px;
+    transition: all @transition-base;
+
+    &::placeholder {
+      color: @text-tertiary;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: @color-brand-primary;
+      box-shadow: 0 0 0 3px rgba(@color-brand-primary, 0.1);
+    }
+  }
+
+  .search-icon {
+    color: @text-secondary;
+    font-size: 16px;
+  }
+}
+
+.filter-group {
+  display: flex;
+  gap: @space-2;
+  align-items: center;
+
+  @media (max-width: 768px) {
+    width: 100%;
+
+    select {
+      flex: 1;
+    }
+  }
+
+  label {
+    font-size: 14px;
+    font-weight: 500;
+    color: @text-primary;
+    white-space: nowrap;
+  }
+
+  select {
+    padding: @space-2 @space-3;
+    border: 1px solid @border-color;
+    border-radius: @radius-sm;
+    background-color: @bg-primary;
+    color: @text-primary;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all @transition-base;
+
+    &:hover {
+      border-color: @color-brand-primary;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: @color-brand-primary;
+      box-shadow: 0 0 0 3px rgba(@color-brand-primary, 0.1);
+    }
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: @space-2;
+
+  @media (max-width: 768px) {
+    width: 100%;
+
+    button {
+      flex: 1;
+    }
+  }
+
+  button {
+    padding: @space-2 @space-4;
+    border-radius: @radius-sm;
+    border: 1px solid @border-color;
+    background-color: @bg-primary;
+    color: @text-primary;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all @transition-base;
+    white-space: nowrap;
+
+    &:hover {
+      background-color: @bg-tertiary;
+      border-color: @color-brand-primary;
+    }
+
+    &.btn-primary {
+      background-color: @color-brand-primary;
+      color: white;
+      border-color: @color-brand-primary;
+
+      &:hover {
+        background-color: @color-brand-secondary;
+        border-color: @color-brand-secondary;
+      }
+    }
+
+    &.btn-danger {
+      background-color: rgba(@color-danger, 0.1);
+      color: @color-danger;
+      border-color: @color-danger;
+
+      &:hover {
+        background-color: @color-danger;
+        color: white;
+      }
+    }
+  }
+}
+
+// ==================== 日志表 ====================
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: @bg-secondary;
+  border-radius: @radius-md;
+  overflow: hidden;
+  border: 1px solid @border-color;
+
+  thead {
+    background-color: @bg-tertiary;
+    border-bottom: 2px solid @border-color;
+
+    th {
+      padding: @space-3 @space-4;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+      color: @text-primary;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid @border-color;
+      transition: all @transition-base;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background-color: @bg-tertiary;
+      }
+
+      &.level-error {
+        td:first-child {
+          border-left: 3px solid @color-danger;
+        }
+      }
+
+      &.level-warning {
+        td:first-child {
+          border-left: 3px solid @color-warning;
+        }
+      }
+
+      &.level-info {
+        td:first-child {
+          border-left: 3px solid @color-info;
+        }
+      }
+
+      &.level-success {
+        td:first-child {
+          border-left: 3px solid @color-success;
+        }
+      }
+
+      &.level-debug {
+        td:first-child {
+          border-left: 3px solid @text-secondary;
+        }
+      }
+    }
+
+    td {
+      padding: @space-3 @space-4;
+      font-size: 14px;
+      color: @text-primary;
+    }
+  }
+}
+
+// ==================== 日志行 ====================
+.log-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: @space-2;
+
+  .log-level {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: @radius-sm;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+
+    &.error {
+      background-color: rgba(@color-danger, 0.1);
+      color: @color-danger;
+    }
+
+    &.warning {
+      background-color: rgba(@color-warning, 0.1);
+      color: @color-warning;
+    }
+
+    &.info {
+      background-color: rgba(@color-info, 0.1);
+      color: @color-info;
+    }
+
+    &.success {
+      background-color: rgba(@color-success, 0.1);
+      color: @color-success;
+    }
+
+    &.debug {
+      background-color: rgba(@text-secondary, 0.1);
+      color: @text-secondary;
+    }
+  }
+
+  .log-message {
+    flex: 1;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    color: @text-primary;
+    line-height: 1.4;
+    word-break: break-all;
+  }
+
+  .log-time {
+    font-size: 12px;
+    color: @text-tertiary;
+    white-space: nowrap;
+  }
+
+  .log-source {
+    font-size: 12px;
+    color: @text-secondary;
+    white-space: nowrap;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .buttons {
+    display: flex;
+    gap: @space-2;
+    margin-left: auto;
+
+    button {
+      width: 32px;
+      height: 32px;
+      border-radius: @radius-sm;
+      border: none;
+      background-color: @bg-tertiary;
+      color: @text-secondary;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all @transition-base;
+      font-size: 14px;
+
+      &:hover {
+        background-color: @color-brand-primary;
+        color: white;
+      }
+
+      &.btn-copy {
+        &:active {
+          background-color: @color-success;
+        }
+      }
+
+      &.btn-delete {
+        &:hover {
+          background-color: @color-danger;
+        }
+      }
+    }
+  }
+}
+
+// ==================== 日志详情 ====================
+.log-detail {
+  background-color: @bg-tertiary;
+  border-radius: @radius-sm;
+  padding: @space-4;
+  margin-top: @space-3;
+  border-left: 3px solid @color-brand-primary;
+
+  .detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: @space-3;
+    padding-bottom: @space-3;
+    border-bottom: 1px solid @border-color;
+
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: @text-primary;
+      margin: 0;
+    }
+
+    .close-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: @radius-sm;
+      border: none;
+      background-color: @bg-secondary;
+      color: @text-secondary;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all @transition-base;
+      font-size: 16px;
+
+      &:hover {
+        background-color: @color-danger;
+        color: white;
+      }
+    }
+  }
+
+  .detail-content {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    color: @text-secondary;
+    line-height: 1.5;
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: @bg-primary;
+    padding: @space-3;
+    border-radius: @radius-sm;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+}
+
+// ==================== 分页 ====================
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: @space-2;
+  margin-top: @space-5;
+  padding: @space-4;
+
+  button,
+  span {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: @radius-sm;
+    border: 1px solid @border-color;
+    background-color: @bg-secondary;
+    color: @text-primary;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all @transition-base;
+
+    &.active {
+      background-color: @color-brand-primary;
+      color: white;
+      border-color: @color-brand-primary;
+    }
+
+    &:hover:not(.active) {
+      border-color: @color-brand-primary;
+      color: @color-brand-primary;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+
+  .page-info {
+    font-size: 13px;
+    color: @text-secondary;
+    margin: 0 @space-2;
+  }
+}
+
+// ==================== 空状态 ====================
+.empty-state {
+  text-align: center;
+  padding: @space-8;
+  background-color: @bg-secondary;
+  border-radius: @radius-md;
+  border: 1px dashed @border-color;
+
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: @space-3;
+    opacity: 0.5;
+  }
+
+  .empty-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: @text-primary;
+    margin-bottom: @space-1;
+  }
+
+  .empty-desc {
+    font-size: 14px;
+    color: @text-secondary;
+  }
+}
+
+// ==================== 响应式设计 ====================
+@media (max-width: 1024px) {
+  .log-toolbar {
+    flex-direction: column;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .log-table {
+    font-size: 13px;
+
+    th,
+    td {
+      padding: @space-2 @space-3;
+    }
+  }
+
+  .log-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .log-table {
+    font-size: 12px;
+
+    th,
+    td {
+      padding: @space-2;
+    }
+  }
+
+  .log-row {
+    gap: @space-1;
+
+    .log-source {
+      max-width: 100%;
+    }
+  }
+
+  .action-buttons {
+    width: 100%;
+
+    button {
+      flex: 1;
+      font-size: 12px;
+    }
+  }
 }

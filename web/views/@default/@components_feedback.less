@@ -1,0 +1,527 @@
+/**
+ * FreeCDN 反馈组件
+ * Modal、Toast、Notification、Alert 等
+ * 版本：v0.10.0
+ */
+
+@import "@design_tokens.less";
+
+// ==================== 模态框 ====================
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: @color-overlay;
+  z-index: @z-modal-backdrop;
+  animation: fadeIn @transition-base @easing-ease-out;
+  
+  &.modal-backdrop-hidden {
+    display: none;
+  }
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: @z-modal;
+  background: @bg-secondary;
+  border-radius: @radius-xl;
+  box-shadow: @shadow-2xl;
+  min-width: 360px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  animation: scaleIn @transition-base @easing-ease-out;
+  
+  .modal-header {
+    padding: @space-5;
+    border-bottom: 1px solid @border-color;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    .modal-title {
+      font-size: @font-size-xl;
+      font-weight: @font-weight-semibold;
+      color: @text-primary;
+      margin: 0;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      color: @text-secondary;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: @radius-md;
+      transition: @transition-fast;
+      
+      &:hover {
+        background: @bg-tertiary;
+        color: @text-primary;
+      }
+    }
+  }
+  
+  .modal-body {
+    padding: @space-5;
+    color: @text-primary;
+    
+    p {
+      margin: 0 0 @space-3 0;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+  
+  .modal-footer {
+    padding: @space-4 @space-5;
+    border-top: 1px solid @border-color;
+    background: @bg-tertiary;
+    display: flex;
+    justify-content: flex-end;
+    gap: @space-3;
+  }
+  
+  // 大尺寸
+  &.modal-lg {
+    min-width: 600px;
+    max-width: 90vw;
+  }
+  
+  // 小尺寸
+  &.modal-sm {
+    min-width: 300px;
+  }
+}
+
+// 模态框动画
+@keyframes scaleIn {
+  from {
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+// ==================== 提示框 ====================
+
+.alert {
+  padding: @space-4;
+  border-radius: @radius-lg;
+  border-left: 4px solid;
+  display: flex;
+  gap: @space-3;
+  align-items: flex-start;
+  margin-bottom: @space-4;
+  animation: slideDown @transition-base @easing-ease-out;
+  
+  .alert-icon {
+    flex-shrink: 0;
+    font-size: 20px;
+    line-height: 1.4;
+  }
+  
+  .alert-content {
+    flex: 1;
+    
+    .alert-title {
+      font-weight: @font-weight-semibold;
+      margin-bottom: @space-1;
+    }
+    
+    .alert-message {
+      font-size: @font-size-sm;
+      margin: 0;
+    }
+  }
+  
+  .alert-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1.4;
+    opacity: 0.6;
+    transition: opacity @transition-fast;
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+  
+  // 变体
+  &.alert-info {
+    background: rgba(66, 153, 225, 0.1);
+    border-color: @color-info;
+    color: @color-info;
+  }
+  
+  &.alert-success {
+    background: rgba(72, 187, 120, 0.1);
+    border-color: @color-success;
+    color: @color-success;
+  }
+  
+  &.alert-warning {
+    background: rgba(237, 137, 54, 0.1);
+    border-color: @color-warning;
+    color: @color-warning;
+  }
+  
+  &.alert-danger {
+    background: rgba(245, 101, 101, 0.1);
+    border-color: @color-danger;
+    color: @color-danger;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// ==================== 吐司通知 ====================
+
+.toast-container {
+  position: fixed;
+  top: @space-4;
+  right: @space-4;
+  z-index: @z-tooltip;
+  pointer-events: none;
+  
+  &.toast-container-left {
+    right: auto;
+    left: @space-4;
+  }
+  
+  &.toast-container-bottom {
+    top: auto;
+    bottom: @space-4;
+  }
+}
+
+.toast {
+  background: @bg-secondary;
+  border-radius: @radius-lg;
+  box-shadow: @shadow-xl;
+  padding: @space-4;
+  margin-bottom: @space-3;
+  min-width: 300px;
+  max-width: 500px;
+  display: flex;
+  gap: @space-3;
+  align-items: center;
+  pointer-events: auto;
+  animation: slideInRight @transition-base @easing-ease-out;
+  border-left: 4px solid @color-brand-primary;
+  
+  .toast-icon {
+    flex-shrink: 0;
+    font-size: 20px;
+  }
+  
+  .toast-content {
+    flex: 1;
+    
+    .toast-title {
+      font-weight: @font-weight-medium;
+      color: @text-primary;
+      margin-bottom: @space-1;
+    }
+    
+    .toast-message {
+      font-size: @font-size-sm;
+      color: @text-secondary;
+      margin: 0;
+    }
+  }
+  
+  .toast-close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: @text-secondary;
+    font-size: 18px;
+    opacity: 0.5;
+    transition: opacity @transition-fast;
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+  
+  // 变体
+  &.toast-success {
+    border-left-color: @color-success;
+    .toast-icon { color: @color-success; }
+  }
+  
+  &.toast-warning {
+    border-left-color: @color-warning;
+    .toast-icon { color: @color-warning; }
+  }
+  
+  &.toast-danger {
+    border-left-color: @color-danger;
+    .toast-icon { color: @color-danger; }
+  }
+  
+  &.toast-info {
+    border-left-color: @color-info;
+    .toast-icon { color: @color-info; }
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+// ==================== 下拉菜单 ====================
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  background: @bg-secondary;
+  border: 1px solid @border-color;
+  border-radius: @radius-lg;
+  box-shadow: @shadow-lg;
+  z-index: @z-dropdown;
+  margin-top: @space-2;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: @transition-fast;
+  list-style: none;
+  margin: 0;
+  padding: @space-2 0;
+  
+  &.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: @space-2 @space-4;
+  background: none;
+  border: none;
+  text-align: left;
+  color: @text-primary;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color @transition-fast;
+  font-size: @font-size-base;
+  
+  &:hover {
+    background: @bg-tertiary;
+  }
+  
+  &.active {
+    background: rgba(102, 126, 234, 0.1);
+    color: @color-brand-primary;
+    font-weight: @font-weight-medium;
+  }
+  
+  &.disabled {
+    color: @text-tertiary;
+    cursor: not-allowed;
+    
+    &:hover {
+      background: none;
+    }
+  }
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: @border-color;
+  margin: @space-1 0;
+}
+
+// ==================== 弹出框 ====================
+
+.popover {
+  position: absolute;
+  background: @bg-secondary;
+  border: 1px solid @border-color;
+  border-radius: @radius-lg;
+  box-shadow: @shadow-lg;
+  z-index: @z-popover;
+  padding: @space-3;
+  font-size: @font-size-base;
+  color: @text-primary;
+  max-width: 300px;
+  
+  // 三角箭头
+  &::before {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: @bg-secondary;
+    border: 1px solid @border-color;
+    border-right: none;
+    border-bottom: none;
+    transform: rotate(45deg);
+    z-index: -1;
+  }
+  
+  // 上方箭头
+  &.popover-top {
+    &::before {
+      bottom: -5px;
+      left: 50%;
+      margin-left: -4px;
+    }
+  }
+  
+  // 下方箭头
+  &.popover-bottom {
+    &::before {
+      top: -5px;
+      left: 50%;
+      margin-left: -4px;
+    }
+  }
+}
+
+// ==================== 加载指示器 ====================
+
+.spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid @bg-tertiary;
+  border-top-color: @color-brand-primary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  
+  &.spinner-sm {
+    width: 16px;
+    height: 16px;
+  }
+  
+  &.spinner-lg {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ==================== 工具提示 ====================
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  
+  .tooltip-text {
+    visibility: hidden;
+    background: @text-primary;
+    color: @text-white;
+    text-align: center;
+    padding: @space-2 @space-3;
+    border-radius: @radius-md;
+    position: absolute;
+    z-index: @z-tooltip;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+    width: 120px;
+    font-size: @font-size-sm;
+    opacity: 0;
+    transition: opacity @transition-fast;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: @text-primary transparent transparent transparent;
+    }
+  }
+  
+  &:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
+// ==================== 通用动画 ====================
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

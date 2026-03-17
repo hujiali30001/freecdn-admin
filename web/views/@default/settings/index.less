@@ -1,0 +1,489 @@
+/**
+ * FreeCDN Settings 系统设置页面样式
+ * 
+ * 功能:
+ * - 系统设置表单
+ * - 配置选项
+ * - 切换开关
+ * - 保存按钮
+ * - 响应式布局
+ * 
+ * 最后更新: 2026-03-18
+ */
+
+@import '../@design_tokens.less';
+@import '../@components_base.less';
+@import '../@components_data.less';
+@import '../@components_feedback.less';
+@import '../@globals_utilities.less';
+
+// ============================================================
+// 页面容器
+// ============================================================
+
+.settings-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: @color-background-secondary;
+    
+    @media (max-width: @breakpoint-md) {
+        max-width: 100%;
+    }
+}
+
+// ============================================================
+// 设置部分
+// ============================================================
+
+.settings-section {
+    background: @color-background-primary;
+    border-radius: @radius-md;
+    margin-bottom: @spacing-4;
+    overflow: hidden;
+    box-shadow: @shadow-sm;
+    
+    .section-header {
+        background: @color-background-secondary;
+        padding: @spacing-3;
+        border-bottom: 1px solid @color-border;
+        
+        .section-title {
+            font-size: @font-size-lg;
+            font-weight: @font-weight-semibold;
+            color: @color-text-primary;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .section-description {
+            font-size: @font-size-sm;
+            color: @color-text-secondary;
+            margin-top: @spacing-1;
+        }
+    }
+    
+    .section-body {
+        padding: @spacing-4;
+        
+        @media (max-width: @breakpoint-md) {
+            padding: @spacing-3;
+        }
+    }
+}
+
+// ============================================================
+// 设置项
+// ============================================================
+
+.settings-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: @spacing-4;
+    align-items: center;
+    padding: @spacing-3;
+    border-bottom: 1px solid @color-border;
+    
+    &:last-child {
+        border-bottom: none;
+    }
+    
+    @media (max-width: @breakpoint-md) {
+        grid-template-columns: 1fr;
+        gap: @spacing-2;
+    }
+    
+    .item-label {
+        .item-title {
+            font-size: @font-size-base;
+            font-weight: @font-weight-semibold;
+            color: @color-text-primary;
+            margin: 0;
+            padding: 0;
+            margin-bottom: @spacing-1;
+        }
+        
+        .item-description {
+            font-size: @font-size-sm;
+            color: @color-text-secondary;
+            margin: 0;
+            padding: 0;
+        }
+    }
+    
+    .item-control {
+        display: flex;
+        align-items: center;
+        gap: @spacing-2;
+        justify-content: flex-end;
+        
+        @media (max-width: @breakpoint-md) {
+            justify-content: flex-start;
+            width: 100%;
+        }
+        
+        // 开关控件
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+            
+            input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+                
+                &:checked + .slider {
+                    background: @color-success;
+                    
+                    &::before {
+                        transform: translateX(22px);
+                    }
+                }
+                
+                &:disabled + .slider {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+            }
+            
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: @color-border;
+                transition: all @transition-default;
+                border-radius: 28px;
+                
+                &::before {
+                    content: '';
+                    position: absolute;
+                    height: 24px;
+                    width: 24px;
+                    left: 2px;
+                    bottom: 2px;
+                    background: white;
+                    transition: all @transition-default;
+                    border-radius: 50%;
+                }
+            }
+        }
+        
+        // 输入框
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        select,
+        textarea {
+            padding: @spacing-2 @spacing-3;
+            border: 1px solid @color-border;
+            border-radius: @radius-sm;
+            font-size: @font-size-base;
+            transition: all @transition-default;
+            
+            &:focus {
+                border-color: @color-primary;
+                box-shadow: 0 0 0 3px rgba(@color-primary, 0.1);
+                outline: none;
+            }
+            
+            &:disabled {
+                background: @color-background-secondary;
+                cursor: not-allowed;
+                opacity: 0.6;
+            }
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        select {
+            min-width: 200px;
+        }
+        
+        textarea {
+            min-width: 300px;
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        // 数字输入
+        input[type="number"] {
+            text-align: center;
+        }
+    }
+}
+
+// ============================================================
+// 分组设置项
+// ============================================================
+
+.settings-group {
+    background: @color-background-secondary;
+    padding: @spacing-3;
+    border-radius: @radius-sm;
+    margin-bottom: @spacing-3;
+    
+    .group-title {
+        font-size: @font-size-sm;
+        font-weight: @font-weight-semibold;
+        text-transform: uppercase;
+        color: @color-text-secondary;
+        margin-bottom: @spacing-2;
+        letter-spacing: 0.5px;
+    }
+    
+    .group-items {
+        display: flex;
+        flex-direction: column;
+        gap: @spacing-2;
+        
+        .group-item {
+            display: flex;
+            align-items: center;
+            gap: @spacing-2;
+            
+            input[type="checkbox"],
+            input[type="radio"] {
+                cursor: pointer;
+            }
+            
+            label {
+                cursor: pointer;
+                margin: 0;
+                padding: 0;
+                
+                .item-title {
+                    font-size: @font-size-base;
+                    color: @color-text-primary;
+                    font-weight: @font-weight-medium;
+                }
+                
+                .item-desc {
+                    font-size: @font-size-sm;
+                    color: @color-text-secondary;
+                    margin-top: @spacing-1;
+                }
+            }
+        }
+    }
+}
+
+// ============================================================
+// 设置按钮区域
+// ============================================================
+
+.settings-actions {
+    display: flex;
+    gap: @spacing-3;
+    justify-content: flex-end;
+    padding: @spacing-4;
+    border-top: 1px solid @color-border;
+    background: @color-background-secondary;
+    
+    @media (max-width: @breakpoint-md) {
+        justify-content: stretch;
+        flex-direction: column;
+        padding: @spacing-3;
+        gap: @spacing-2;
+    }
+    
+    button {
+        padding: @spacing-2 @spacing-4;
+        border: none;
+        border-radius: @radius-sm;
+        font-size: @font-size-base;
+        font-weight: @font-weight-semibold;
+        cursor: pointer;
+        transition: all @transition-default;
+        white-space: nowrap;
+        
+        @media (max-width: @breakpoint-md) {
+            width: 100%;
+        }
+        
+        &.btn-save {
+            background: @color-primary;
+            color: white;
+            
+            &:hover:not(:disabled) {
+                background: darken(@color-primary, 10%);
+                transform: translateY(-2px);
+                box-shadow: @shadow-md;
+            }
+            
+            &:active:not(:disabled) {
+                transform: translateY(0);
+            }
+            
+            &:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+        }
+        
+        &.btn-reset {
+            background: @color-background-tertiary;
+            color: @color-text-primary;
+            border: 1px solid @color-border;
+            
+            &:hover {
+                background: @color-background-secondary;
+                border-color: @color-primary;
+            }
+        }
+        
+        &.btn-restore {
+            background: @color-warning;
+            color: white;
+            
+            &:hover:not(:disabled) {
+                background: darken(@color-warning, 10%);
+                transform: translateY(-2px);
+                box-shadow: @shadow-md;
+            }
+        }
+    }
+}
+
+// ============================================================
+// 提示信息
+// ============================================================
+
+.settings-notice {
+    padding: @spacing-3;
+    border-radius: @radius-sm;
+    margin-bottom: @spacing-3;
+    border-left: 4px solid @color-info;
+    background: @color-info-light;
+    
+    &.notice-success {
+        border-color: @color-success;
+        background: @color-success-light;
+        color: @color-success;
+    }
+    
+    &.notice-warning {
+        border-color: @color-warning;
+        background: @color-warning-light;
+        color: @color-warning;
+    }
+    
+    &.notice-danger {
+        border-color: @color-danger;
+        background: @color-danger-light;
+        color: @color-danger;
+    }
+    
+    .notice-title {
+        font-weight: @font-weight-semibold;
+        margin-bottom: @spacing-1;
+    }
+    
+    .notice-message {
+        font-size: @font-size-sm;
+    }
+}
+
+// ============================================================
+// 高级设置
+// ============================================================
+
+.advanced-settings {
+    margin-top: @spacing-4;
+    padding-top: @spacing-4;
+    border-top: 2px solid @color-border;
+    
+    .advanced-title {
+        font-size: @font-size-base;
+        font-weight: @font-weight-semibold;
+        color: @color-text-primary;
+        margin-bottom: @spacing-3;
+    }
+}
+
+// ============================================================
+// 设置导航（如果是多页签）
+// ============================================================
+
+.settings-nav {
+    display: flex;
+    gap: @spacing-1;
+    margin-bottom: @spacing-4;
+    border-bottom: 2px solid @color-border;
+    overflow-x: auto;
+    
+    @media (max-width: @breakpoint-md) {
+        flex-wrap: wrap;
+    }
+    
+    .nav-item {
+        padding: @spacing-2 @spacing-3;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        color: @color-text-secondary;
+        font-weight: @font-weight-medium;
+        transition: all @transition-default;
+        white-space: nowrap;
+        margin-bottom: -2px;
+        
+        &:hover {
+            color: @color-primary;
+        }
+        
+        &.active {
+            color: @color-primary;
+            border-bottom-color: @color-primary;
+        }
+    }
+}
+
+// ============================================================
+// 响应式设计
+// ============================================================
+
+@media (max-width: @breakpoint-lg) {
+    .settings-item {
+        gap: @spacing-3;
+        padding: @spacing-2;
+        
+        .item-control {
+            input[type="text"],
+            input[type="number"],
+            input[type="email"],
+            select {
+                min-width: 150px;
+            }
+            
+            textarea {
+                min-width: 100%;
+            }
+        }
+    }
+}
+
+@media (max-width: @breakpoint-md) {
+    .settings-page {
+        padding: 0;
+    }
+    
+    .settings-section {
+        margin-bottom: @spacing-3;
+        border-radius: 0;
+        
+        .section-header {
+            padding: @spacing-2;
+        }
+        
+        .section-body {
+            padding: @spacing-2;
+        }
+    }
+    
+    .settings-actions {
+        padding: @spacing-2;
+    }
+}

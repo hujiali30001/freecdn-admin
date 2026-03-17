@@ -1,31 +1,141 @@
+/**
+ * FreeCDN 设计令牌
+ * 所有设计元素的基础定义
+ * 版本：v0.10.0
+ */
 .cluster-name-td {
   position: relative;
+  padding: 12px !important;
+  transition: all 200ms;
+}
+.cluster-name-td .icon {
+  transition: all 150ms;
 }
 .cluster-name-td .icon.pin {
   display: none;
   position: absolute;
-  right: 1em;
+  right: calc(16px * 2);
   top: 50%;
-  margin-top: -0.7em;
-  opacity: 0.6;
+  transform: translateY(-50%);
+  opacity: 0;
+  cursor: pointer;
+  color: #718096;
+  transition: all 150ms;
+}
+.cluster-name-td .icon.pin:hover {
+  color: #667eea;
+  transform: translateY(-50%) scale(1.2);
 }
 .cluster-name-td .icon.visible {
   display: inline;
+  opacity: 0.8;
+  transition: opacity 150ms;
+}
+.cluster-name-td .icon.visible:hover {
+  opacity: 1;
 }
 .cluster-name-td .icon.opacity {
-  opacity: 0.3;
+  opacity: 0.4;
 }
 .cluster-name-td .icon.setting {
   display: none;
   position: absolute;
-  right: 3em;
+  right: 16px;
   top: 50%;
-  margin-top: -0.7em;
+  transform: translateY(-50%);
+  opacity: 0;
+  cursor: pointer;
+  color: #718096;
+  transition: all 150ms;
+}
+.cluster-name-td .icon.setting:hover {
+  color: #667eea;
+  transform: translateY(-50%) scale(1.2);
+}
+.cluster-name-td:hover {
+  background: rgba(102, 126, 234, 0.04);
+  border-radius: 4px;
 }
 .cluster-name-td:hover .icon.pin {
   display: inline;
+  opacity: 1;
 }
 .cluster-name-td:hover .icon.setting {
   display: inline;
+  opacity: 1;
 }
-/*# sourceMappingURL=index.css.map */
+.cluster-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.cluster-status.active {
+  background: rgba(72, 187, 120, 0.12);
+  color: #48bb78;
+}
+.cluster-status.active:before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #48bb78;
+  animation: pulse 2s infinite;
+}
+.cluster-status.inactive {
+  background: rgba(160, 174, 192, 0.12);
+  color: #718096;
+}
+.cluster-status.inactive:before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #718096;
+}
+.cluster-status.warning {
+  background: rgba(237, 137, 54, 0.12);
+  color: #ed8936;
+}
+.cluster-status.warning:before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ed8936;
+  animation: pulse 1s infinite;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+.cluster-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+@media (max-width: 768px) {
+  .cluster-actions {
+    gap: 4px;
+  }
+  .cluster-actions .btn {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+  }
+}
+@media (max-width: 480px) {
+  .cluster-actions {
+    flex-direction: column;
+  }
+  .cluster-actions .btn {
+    width: 100%;
+  }
+}

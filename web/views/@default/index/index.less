@@ -1,487 +1,386 @@
-// ── FreeCDN 登录页 v3.1 ── 渐变背景 + 白卡片风格（宽度修复版）──
-:root {
-  --fc-brand:        #667eea;
-  --fc-brand-end:    #764ba2;
-  --fc-brand-hover:  #7c93f0;
-  --fc-brand-active: #5568d4;
-  --fc-brand-light:  rgba(102,126,234,.10);
-  --fc-text-primary: #1a202c;
-  --fc-text-second:  #4a5568;
-  --fc-text-hint:    #a0aec0;
-  --fc-border:       #e2e8f0;
-  --fc-white:        #FFFFFF;
-  --fc-radius:       12px;
-  --fc-radius-lg:    20px;
-  --fc-shadow-lg:    0 20px 60px rgba(0,0,0,.15);
-  --fc-transition:   0.3s ease;
-}
+@import "../@design_tokens.less";
+@import "../@components_base.less";
+@import "../@components_data.less";
+@import "../@components_feedback.less";
 
-*, *::before, *::after { box-sizing: border-box; }
-
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
-               "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-
-body {
+// ==================== 首页容器 ====================
+.page-index {
+  padding: @space-4;
+  background-color: @bg-primary;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 20px;
+
+  @media (max-width: 768px) {
+    padding: @space-3;
+  }
 }
 
-// 顶层 div 容器
-body > div {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 100% !important;
-  min-height: 100vh !important;
+// ==================== 页面标题 ====================
+.page-title {
+  margin: 0 0 @space-5 0;
+  
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: @text-primary;
+    margin: 0 0 @space-1 0;
+    letter-spacing: -0.5px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: @text-secondary;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 24px;
+    }
+  }
 }
 
-// ── 入场动画
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to   { opacity: 1; transform: translateY(0); }
+// ==================== 统计卡片组 ====================
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: @space-4;
+  margin-bottom: @space-6;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: @space-3;
+  }
 }
 
-// form-box 容器 — 严格居中，不撑满宽
-.form-box {
-  position: static !important;
-  width: 100% !important;
-  max-width: 460px !important;   // 留出左右间距的余量
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 1em !important;
-  margin: 0 auto !important;
+.stat-card {
+  background-color: @bg-secondary;
+  border-radius: @radius-md;
+  padding: @space-4;
+  border: 1px solid @border-color;
+  transition: all @transition-base;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, @color-brand-primary 0%, @color-brand-secondary 100%);
+    opacity: 0.8;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: @shadow-lg;
+    border-color: @color-brand-light;
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: @radius-sm;
+    background-color: rgba(@color-brand-primary, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: @space-3;
+    font-size: 24px;
+    color: @color-brand-primary;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: @text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: @space-1;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: @text-primary;
+    margin-bottom: @space-2;
+    letter-spacing: -1px;
+  }
+
+  .stat-change {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: @space-1;
+
+    &.positive {
+      color: @color-success;
+    }
+
+    &.negative {
+      color: @color-danger;
+    }
+
+    &.neutral {
+      color: @text-secondary;
+    }
+  }
 }
 
-// ── form 本体 — 这是宽度控制的核心
-form.ui.form {
-  position: static !important;
-  width: 100% !important;
-  max-width: 400px !important;   // 硬限制，覆盖 Semantic UI 任何宽度
-  min-width: 0 !important;       // 清除 Semantic UI 可能的 min-width
-  margin: 0 auto !important;
-  animation: slideUp 0.5s ease-out;
+// ==================== 内容容器 ====================
+.content-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: @space-4;
+  margin-bottom: @space-4;
 
-  // ── 白色卡片
-  // 必须同时限制 segment 本身，防止 Semantic 撑宽
-  .ui.segment.stacked,
-  .ui.segment.stacked.form {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    background: var(--fc-white) !important;
-    border-radius: var(--fc-radius-lg) !important;
-    border: none !important;
-    box-shadow: var(--fc-shadow-lg) !important;
-    padding: 40px 30px 32px !important;
-    position: relative !important;
-    overflow: visible !important;
-
-    // 清除 Semantic 的伪元素叠加层
-    &::before, &::after { display: none !important; }
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  // ── 标题
-  .ui.header {
-    text-align: center !important;
-    font-size: 1.6em !important;
-    font-weight: 700 !important;
-    color: var(--fc-text-primary) !important;
-    margin-bottom: 0.4em !important;
-    letter-spacing: .01em;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
   }
 
-  // ── 副标题
-  .comment {
-    text-align: center !important;
-    font-size: 13px !important;
-    color: var(--fc-text-hint) !important;
-    margin-bottom: 1.8em !important;
-    margin-top: 0 !important;
+  &.full-width {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ==================== 卡片容器 ====================
+.card {
+  background-color: @bg-secondary;
+  border-radius: @radius-md;
+  border: 1px solid @border-color;
+  padding: @space-4;
+  transition: all @transition-base;
+
+  &:hover {
+    border-color: @color-brand-light;
+    box-shadow: @shadow-sm;
   }
 
-  // ── 字段间距
-  .ui.field {
-    margin-bottom: 1.1em !important;
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: @space-3;
+    padding-bottom: @space-3;
+    border-bottom: 1px solid @border-color;
+
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: @text-primary;
+      margin: 0;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: @space-2;
+    }
+
+    .action-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: @radius-sm;
+      border: none;
+      background-color: @bg-tertiary;
+      color: @text-secondary;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all @transition-base;
+      font-size: 16px;
+
+      &:hover {
+        background-color: @bg-quaternary;
+        color: @text-primary;
+      }
+    }
   }
 
-  // ── 输入框（含图标）
-  .ui.left.icon.input {
-    width: 100% !important;
-    position: relative !important;
+  .card-body {
+    font-size: 14px;
+    color: @text-secondary;
+    line-height: 1.6;
+  }
 
-    input {
-      width: 100% !important;
-      height: 48px !important;
-      border: 2px solid var(--fc-border) !important;
-      border-radius: var(--fc-radius) !important;
-      font-size: 14px !important;
-      padding: 0 16px 0 46px !important;
-      color: var(--fc-text-primary) !important;
-      background: var(--fc-white) !important;
-      transition: border-color var(--fc-transition),
-                  box-shadow var(--fc-transition) !important;
-      outline: none !important;
+  .card-footer {
+    margin-top: @space-4;
+    padding-top: @space-3;
+    border-top: 1px solid @border-color;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
 
-      &:focus {
-        border-color: var(--fc-brand) !important;
-        box-shadow: 0 0 0 4px rgba(102,126,234,.12) !important;
+// ==================== 列表 ====================
+.item-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: @space-3;
+    border-bottom: 1px solid @border-color;
+    transition: all @transition-base;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-color: @bg-tertiary;
+    }
+
+    .item-info {
+      flex: 1;
+
+      .item-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: @text-primary;
+        margin-bottom: @space-1;
       }
 
-      &::placeholder { color: var(--fc-text-hint); }
+      .item-desc {
+        font-size: 12px;
+        color: @text-secondary;
+      }
     }
 
-    // 图标 — 强制垂直居中
-    i.icon {
-      position: absolute !important;
-      top: 50% !important;
-      left: 0 !important;
-      transform: translateY(-50%) !important;
-      color: var(--fc-text-hint) !important;
-      font-size: 1em !important;
-      height: auto !important;
-      width: 46px !important;
-      line-height: 1 !important;
-      text-align: center !important;
-      transition: color var(--fc-transition) !important;
-      margin: 0 !important;
+    .item-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: @color-brand-primary;
+      min-width: 80px;
+      text-align: right;
     }
 
-    // 聚焦时图标变色
-    input:focus ~ i.icon {
-      color: var(--fc-brand) !important;
-    }
-  }
+    .item-badge {
+      margin-left: @space-2;
+      padding: @space-1 @space-2;
+      border-radius: @radius-sm;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
 
-  // ── 更多选项链接
-  a {
-    color: var(--fc-brand) !important;
-    font-size: 13px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: color var(--fc-transition) !important;
+      &.badge-success {
+        background-color: rgba(34, 197, 94, 0.1);
+        color: @color-success;
+      }
 
-    &:hover {
-      color: var(--fc-brand-hover) !important;
-      text-decoration: underline;
-    }
-  }
+      &.badge-warning {
+        background-color: rgba(251, 146, 60, 0.1);
+        color: @color-warning;
+      }
 
-  // ── 记住登录 checkbox
-  .ui.checkbox label {
-    font-size: 13px !important;
-    color: var(--fc-text-second) !important;
-    cursor: pointer;
-  }
+      &.badge-danger {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: @color-danger;
+      }
 
-  .ui.checkbox input:checked ~ .box:before,
-  .ui.checkbox input:checked ~ label:before {
-    background: var(--fc-brand) !important;
-    border-color: var(--fc-brand) !important;
-  }
-
-  // ── 登录按钮
-  .ui.button.primary.fluid {
-    width: 100% !important;
-    height: 48px !important;
-    background: linear-gradient(135deg, var(--fc-brand) 0%, var(--fc-brand-end) 100%) !important;
-    color: #fff !important;
-    border-radius: var(--fc-radius) !important;
-    font-size: 15px !important;
-    font-weight: 600 !important;
-    border: none !important;
-    cursor: pointer;
-    margin-top: 1em !important;
-    padding: 14px !important;
-    transition: transform var(--fc-transition),
-                box-shadow var(--fc-transition) !important;
-    box-shadow: 0 4px 15px rgba(102,126,234,.4) !important;
-    letter-spacing: .03em;
-
-    &:hover {
-      transform: translateY(-2px) !important;
-      box-shadow: 0 6px 22px rgba(102,126,234,.5) !important;
-      background: linear-gradient(135deg, var(--fc-brand-hover) 0%, #8a5fb8 100%) !important;
-    }
-
-    &:active {
-      transform: translateY(0) !important;
-      background: linear-gradient(135deg, var(--fc-brand-active) 0%, #6a3d92 100%) !important;
-    }
-
-    &.disabled {
-      opacity: .7 !important;
-      cursor: not-allowed !important;
-      transform: none !important;
+      &.badge-info {
+        background-color: rgba(59, 130, 246, 0.1);
+        color: @color-info;
+      }
     }
   }
-
-  p { font-size: 0.8em; margin-top: 0.3em; margin-bottom: 0; padding: 0; }
 }
 
-// ── 行内错误/成功消息（Semantic UI .ui.message）
-.ui.message {
-  border-radius: var(--fc-radius) !important;
-  font-size: 13px !important;
-  max-width: 400px;
-  width: 100%;
-  margin: 0 auto 1em !important;
-  border: none !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,.08) !important;
+// ==================== 图表容器 ====================
+.chart-container {
+  height: 300px;
+  padding: @space-3;
 
-  &.error   { background: #fff5f5 !important; color: #c53030 !important; }
-  &.success { background: #f0fff4 !important; color: #276749 !important; }
+  @media (max-width: 768px) {
+    height: 250px;
+  }
 }
 
-// ── 底部版权文字（白色，融入背景）
-body::after {
-  content: "FreeCDN";
-  position: fixed;
-  bottom: 1.2em;
-  left: 0;
-  right: 0;
+// ==================== 空状态 ====================
+.empty-state {
   text-align: center;
-  color: rgba(255,255,255,.35);
-  font-size: 12px;
-  letter-spacing: .12em;
-  pointer-events: none;
-}
+  padding: @space-6;
+  color: @text-secondary;
 
-// ── 响应式
-@media screen and (max-width: 480px) {
-  .form-box {
-    max-width: 100% !important;
-    padding: 0.5em !important;
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: @space-3;
+    opacity: 0.5;
   }
 
-  form.ui.form {
-    max-width: 100% !important;
+  .empty-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: @text-primary;
+    margin-bottom: @space-1;
+  }
 
-    .ui.segment.stacked {
-      padding: 32px 20px 24px !important;
+  .empty-desc {
+    font-size: 14px;
+    color: @text-secondary;
+    margin-bottom: @space-3;
+  }
+
+  .empty-action {
+    display: inline-block;
+    padding: @space-2 @space-4;
+    background-color: @color-brand-primary;
+    color: white;
+    border-radius: @radius-sm;
+    text-decoration: none;
+    transition: all @transition-base;
+
+    &:hover {
+      background-color: @color-brand-secondary;
+      transform: translateY(-2px);
     }
   }
 }
 
+// ==================== 加载状态 ====================
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
 
-// ══════════════════════════════════════════════════════════════
-// SweetAlert2 弹窗 — 与登录卡片风格完全统一
-// ══════════════════════════════════════════════════════════════
-
-// 弹窗入场动画
-@keyframes swalFadeIn {
-  from { opacity: 0; transform: scale(0.92) translateY(-16px); }
-  to   { opacity: 1; transform: scale(1)    translateY(0); }
-}
-
-// 遮罩层
-.swal2-container {
-  &.swal2-backdrop-show {
-    background: rgba(45, 27, 105, 0.5) !important;
-    backdrop-filter: blur(4px) !important;
-  }
-
-  // 确保弹窗能覆盖在登录页上方
-  z-index: 9999 !important;
-}
-
-// 弹窗主体
-.swal2-popup {
-  max-width: 350px !important;
-  width: 350px !important;
-  padding: 32px 28px !important;
-
-  // 与登录卡片相同的圆角和阴影
-  border-radius: 20px !important;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255,255,255,.1) !important;
-  border: none !important;
-  background: #ffffff !important;
-
-  // 字体
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
-               "Microsoft YaHei", "Segoe UI", Roboto, sans-serif !important;
-
-  // ⚠️ 不要在这里设置 animation！
-  // SweetAlert2 通过 .swal2-show / .swal2-hide 类控制动画，
-  // 如果在这里写 animation，会覆盖 swal2 内置的关闭动画检测，
-  // 导致弹窗点击确定后按钮消失但弹窗本体无法被 DOM 移除。
-  // 入场动画仅在 .swal2-show 状态生效：
-  &.swal2-show {
-    animation: swalFadeIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-  }
-
-  // 关闭动画：交给 swal2 自己处理，我们不覆盖
-  &.swal2-hide {
-    animation: swal2-hide 0.15s ease-out forwards !important;
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid @border-color;
+    border-top-color: @color-brand-primary;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
   }
 }
 
-// 图标区域
-.swal2-icon {
-  margin: 0 auto 16px !important;
-  width: 54px !important;
-  height: 54px !important;
-  border-width: 2px !important;
-
-  // 错误图标 — 品牌紫色
-  &.swal2-error {
-    border-color: var(--fc-brand) !important;
-    color: var(--fc-brand) !important;
-
-    .swal2-x-mark-line-left,
-    .swal2-x-mark-line-right {
-      background-color: var(--fc-brand) !important;
-    }
-  }
-
-  // 警告图标 — 品牌紫色
-  &.swal2-warning {
-    border-color: var(--fc-brand) !important;
-    color: var(--fc-brand) !important;
-  }
-
-  // 成功图标 — 绿色
-  &.swal2-success {
-    border-color: #48bb78 !important;
-
-    .swal2-success-ring {
-      border-color: rgba(72, 187, 120, 0.25) !important;
-    }
-
-    [class^="swal2-success-line"] {
-      background-color: #48bb78 !important;
-    }
-  }
-
-  // 信息图标
-  &.swal2-info {
-    border-color: var(--fc-brand) !important;
-    color: var(--fc-brand) !important;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-// 弹窗标题
-.swal2-title {
-  font-size: 17px !important;
-  font-weight: 700 !important;
-  color: var(--fc-text-primary) !important;
-  padding: 4px 0 8px !important;
-  line-height: 1.4 !important;
-  margin: 0 !important;
-}
-
-// 弹窗正文
-.swal2-html-container {
-  font-size: 14px !important;
-  color: var(--fc-text-second) !important;
-  line-height: 1.65 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow-x: hidden !important;
-}
-
-// 按钮容器
-.swal2-actions {
-  margin: 22px 0 0 !important;
-  padding: 0 !important;
-  gap: 10px !important;
-  justify-content: center !important;
-  flex-wrap: nowrap !important;
-}
-
-// 确定按钮 — 与登录按钮完全一致的渐变样式
-.swal2-confirm {
-  background: linear-gradient(135deg, var(--fc-brand) 0%, var(--fc-brand-end) 100%) !important;
-  border: none !important;
-  border-radius: var(--fc-radius) !important;
-  color: #ffffff !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  padding: 11px 28px !important;
-  min-width: 88px !important;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
-  letter-spacing: 0.02em !important;
-  outline: none !important;
-
-  &:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 22px rgba(102, 126, 234, 0.55) !important;
-    background: linear-gradient(135deg, #7c93f0 0%, #8a5fb8 100%) !important;
+// ==================== 响应式工具 ====================
+@media print {
+  .page-index {
+    padding: 0;
+    background-color: white;
   }
 
-  &:active {
-    transform: translateY(0) !important;
-    background: linear-gradient(135deg, #5568d4 0%, #6a3d92 100%) !important;
+  .stat-card,
+  .card {
+    page-break-inside: avoid;
   }
-
-  &:focus {
-    outline: none !important;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4), 0 0 0 3px rgba(102, 126, 234, 0.25) !important;
-  }
-}
-
-// 取消按钮
-.swal2-cancel {
-  background: #f0f2f8 !important;
-  border: none !important;
-  border-radius: var(--fc-radius) !important;
-  color: var(--fc-text-second) !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  padding: 11px 28px !important;
-  min-width: 88px !important;
-  margin-left: 0 !important;
-  transition: background 0.2s ease, color 0.2s ease !important;
-  outline: none !important;
-
-  &:hover {
-    background: #e2e6f3 !important;
-    color: var(--fc-text-primary) !important;
-  }
-
-  &:focus {
-    outline: none !important;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
-  }
-}
-
-// 关闭按钮（右上角 ×）
-.swal2-close {
-  color: var(--fc-text-hint) !important;
-  font-size: 1.4em !important;
-  border: none !important;
-  outline: none !important;
-  border-radius: 50% !important;
-  width: 32px !important;
-  height: 32px !important;
-  line-height: 32px !important;
-  transition: color 0.2s ease, background 0.2s ease !important;
-
-  &:hover {
-    color: var(--fc-text-primary) !important;
-    background: rgba(0,0,0,.06) !important;
-  }
-
-  &:focus {
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-  }
-}
-
-// 修复：Semantic UI 在登录页可能全局注入的 body padding
-body.swal2-shown {
-  overflow: auto !important;
-  padding-right: 0 !important;
 }

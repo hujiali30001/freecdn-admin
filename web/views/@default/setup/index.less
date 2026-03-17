@@ -1,90 +1,539 @@
-.install-box {
-	@width: 50em;
-	@half-width: 25em;
+@import "../@design_tokens.less";
+@import "../@components_base.less";
+@import "../@components_data.less";
+@import "../@components_feedback.less";
 
-	width: @width;
-	position: fixed;
-	left: 50%;
-	margin-left: -@half-width;
-	top: 1em;
-	bottom: 1em;
-	overflow-y: auto;
+// ==================== 设置页容器 ====================
+.page-setup {
+  min-height: 100vh;
+  background: linear-gradient(135deg, @bg-primary 0%, @bg-secondary 100%);
+  padding: @space-4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-	.button.margin {
-		margin-top: 1em;
-	}
-
-	.button.primary {
-		float: right;
-	}
-
-	.button.disabled {
-		float: right;
-	}
-
-	table {
-		td {
-			vertical-align: top;
-		}
-
-		td.title {
-			width: 10em;
-		}
-	}
-
-	.radio {
-		margin-right: 1em;
-
-		label {
-			cursor: pointer !important;
-			font-size: 0.9em !important;
-		}
-	}
-
-	h3 {
-		font-weight: normal;
-	}
-
-	.content-box {
-		overflow-y: auto;
-		position: fixed;
-		top: 5em;
-		bottom: 5em;
-		left: 50%;
-		width: @width;
-		padding-right: 1em;
-		margin-left: -@half-width;
-		z-index: 1;
-	}
-
-	.content-box::-webkit-scrollbar {
-		width: 4px;
-	}
-
-	.button-group {
-		position: fixed;
-		left: 50%;
-		margin-left: -@half-width;
-		z-index: 1;
-		width: @width;
-		bottom: 1em;
-
-		button {
-			z-index: 10;
-		}
-
-		.status-box {
-			position: absolute;
-			top: 3em;
-			left: 8em;
-			right: 8em;
-			bottom: 0;
-			text-align: center;
-			z-index: 0;
-		}
-	}
+  @media (max-width: 768px) {
+    padding: @space-2;
+  }
 }
 
-.install-box::-webkit-scrollbar {
-	width: 4px;
+// ==================== 主容器 ====================
+.setup-container {
+  width: 100%;
+  max-width: 900px;
+  background-color: @bg-secondary;
+  border-radius: @radius-lg;
+  border: 1px solid @border-color;
+  box-shadow: @shadow-xl;
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    border-radius: @radius-md;
+  }
+}
+
+// ==================== 两列布局 ====================
+.setup-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 600px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ==================== 左侧步骤导航 ====================
+.setup-steps {
+  background: linear-gradient(180deg, @bg-tertiary 0%, @bg-primary 100%);
+  padding: @space-6 @space-4;
+  border-right: 1px solid @border-color;
+
+  @media (max-width: 768px) {
+    border-right: none;
+    border-bottom: 1px solid @border-color;
+    padding: @space-4;
+  }
+}
+
+.step-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    position: relative;
+    margin-bottom: @space-6;
+    padding-left: @space-8;
+    cursor: pointer;
+    transition: all @transition-base;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    @media (max-width: 768px) {
+      padding-left: @space-6;
+      margin-bottom: @space-4;
+    }
+
+    // 步骤连接线
+    &:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 40px;
+      width: 2px;
+      height: 48px;
+      background-color: @border-color;
+      transition: all @transition-base;
+
+      @media (max-width: 768px) {
+        height: 40px;
+      }
+    }
+
+    // 鼠标悬停效果
+    &:hover {
+      .step-number {
+        transform: scale(1.1);
+      }
+    }
+
+    &.active {
+      .step-number {
+        background: linear-gradient(135deg, @color-brand-primary 0%, @color-brand-secondary 100%);
+        color: white;
+        box-shadow: 0 0 0 4px rgba(@color-brand-primary, 0.1);
+      }
+
+      .step-title {
+        color: @color-brand-primary;
+        font-weight: 600;
+      }
+
+      &::after {
+        background-color: @color-brand-primary;
+      }
+    }
+
+    &.completed {
+      .step-number {
+        background-color: @color-success;
+        color: white;
+
+        &::before {
+          content: '✓';
+          font-weight: bold;
+        }
+      }
+
+      &::after {
+        background-color: @color-success;
+      }
+    }
+  }
+}
+
+.step-number {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: @bg-secondary;
+  border: 2px solid @border-color;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: @text-secondary;
+  transition: all @transition-base;
+  z-index: 1;
+}
+
+.step-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: @text-primary;
+  margin-bottom: @space-1;
+  transition: all @transition-base;
+}
+
+.step-desc {
+  font-size: 12px;
+  color: @text-secondary;
+  line-height: 1.4;
+}
+
+// ==================== 右侧内容区 ====================
+.setup-content {
+  padding: @space-6;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 768px) {
+    padding: @space-4;
+  }
+}
+
+.step-panel {
+  display: none;
+
+  &.active {
+    display: block;
+    animation: slideIn 0.3s ease-out;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// ==================== 步骤头部 ====================
+.step-header {
+  margin-bottom: @space-5;
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: @text-primary;
+    margin: 0 0 @space-1 0;
+    letter-spacing: -0.5px;
+  }
+
+  p {
+    font-size: 14px;
+    color: @text-secondary;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 768px) {
+    h2 {
+      font-size: 20px;
+    }
+
+    p {
+      font-size: 13px;
+    }
+  }
+}
+
+// ==================== 表单 ====================
+.setup-form {
+  flex: 1;
+}
+
+.form-group {
+  margin-bottom: @space-5;
+
+  &:last-child {
+    margin-bottom: @space-3;
+  }
+
+  label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: @text-primary;
+    margin-bottom: @space-2;
+
+    .required {
+      color: @color-danger;
+      margin-left: @space-1;
+    }
+
+    .hint {
+      font-size: 12px;
+      font-weight: 400;
+      color: @text-secondary;
+      display: block;
+      margin-top: @space-1;
+    }
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: @space-3 @space-4;
+    border: 1px solid @border-color;
+    border-radius: @radius-sm;
+    background-color: @bg-primary;
+    color: @text-primary;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all @transition-base;
+
+    &::placeholder {
+      color: @text-tertiary;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: @color-brand-primary;
+      box-shadow: 0 0 0 3px rgba(@color-brand-primary, 0.1);
+    }
+
+    &:disabled {
+      background-color: @bg-tertiary;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    &.error {
+      border-color: @color-danger;
+      background-color: rgba(@color-danger, 0.02);
+
+      &:focus {
+        box-shadow: 0 0 0 3px rgba(@color-danger, 0.1);
+      }
+    }
+
+    &.success {
+      border-color: @color-success;
+
+      &:focus {
+        box-shadow: 0 0 0 3px rgba(@color-success, 0.1);
+      }
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.5;
+  }
+}
+
+.form-error {
+  display: block;
+  font-size: 12px;
+  color: @color-danger;
+  margin-top: @space-1;
+}
+
+.form-hint {
+  display: block;
+  font-size: 12px;
+  color: @text-secondary;
+  margin-top: @space-1;
+}
+
+// ==================== 单选框和复选框 ====================
+.radio-group,
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: @space-3;
+}
+
+.radio-item,
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: @space-2;
+  cursor: pointer;
+
+  input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin: 0;
+    accent-color: @color-brand-primary;
+  }
+
+  label {
+    margin: 0;
+    cursor: pointer;
+    font-size: 14px;
+    color: @text-primary;
+  }
+}
+
+// ==================== 步骤操作按钮 ====================
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: @space-4;
+  margin-top: @space-6;
+  padding-top: @space-5;
+  border-top: 1px solid @border-color;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: @space-3;
+  }
+}
+
+.btn {
+  padding: @space-3 @space-6;
+  border-radius: @radius-sm;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all @transition-base;
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    padding: @space-2 @space-4;
+    font-size: 13px;
+  }
+}
+
+.btn-secondary {
+  background-color: @bg-tertiary;
+  color: @text-primary;
+  border: 1px solid @border-color;
+
+  &:hover:not(:disabled) {
+    background-color: @bg-quaternary;
+    border-color: @color-brand-primary;
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, @color-brand-primary 0%, @color-brand-secondary 100%);
+  color: white;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(@color-brand-primary, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+.btn-success {
+  background-color: @color-success;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background-color: darken(@color-success, 10%);
+    transform: translateY(-2px);
+  }
+}
+
+.btn-danger {
+  background-color: rgba(@color-danger, 0.1);
+  color: @color-danger;
+  border: 1px solid @color-danger;
+
+  &:hover:not(:disabled) {
+    background-color: @color-danger;
+    color: white;
+  }
+}
+
+// ==================== 进度条 ====================
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background-color: @border-color;
+  border-radius: @radius-sm;
+  overflow: hidden;
+  margin-bottom: @space-4;
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, @color-brand-primary 0%, @color-brand-secondary 100%);
+    transition: width 0.3s ease;
+  }
+}
+
+// ==================== 提示框 ====================
+.alert {
+  padding: @space-4;
+  border-radius: @radius-sm;
+  border-left: 4px solid;
+  margin-bottom: @space-4;
+
+  &.info {
+    background-color: rgba(@color-info, 0.1);
+    border-color: @color-info;
+    color: @color-info;
+
+    .alert-title {
+      color: darken(@color-info, 20%);
+    }
+  }
+
+  &.success {
+    background-color: rgba(@color-success, 0.1);
+    border-color: @color-success;
+    color: @color-success;
+
+    .alert-title {
+      color: darken(@color-success, 20%);
+    }
+  }
+
+  &.warning {
+    background-color: rgba(@color-warning, 0.1);
+    border-color: @color-warning;
+    color: @color-warning;
+
+    .alert-title {
+      color: darken(@color-warning, 20%);
+    }
+  }
+
+  &.danger {
+    background-color: rgba(@color-danger, 0.1);
+    border-color: @color-danger;
+    color: @color-danger;
+
+    .alert-title {
+      color: darken(@color-danger, 20%);
+    }
+  }
+
+  .alert-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: @space-1;
+  }
+
+  .alert-message {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+}
+
+// ==================== 响应式工具 ====================
+@media (max-width: 480px) {
+  .setup-container {
+    border-radius: @radius-sm;
+  }
+
+  .step-header h2 {
+    font-size: 18px;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .step-actions {
+    flex-direction: column-reverse;
+  }
 }

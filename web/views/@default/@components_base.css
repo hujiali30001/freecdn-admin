@@ -1,0 +1,341 @@
+/**
+ * FreeCDN 基础表单组件
+ * Button、Input、Select 等表单控件
+ * 版本：v0.10.0
+ */
+/**
+ * FreeCDN 设计令牌
+ * 所有设计元素的基础定义
+ * 版本：v0.10.0
+ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 150ms;
+  white-space: nowrap;
+  user-select: none;
+  height: 40px;
+  padding: 10px 16px;
+  font-size: 14px;
+}
+.btn:focus {
+  outline: none;
+}
+.btn.btn-sm {
+  height: 32px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.btn.btn-lg {
+  height: 48px;
+  padding: 12px 20px;
+  font-size: 16px;
+}
+.btn.btn-primary {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(102, 126, 234, 0.2);
+}
+.btn.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+.btn.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(102, 126, 234, 0.2);
+}
+.btn.btn-primary:focus:not(:disabled) {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.btn.btn-primary:disabled {
+  background: #cbd5e0;
+  color: #718096;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.6;
+}
+.btn.btn-secondary {
+  background: #ffffff;
+  color: #667eea;
+  border: 1px solid #667eea;
+}
+.btn.btn-secondary:hover:not(:disabled) {
+  background: rgba(102, 126, 234, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.btn.btn-secondary:active:not(:disabled) {
+  background: rgba(102, 126, 234, 0.15);
+  transform: translateY(0);
+}
+.btn.btn-secondary:focus:not(:disabled) {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.btn.btn-secondary:disabled {
+  background: #f7fafc;
+  color: #cbd5e0;
+  border-color: #cbd5e0;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.btn.btn-text {
+  background: transparent;
+  color: #667eea;
+}
+.btn.btn-text:hover:not(:disabled) {
+  background: rgba(102, 126, 234, 0.08);
+  border-radius: 8px;
+}
+.btn.btn-text:active:not(:disabled) {
+  background: rgba(102, 126, 234, 0.15);
+}
+.btn.btn-text:focus:not(:disabled) {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.btn.btn-text:disabled {
+  color: #cbd5e0;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.btn.btn-danger {
+  background: #f56565;
+  color: #ffffff;
+}
+.btn.btn-danger:hover:not(:disabled) {
+  background: #f23535;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+}
+.btn.btn-danger:active:not(:disabled) {
+  background: #f01d1d;
+  transform: translateY(0);
+}
+.btn.btn-danger:focus:not(:disabled) {
+  box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.1);
+}
+.btn.btn-danger:disabled {
+  background: #cbd5e0;
+  color: #718096;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.btn.btn-success {
+  background: #48bb78;
+  color: #ffffff;
+}
+.btn.btn-success:hover:not(:disabled) {
+  background: #389860;
+  transform: translateY(-2px);
+}
+.btn.btn-success:active:not(:disabled) {
+  transform: translateY(0);
+}
+.btn.btn-success:disabled {
+  background: #cbd5e0;
+  color: #718096;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.btn.btn-block {
+  width: 100%;
+}
+.btn.btn-round {
+  border-radius: 50%;
+}
+.btn:disabled {
+  cursor: not-allowed;
+}
+.form-group {
+  margin-bottom: 16px;
+}
+.form-group:last-child {
+  margin-bottom: 0;
+}
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2d3748;
+  margin-bottom: 8px;
+}
+.form-label .required {
+  color: #f56565;
+  margin-left: 2px;
+}
+.form-label.form-label-sm {
+  font-size: 12px;
+}
+.form-label.form-label-lg {
+  font-size: 16px;
+}
+.form-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #2d3748;
+  transition: all 200ms cubic-bezier(0, 0, 0.58, 1);
+}
+.form-input::placeholder {
+  color: #cbd5e0;
+}
+.form-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: #ffffff;
+}
+.form-input:disabled {
+  background: #f7fafc;
+  color: #cbd5e0;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+  opacity: 0.6;
+}
+.form-input:read-only {
+  background: #edf2f7;
+  cursor: default;
+}
+.form-input.form-input-sm {
+  height: 32px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+.form-input.form-input-lg {
+  height: 44px;
+  padding: 0 14px;
+  font-size: 16px;
+}
+.form-input.is-error {
+  border-color: #f56565;
+}
+.form-input.is-error:focus {
+  box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.1);
+  border-color: #f56565;
+}
+.form-input.is-success {
+  border-color: #48bb78;
+}
+.form-input.is-success:focus {
+  box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.1);
+  border-color: #48bb78;
+}
+.form-error {
+  font-size: 12px;
+  color: #f56565;
+  margin-top: 4px;
+}
+.form-help {
+  font-size: 12px;
+  color: #718096;
+  margin-top: 4px;
+}
+.form-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.form-input-group i {
+  position: absolute;
+  left: 12px;
+  color: #cbd5e0;
+  pointer-events: none;
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+.form-input-group .form-input {
+  padding-left: 36px;
+}
+.form-input-group .form-input-append {
+  position: absolute;
+  right: 12px;
+  color: #718096;
+  font-size: 12px;
+}
+.form-select {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>') no-repeat right 12px center;
+  background-size: 20px;
+  padding-right: 36px;
+  color: #2d3748;
+  cursor: pointer;
+  transition: all 200ms cubic-bezier(0, 0, 0.58, 1);
+  appearance: none;
+}
+.form-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background-color: #ffffff;
+}
+.form-select:disabled {
+  background-color: #f7fafc;
+  color: #cbd5e0;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.form-select.form-select-sm {
+  height: 32px;
+  font-size: 12px;
+}
+.form-select.form-select-lg {
+  height: 44px;
+  font-size: 16px;
+}
+.form-checkbox,
+.form-radio {
+  margin-right: 8px;
+}
+.form-checkbox + label,
+.form-radio + label {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+.form-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #2d3748;
+  resize: vertical;
+  min-height: 120px;
+  transition: all 200ms cubic-bezier(0, 0, 0.58, 1);
+}
+.form-textarea::placeholder {
+  color: #cbd5e0;
+}
+.form-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: #ffffff;
+}
+.form-textarea:disabled {
+  background: #f7fafc;
+  color: #cbd5e0;
+  cursor: not-allowed;
+  opacity: 0.6;
+}

@@ -1,0 +1,499 @@
+@import "../@design_tokens.less";
+@import "../@components_base.less";
+@import "../@components_data.less";
+@import "../@components_feedback.less";
+
+// ==================== UI 展示页容器 ====================
+.page-ui {
+  padding: @space-4;
+  background-color: @bg-primary;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding: @space-3;
+  }
+}
+
+// ==================== 页面标题 ====================
+.page-header {
+  margin-bottom: @space-5;
+
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: @text-primary;
+    margin: 0 0 @space-1 0;
+    letter-spacing: -0.5px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: @text-secondary;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 24px;
+    }
+  }
+}
+
+// ==================== 导航标签 ====================
+.ui-tabs {
+  display: flex;
+  gap: @space-2;
+  margin-bottom: @space-4;
+  border-bottom: 1px solid @border-color;
+  overflow-x: auto;
+
+  .tab-btn {
+    padding: @space-3 @space-4;
+    border: none;
+    background-color: transparent;
+    color: @text-secondary;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all @transition-base;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+
+    &:hover {
+      color: @text-primary;
+    }
+
+    &.active {
+      color: @color-brand-primary;
+      border-bottom-color: @color-brand-primary;
+    }
+  }
+}
+
+// ==================== 组件展示区 ====================
+.ui-section {
+  margin-bottom: @space-6;
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: @text-primary;
+    margin: 0 0 @space-3 0;
+    display: flex;
+    align-items: center;
+    gap: @space-2;
+
+    .section-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: @radius-sm;
+      background: linear-gradient(135deg, @color-brand-primary 0%, @color-brand-secondary 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+    }
+  }
+
+  .section-desc {
+    font-size: 13px;
+    color: @text-secondary;
+    margin-bottom: @space-3;
+  }
+}
+
+// ==================== 示例容器 ====================
+.example-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: @space-4;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.example-card {
+  background-color: @bg-secondary;
+  border-radius: @radius-md;
+  padding: @space-4;
+  border: 1px solid @border-color;
+  transition: all @transition-base;
+
+  &:hover {
+    border-color: @color-brand-light;
+    box-shadow: @shadow-lg;
+  }
+
+  .example-header {
+    margin-bottom: @space-3;
+
+    h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: @text-primary;
+      margin: 0 0 @space-1 0;
+    }
+
+    p {
+      font-size: 12px;
+      color: @text-secondary;
+      margin: 0;
+    }
+  }
+
+  .example-content {
+    background-color: @bg-tertiary;
+    border-radius: @radius-sm;
+    padding: @space-4;
+    margin-bottom: @space-3;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .example-code {
+    background-color: @bg-primary;
+    border: 1px solid @border-color;
+    border-radius: @radius-sm;
+    padding: @space-2 @space-3;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 11px;
+    color: @text-secondary;
+    overflow-x: auto;
+    max-height: 120px;
+    overflow-y: auto;
+
+    code {
+      line-height: 1.5;
+    }
+  }
+}
+
+// ==================== 按钮示例 ====================
+.button-showcase {
+  display: flex;
+  flex-wrap: wrap;
+  gap: @space-3;
+  padding: @space-4;
+  background-color: @bg-secondary;
+  border-radius: @radius-md;
+  border: 1px solid @border-color;
+
+  .btn {
+    padding: @space-2 @space-4;
+    border-radius: @radius-sm;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all @transition-base;
+    white-space: nowrap;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: @shadow-sm;
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    &.btn-primary {
+      background: linear-gradient(135deg, @color-brand-primary 0%, @color-brand-secondary 100%);
+      color: white;
+
+      &:hover {
+        box-shadow: 0 4px 12px rgba(@color-brand-primary, 0.4);
+      }
+    }
+
+    &.btn-secondary {
+      background-color: @bg-tertiary;
+      color: @text-primary;
+      border: 1px solid @border-color;
+
+      &:hover {
+        background-color: @bg-quaternary;
+        border-color: @color-brand-primary;
+      }
+    }
+
+    &.btn-success {
+      background-color: @color-success;
+      color: white;
+
+      &:hover {
+        background-color: darken(@color-success, 10%);
+        box-shadow: 0 4px 12px rgba(@color-success, 0.4);
+      }
+    }
+
+    &.btn-danger {
+      background-color: @color-danger;
+      color: white;
+
+      &:hover {
+        background-color: darken(@color-danger, 10%);
+        box-shadow: 0 4px 12px rgba(@color-danger, 0.4);
+      }
+    }
+
+    &.btn-warning {
+      background-color: @color-warning;
+      color: white;
+
+      &:hover {
+        background-color: darken(@color-warning, 10%);
+        box-shadow: 0 4px 12px rgba(@color-warning, 0.4);
+      }
+    }
+
+    &.btn-small {
+      padding: @space-1 @space-3;
+      font-size: 12px;
+    }
+
+    &.btn-large {
+      padding: @space-3 @space-6;
+      font-size: 15px;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+  }
+}
+
+// ==================== 颜色调色板 ====================
+.color-palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: @space-4;
+
+  .color-item {
+    .color-box {
+      width: 100%;
+      height: 80px;
+      border-radius: @radius-md;
+      border: 1px solid @border-color;
+      margin-bottom: @space-2;
+      transition: all @transition-base;
+
+      &:hover {
+        box-shadow: @shadow-lg;
+      }
+    }
+
+    .color-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: @text-primary;
+      margin-bottom: @space-1;
+    }
+
+    .color-value {
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 11px;
+      color: @text-secondary;
+    }
+  }
+}
+
+// ==================== 排版示例 ====================
+.typography-showcase {
+  background-color: @bg-secondary;
+  border-radius: @radius-md;
+  padding: @space-4;
+  border: 1px solid @border-color;
+
+  .typo-group {
+    margin-bottom: @space-5;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .typo-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: @text-secondary;
+      margin-bottom: @space-2;
+      letter-spacing: 0.5px;
+    }
+
+    .typo-example {
+      font-size: 16px;
+      color: @text-primary;
+      margin-bottom: @space-2;
+      line-height: 1.6;
+
+      &.h1 {
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: -1px;
+      }
+
+      &.h2 {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+
+      &.h3 {
+        font-size: 24px;
+        font-weight: 600;
+      }
+
+      &.h4 {
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      &.body {
+        font-size: 14px;
+        color: @text-secondary;
+      }
+
+      &.small {
+        font-size: 12px;
+        color: @text-tertiary;
+      }
+
+      &.mono {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        background-color: @bg-primary;
+        padding: @space-2;
+        border-radius: @radius-sm;
+      }
+    }
+  }
+}
+
+// ==================== 图标展示 ====================
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: @space-3;
+
+  .icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: @space-2;
+    padding: @space-3;
+    background-color: @bg-secondary;
+    border-radius: @radius-sm;
+    border: 1px solid @border-color;
+    text-align: center;
+
+    .icon {
+      font-size: 32px;
+    }
+
+    .icon-name {
+      font-size: 12px;
+      color: @text-secondary;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+    }
+  }
+}
+
+// ==================== 反馈组件 ====================
+.feedback-showcase {
+  display: flex;
+  flex-direction: column;
+  gap: @space-3;
+
+  .alert {
+    padding: @space-3;
+    border-radius: @radius-sm;
+    border-left: 4px solid;
+
+    &.info {
+      background-color: rgba(@color-info, 0.1);
+      border-color: @color-info;
+      color: @color-info;
+    }
+
+    &.success {
+      background-color: rgba(@color-success, 0.1);
+      border-color: @color-success;
+      color: @color-success;
+    }
+
+    &.warning {
+      background-color: rgba(@color-warning, 0.1);
+      border-color: @color-warning;
+      color: @color-warning;
+    }
+
+    &.danger {
+      background-color: rgba(@color-danger, 0.1);
+      border-color: @color-danger;
+      color: @color-danger;
+    }
+  }
+
+  .badge {
+    display: inline-block;
+    padding: @space-1 @space-3;
+    border-radius: @radius-sm;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+
+    &.primary {
+      background-color: @color-brand-primary;
+      color: white;
+    }
+
+    &.success {
+      background-color: @color-success;
+      color: white;
+    }
+
+    &.warning {
+      background-color: @color-warning;
+      color: white;
+    }
+
+    &.danger {
+      background-color: @color-danger;
+      color: white;
+    }
+  }
+}
+
+// ==================== 响应式设计 ====================
+@media (max-width: 768px) {
+  .ui-tabs {
+    .tab-btn {
+      padding: @space-2 @space-3;
+      font-size: 13px;
+    }
+  }
+
+  .example-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .color-palette {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .button-showcase {
+    .btn {
+      flex: 1;
+    }
+  }
+}

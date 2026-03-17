@@ -1,0 +1,546 @@
+/**
+ * FreeCDN 数据展示组件
+ * Table、List、Grid、Card 等
+ * 版本：v0.10.0
+ */
+
+@import "@design_tokens.less";
+
+// ==================== 表格 ====================
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: @bg-secondary;
+  font-size: @font-size-base;
+  overflow: hidden;
+  border-radius: @radius-lg;
+  box-shadow: @shadow-md;
+  
+  // 表头
+  thead {
+    background: @bg-tertiary;
+    border-bottom: 2px solid @color-brand-primary;
+    
+    th {
+      padding: @space-3 @space-4;
+      text-align: left;
+      font-weight: @font-weight-semibold;
+      color: @color-brand-primary;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: @font-size-sm;
+      white-space: nowrap;
+      vertical-align: middle;
+      
+      &.text-center {
+        text-align: center;
+      }
+      
+      &.text-right {
+        text-align: right;
+      }
+    }
+  }
+  
+  // 表体
+  tbody {
+    tr {
+      border-bottom: 1px solid @border-color;
+      transition: background-color @transition-fast @easing-ease-out;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      &:hover {
+        background-color: rgba(102, 126, 234, 0.08);
+      }
+      
+      &.is-active {
+        background-color: rgba(102, 126, 234, 0.15);
+        border-left: 3px solid @color-brand-primary;
+      }
+      
+      &.is-disabled {
+        background-color: @bg-tertiary;
+        opacity: 0.6;
+      }
+    }
+    
+    td {
+      padding: @space-3 @space-4;
+      color: @text-primary;
+      vertical-align: middle;
+      
+      &.text-center {
+        text-align: center;
+      }
+      
+      &.text-right {
+        text-align: right;
+      }
+      
+      // 数值对齐
+      &.text-number {
+        text-align: right;
+        font-family: 'Courier New', monospace;
+      }
+      
+      // 状态单元格
+      &.text-status {
+        font-weight: @font-weight-medium;
+      }
+    }
+  }
+  
+  // 紧凑模式
+  &.table-compact {
+    font-size: @font-size-sm;
+    
+    th, td {
+      padding: @space-2 @space-3;
+      height: @table-row-height-compact;
+    }
+  }
+  
+  // 宽松模式
+  &.table-loose {
+    th, td {
+      padding: @space-4 @space-5;
+      height: 52px;
+    }
+  }
+  
+  // 斑马条纹
+  &.table-striped tbody tr:nth-child(odd) {
+    background: @bg-tertiary;
+    
+    &:hover {
+      background-color: rgba(102, 126, 234, 0.1);
+    }
+  }
+  
+  // 无边框
+  &.table-borderless {
+    box-shadow: none;
+    
+    thead {
+      border-bottom: 1px solid @border-color;
+    }
+    
+    tbody tr {
+      border-bottom: 1px solid @border-color;
+    }
+  }
+}
+
+// 表格包装器（添加边框和阴影）
+.table-wrapper {
+  border: 1px solid @border-color;
+  border-radius: @radius-lg;
+  overflow: hidden;
+  box-shadow: @shadow-md;
+  
+  .table {
+    box-shadow: none;
+  }
+}
+
+// 表格分页
+.table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: @space-4;
+  background: @bg-tertiary;
+  border-top: 1px solid @border-color;
+  font-size: @font-size-sm;
+  
+  .pagination-info {
+    color: @text-secondary;
+  }
+  
+  .pagination-nav {
+    display: flex;
+    gap: @space-1;
+    
+    .page-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid @border-color;
+      border-radius: @radius-sm;
+      background: @bg-secondary;
+      color: @text-primary;
+      cursor: pointer;
+      transition: @transition-fast;
+      
+      &:hover:not(.disabled) {
+        background: @color-brand-primary;
+        color: @text-white;
+        border-color: @color-brand-primary;
+      }
+      
+      &.active {
+        background: @color-brand-primary;
+        color: @text-white;
+        border-color: @color-brand-primary;
+      }
+      
+      &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+// ==================== 卡片 ====================
+
+.card {
+  background: @bg-secondary;
+  border: 1px solid @border-color;
+  border-radius: @radius-lg;
+  overflow: hidden;
+  box-shadow: @shadow-md;
+  transition: @transition;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: @shadow-lg;
+  }
+}
+
+.card-header {
+  padding: @space-4 @space-5;
+  border-bottom: 1px solid @border-color;
+  background: @bg-tertiary;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  margin: 0;
+  font-size: @font-size-lg;
+  font-weight: @font-weight-semibold;
+  color: @text-primary;
+}
+
+.card-subtitle {
+  font-size: @font-size-sm;
+  color: @text-secondary;
+  margin-top: @space-1;
+}
+
+.card-body {
+  padding: @space-5;
+  color: @text-primary;
+  
+  p {
+    margin: 0 0 @space-3 0;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.card-footer {
+  padding: @space-4 @space-5;
+  border-top: 1px solid @border-color;
+  background: @bg-tertiary;
+  display: flex;
+  justify-content: flex-end;
+  gap: @space-3;
+}
+
+// 卡片变体
+.card.card-flat {
+  background: @bg-tertiary;
+  border: none;
+  box-shadow: none;
+  
+  &:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+.card.card-bordered {
+  border-width: 2px;
+}
+
+.card.card-success {
+  border-left: 4px solid @color-success;
+}
+
+.card.card-warning {
+  border-left: 4px solid @color-warning;
+}
+
+.card.card-danger {
+  border-left: 4px solid @color-danger;
+}
+
+.card.card-info {
+  border-left: 4px solid @color-info;
+}
+
+// ==================== 统计卡片 ====================
+
+.stat-card {
+  background: white;
+  border-radius: @radius-xl;
+  padding: @space-5;
+  box-shadow: @shadow-md;
+  border: 1px solid @border-color;
+  transition: @transition;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: @shadow-lg;
+  }
+  
+  .stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: @space-3;
+    
+    .stat-title {
+      font-size: @font-size-base;
+      font-weight: @font-weight-medium;
+      color: @text-secondary;
+    }
+    
+    .stat-icon {
+      font-size: 24px;
+      opacity: 0.8;
+    }
+  }
+  
+  .stat-body {
+    .stat-value {
+      font-size: 32px;
+      font-weight: @font-weight-bold;
+      color: @text-primary;
+      line-height: 1.2;
+      margin-bottom: @space-2;
+    }
+    
+    .stat-change {
+      font-size: @font-size-sm;
+      font-weight: @font-weight-medium;
+      
+      &.is-positive {
+        color: @color-success;
+      }
+      
+      &.is-negative {
+        color: @color-danger;
+      }
+    }
+  }
+}
+
+// 统计卡片渐变背景
+.stat-card-gradient {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.05) 100%);
+  
+  .stat-header .stat-icon {
+    color: @color-brand-primary;
+  }
+}
+
+// ==================== 列表 ====================
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  
+  .list-item {
+    padding: @space-3 @space-4;
+    border-bottom: 1px solid @border-color;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color @transition-fast;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    &:hover {
+      background-color: @bg-tertiary;
+    }
+    
+    &.is-active {
+      background-color: rgba(102, 126, 234, 0.08);
+      border-left: 3px solid @color-brand-primary;
+      padding-left: @space-4 - 3px;
+    }
+  }
+  
+  .list-item-title {
+    font-weight: @font-weight-medium;
+    color: @text-primary;
+  }
+  
+  .list-item-subtitle {
+    font-size: @font-size-sm;
+    color: @text-secondary;
+    margin-top: @space-1;
+  }
+}
+
+// ==================== 网格 ====================
+
+.grid {
+  display: grid;
+  gap: @space-4;
+  
+  &.grid-cols-1 {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  
+  &.grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  &.grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  &.grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  &.grid-cols-6 {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  
+  &.grid-gap-sm {
+    gap: @space-2;
+  }
+  
+  &.grid-gap-lg {
+    gap: @space-6;
+  }
+}
+
+// 响应式网格
+@media (max-width: @breakpoint-md) {
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4,
+  .grid-cols-6 {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ==================== 徽章和标签 ====================
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: @space-1;
+  padding: @space-1 @space-2;
+  font-size: @font-size-sm;
+  font-weight: @font-weight-medium;
+  border-radius: 12px;
+  white-space: nowrap;
+  background: @color-gray-300;
+  color: @text-primary;
+  
+  &.badge-info {
+    background: rgba(102, 126, 234, 0.1);
+    color: @color-brand-primary;
+  }
+  
+  &.badge-success {
+    background: rgba(72, 187, 120, 0.1);
+    color: @color-success;
+  }
+  
+  &.badge-warning {
+    background: rgba(237, 137, 54, 0.1);
+    color: @color-warning;
+  }
+  
+  &.badge-danger {
+    background: rgba(245, 101, 101, 0.1);
+    color: @color-danger;
+  }
+  
+  &.badge-lg {
+    padding: @space-2 @space-3;
+    font-size: @font-size-base;
+  }
+}
+
+// ==================== 进度条 ====================
+
+.progress {
+  width: 100%;
+  height: 8px;
+  background: @bg-tertiary;
+  border-radius: 4px;
+  overflow: hidden;
+  
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, @color-brand-primary 0%, @color-brand-secondary 100%);
+    transition: width @transition-slow @easing-ease-out;
+    border-radius: 4px;
+  }
+  
+  &.progress-success .progress-bar {
+    background: @color-success;
+  }
+  
+  &.progress-warning .progress-bar {
+    background: @color-warning;
+  }
+  
+  &.progress-danger .progress-bar {
+    background: @color-danger;
+  }
+}
+
+// ==================== 加载骨架 ====================
+
+.skeleton {
+  background: linear-gradient(90deg, @bg-tertiary 25%, @bg-secondary 50%, @bg-tertiary 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: @radius-md;
+  
+  &.skeleton-text {
+    height: 16px;
+    margin-bottom: @space-2;
+  }
+  
+  &.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

@@ -1,0 +1,582 @@
+/**
+ * FreeCDN Admins 管理页面样式
+ * 
+ * 功能:
+ * - 管理员表格展示
+ * - 搜索和筛选
+ * - 操作按钮
+ * - 状态指示
+ * - 响应式布局
+ * 
+ * 最后更新: 2026-03-18
+ */
+
+@import '../@design_tokens.less';
+@import '../@components_base.less';
+@import '../@components_data.less';
+@import '../@components_feedback.less';
+@import '../@globals_utilities.less';
+
+// ============================================================
+// 页面容器
+// ============================================================
+
+.admin-page {
+    background: @color-background-secondary;
+    padding: @spacing-3;
+    border-radius: @radius-md;
+    
+    @media (max-width: @breakpoint-md) {
+        padding: @spacing-2;
+    }
+}
+
+// ============================================================
+// 搜索和筛选区域
+// ============================================================
+
+.admin-search-area {
+    background: @color-background-primary;
+    padding: @spacing-3;
+    border-radius: @radius-md;
+    margin-bottom: @spacing-3;
+    box-shadow: @shadow-sm;
+    
+    .form-inline {
+        display: flex;
+        gap: @spacing-2;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        
+        @media (max-width: @breakpoint-md) {
+            flex-direction: column;
+            align-items: stretch;
+            
+            > div {
+                width: 100%;
+            }
+        }
+    }
+    
+    .form-group {
+        flex: 1;
+        min-width: 200px;
+        
+        @media (max-width: @breakpoint-md) {
+            width: 100%;
+            min-width: auto;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: @spacing-1;
+            font-weight: @font-weight-medium;
+            color: @color-text-primary;
+            font-size: @font-size-sm;
+        }
+        
+        input,
+        select {
+            width: 100%;
+            padding: @spacing-2;
+            border: 1px solid @color-border;
+            border-radius: @radius-sm;
+            font-size: @font-size-base;
+            transition: all @transition-default;
+            
+            &:focus {
+                border-color: @color-primary;
+                box-shadow: 0 0 0 3px rgba(@color-primary, 0.1);
+                outline: none;
+            }
+            
+            &::placeholder {
+                color: @color-text-disabled;
+            }
+        }
+    }
+    
+    .button-group {
+        display: flex;
+        gap: @spacing-2;
+        
+        @media (max-width: @breakpoint-md) {
+            width: 100%;
+            
+            button,
+            a {
+                flex: 1;
+            }
+        }
+        
+        button,
+        a.btn {
+            padding: @spacing-2 @spacing-3;
+            border: none;
+            border-radius: @radius-sm;
+            font-size: @font-size-base;
+            font-weight: @font-weight-medium;
+            cursor: pointer;
+            transition: all @transition-default;
+            text-decoration: none;
+            display: inline-block;
+            white-space: nowrap;
+            
+            // 主按钮
+            &.btn-primary {
+                background: @color-primary;
+                color: white;
+                
+                &:hover:not(:disabled) {
+                    background: darken(@color-primary, 10%);
+                    transform: translateY(-2px);
+                    box-shadow: @shadow-md;
+                }
+                
+                &:active:not(:disabled) {
+                    transform: translateY(0);
+                }
+                
+                &:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+            }
+            
+            // 次按钮
+            &.btn-secondary {
+                background: @color-background-secondary;
+                color: @color-text-primary;
+                border: 1px solid @color-border;
+                
+                &:hover:not(:disabled) {
+                    background: @color-background-tertiary;
+                    border-color: @color-primary;
+                }
+            }
+            
+            // 危险按钮
+            &.btn-danger {
+                background: @color-danger;
+                color: white;
+                
+                &:hover:not(:disabled) {
+                    background: darken(@color-danger, 10%);
+                    transform: translateY(-2px);
+                    box-shadow: @shadow-md;
+                }
+            }
+        }
+    }
+    
+    .filter-tag {
+        display: inline-block;
+        background: @color-info-light;
+        color: @color-info;
+        padding: @spacing-1 @spacing-2;
+        border-radius: @radius-sm;
+        font-size: @font-size-sm;
+        margin-bottom: @spacing-2;
+        
+        a {
+            margin-left: @spacing-1;
+            color: inherit;
+            text-decoration: none;
+            cursor: pointer;
+            
+            &:hover {
+                opacity: 0.7;
+            }
+        }
+    }
+}
+
+// ============================================================
+// 表格区域
+// ============================================================
+
+.admin-table-wrapper {
+    background: @color-background-primary;
+    border-radius: @radius-md;
+    overflow: hidden;
+    box-shadow: @shadow-sm;
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        
+        thead {
+            background: @color-background-secondary;
+            border-bottom: 2px solid @color-border;
+            
+            th {
+                padding: @spacing-3;
+                text-align: left;
+                font-weight: @font-weight-semibold;
+                color: @color-text-primary;
+                font-size: @font-size-sm;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+        }
+        
+        tbody {
+            tr {
+                border-bottom: 1px solid @color-border;
+                transition: background-color @transition-default;
+                
+                &:hover {
+                    background: @color-background-secondary;
+                }
+                
+                &:last-child {
+                    border-bottom: none;
+                }
+                
+                td {
+                    padding: @spacing-3;
+                    font-size: @font-size-base;
+                    color: @color-text-primary;
+                    
+                    &.disabled {
+                        color: @color-text-disabled;
+                        opacity: 0.6;
+                    }
+                    
+                    // 状态列
+                    &.status {
+                        text-align: center;
+                        
+                        .status-badge {
+                            display: inline-block;
+                            padding: @spacing-1 @spacing-2;
+                            border-radius: @radius-sm;
+                            font-size: @font-size-xs;
+                            font-weight: @font-weight-semibold;
+                            
+                            &.active {
+                                background: @color-success-light;
+                                color: @color-success;
+                            }
+                            
+                            &.inactive {
+                                background: @color-danger-light;
+                                color: @color-danger;
+                            }
+                            
+                            &.warning {
+                                background: @color-warning-light;
+                                color: @color-warning;
+                            }
+                        }
+                    }
+                    
+                    // 标签列
+                    .label-group {
+                        display: flex;
+                        gap: @spacing-1;
+                        flex-wrap: wrap;
+                        margin-top: @spacing-1;
+                        
+                        .label-badge {
+                            display: inline-block;
+                            padding: @spacing-1 @spacing-2;
+                            border-radius: @radius-sm;
+                            font-size: @font-size-xs;
+                            font-weight: @font-weight-medium;
+                            
+                            &.badge-danger {
+                                background: @color-danger-light;
+                                color: @color-danger;
+                            }
+                            
+                            &.badge-success {
+                                background: @color-success-light;
+                                color: @color-success;
+                            }
+                            
+                            &.badge-warning {
+                                background: @color-warning-light;
+                                color: @color-warning;
+                            }
+                            
+                            &.badge-info {
+                                background: @color-info-light;
+                                color: @color-info;
+                            }
+                        }
+                    }
+                    
+                    // 链接
+                    a {
+                        color: @color-primary;
+                        text-decoration: none;
+                        transition: color @transition-default;
+                        
+                        &:hover {
+                            color: darken(@color-primary, 10%);
+                            text-decoration: underline;
+                        }
+                    }
+                }
+                
+                // 操作列
+                .operations {
+                    text-align: right;
+                    
+                    .action-button,
+                    .action-link {
+                        display: inline-block;
+                        padding: @spacing-1 @spacing-2;
+                        margin-left: @spacing-2;
+                        border: none;
+                        border-radius: @radius-sm;
+                        font-size: @font-size-sm;
+                        cursor: pointer;
+                        text-decoration: none;
+                        transition: all @transition-default;
+                        
+                        &.btn-edit {
+                            background: @color-info;
+                            color: white;
+                            
+                            &:hover {
+                                background: darken(@color-info, 10%);
+                                transform: translateY(-1px);
+                            }
+                        }
+                        
+                        &.btn-delete {
+                            background: @color-danger;
+                            color: white;
+                            
+                            &:hover {
+                                background: darken(@color-danger, 10%);
+                                transform: translateY(-1px);
+                            }
+                        }
+                        
+                        &.btn-reset {
+                            background: @color-warning;
+                            color: white;
+                            
+                            &:hover {
+                                background: darken(@color-warning, 10%);
+                                transform: translateY(-1px);
+                            }
+                        }
+                    }
+                    
+                    @media (max-width: @breakpoint-md) {
+                        text-align: left;
+                        
+                        .action-button,
+                        .action-link {
+                            display: block;
+                            margin: @spacing-1 0;
+                            width: 100%;
+                            text-align: center;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    @media (max-width: @breakpoint-md) {
+        overflow-x: auto;
+        
+        table {
+            min-width: 700px;
+        }
+    }
+}
+
+// ============================================================
+// 空状态
+// ============================================================
+
+.empty-state {
+    padding: @spacing-4;
+    text-align: center;
+    color: @color-text-disabled;
+    
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: @spacing-3;
+        opacity: 0.3;
+    }
+    
+    .empty-title {
+        font-size: @font-size-lg;
+        font-weight: @font-weight-semibold;
+        margin-bottom: @spacing-1;
+        color: @color-text-secondary;
+    }
+    
+    .empty-message {
+        font-size: @font-size-base;
+        margin-bottom: @spacing-3;
+        color: @color-text-disabled;
+    }
+    
+    .empty-action {
+        a {
+            color: @color-primary;
+            text-decoration: none;
+            
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}
+
+// ============================================================
+// 弱密码警告
+// ============================================================
+
+.weak-password-warning {
+    background: @color-warning-light;
+    border-left: 4px solid @color-warning;
+    padding: @spacing-3;
+    border-radius: @radius-sm;
+    margin-bottom: @spacing-3;
+    
+    .warning-title {
+        font-weight: @font-weight-semibold;
+        color: @color-warning;
+        margin-bottom: @spacing-1;
+    }
+    
+    .warning-message {
+        color: @color-text-primary;
+        font-size: @font-size-sm;
+    }
+    
+    .warning-action {
+        margin-top: @spacing-2;
+        
+        a,
+        button {
+            color: @color-warning;
+            text-decoration: none;
+            font-weight: @font-weight-medium;
+            
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}
+
+// ============================================================
+// 响应式设计 - 平板
+// ============================================================
+
+@media (max-width: @breakpoint-lg) {
+    .admin-search-area {
+        .form-group {
+            flex: 0 0 calc(50% - @spacing-1);
+        }
+    }
+}
+
+// ============================================================
+// 响应式设计 - 手机
+// ============================================================
+
+@media (max-width: @breakpoint-md) {
+    .admin-search-area {
+        .form-group {
+            flex: 0 0 100%;
+        }
+        
+        .button-group {
+            flex-direction: column;
+            width: 100%;
+        }
+    }
+    
+    .admin-table-wrapper {
+        table {
+            thead {
+                display: none;
+            }
+            
+            tbody {
+                tr {
+                    display: block;
+                    margin-bottom: @spacing-3;
+                    border: 1px solid @color-border;
+                    border-radius: @radius-sm;
+                    padding: @spacing-2;
+                    
+                    td {
+                        display: grid;
+                        grid-template-columns: 120px 1fr;
+                        gap: @spacing-2;
+                        padding: @spacing-2;
+                        border: none;
+                        border-bottom: 1px solid @color-border;
+                        align-items: center;
+                        
+                        &:first-child::before {
+                            content: '用户名';
+                            font-weight: @font-weight-semibold;
+                            color: @color-text-secondary;
+                        }
+                        
+                        &:nth-child(2)::before {
+                            content: '全名';
+                            font-weight: @font-weight-semibold;
+                            color: @color-text-secondary;
+                        }
+                        
+                        &:nth-child(3)::before {
+                            content: '允许登录';
+                            font-weight: @font-weight-semibold;
+                            color: @color-text-secondary;
+                        }
+                        
+                        &:nth-child(4)::before {
+                            content: 'OTP 认证';
+                            font-weight: @font-weight-semibold;
+                            color: @color-text-secondary;
+                        }
+                        
+                        &:nth-child(5)::before {
+                            content: '状态';
+                            font-weight: @font-weight-semibold;
+                            color: @color-text-secondary;
+                        }
+                        
+                        &:last-child {
+                            border-bottom: none;
+                            
+                            &::before {
+                                content: '操作';
+                                font-weight: @font-weight-semibold;
+                                color: @color-text-secondary;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ============================================================
+// 小屏幕
+// ============================================================
+
+@media (max-width: @breakpoint-sm) {
+    .admin-page {
+        padding: @spacing-2;
+    }
+    
+    .admin-search-area {
+        padding: @spacing-2;
+    }
+}

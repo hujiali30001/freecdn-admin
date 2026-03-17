@@ -1,3 +1,662 @@
-.italic {
-	font-style: italic !important;
+/**
+ * FreeCDN DNS 管理页面样式
+ * 
+ * 功能:
+ * - DNS 记录列表
+ * - 记录类型指示
+ * - 操作按钮
+ * - 搜索筛选
+ * - 响应式布局
+ * 
+ * 最后更新: 2026-03-18
+ */
+
+@import '../@design_tokens.less';
+@import '../@components_base.less';
+@import '../@components_data.less';
+@import '../@components_feedback.less';
+@import '../@globals_utilities.less';
+
+// ============================================================
+// 页面容器
+// ============================================================
+
+.dns-page {
+    background: @color-background-secondary;
+    padding: @spacing-3;
+    border-radius: @radius-md;
+    
+    @media (max-width: @breakpoint-md) {
+        padding: @spacing-2;
+    }
+}
+
+// ============================================================
+// 工具栏
+// ============================================================
+
+.dns-toolbar {
+    background: @color-background-primary;
+    padding: @spacing-3;
+    border-radius: @radius-md;
+    margin-bottom: @spacing-3;
+    box-shadow: @shadow-sm;
+    
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: @spacing-3;
+    align-items: center;
+    
+    @media (max-width: @breakpoint-md) {
+        grid-template-columns: 1fr;
+        gap: @spacing-2;
+    }
+    
+    .search-box {
+        position: relative;
+        
+        input {
+            width: 100%;
+            padding: @spacing-2 @spacing-3;
+            padding-right: @spacing-4;
+            border: 1px solid @color-border;
+            border-radius: @radius-sm;
+            font-size: @font-size-base;
+            transition: all @transition-default;
+            
+            &:focus {
+                border-color: @color-primary;
+                box-shadow: 0 0 0 3px rgba(@color-primary, 0.1);
+                outline: none;
+            }
+            
+            &::placeholder {
+                color: @color-text-disabled;
+            }
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: @spacing-3;
+            top: 50%;
+            transform: translateY(-50%);
+            color: @color-text-disabled;
+            pointer-events: none;
+        }
+    }
+    
+    .toolbar-actions {
+        display: flex;
+        gap: @spacing-2;
+        
+        @media (max-width: @breakpoint-md) {
+            width: 100%;
+            
+            button,
+            a {
+                flex: 1;
+            }
+        }
+        
+        button,
+        a.btn {
+            padding: @spacing-2 @spacing-3;
+            border: none;
+            border-radius: @radius-sm;
+            font-size: @font-size-sm;
+            font-weight: @font-weight-medium;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: @spacing-1;
+            transition: all @transition-default;
+            white-space: nowrap;
+            
+            &.btn-primary {
+                background: @color-primary;
+                color: white;
+                
+                &:hover:not(:disabled) {
+                    background: darken(@color-primary, 10%);
+                    transform: translateY(-2px);
+                    box-shadow: @shadow-md;
+                }
+                
+                &:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+            }
+            
+            &.btn-secondary {
+                background: @color-background-secondary;
+                color: @color-text-primary;
+                border: 1px solid @color-border;
+                
+                &:hover {
+                    background: @color-background-tertiary;
+                    border-color: @color-primary;
+                }
+            }
+            
+            &.btn-icon {
+                padding: @spacing-2;
+                width: 38px;
+                justify-content: center;
+            }
+        }
+    }
+}
+
+// ============================================================
+// DNS 记录卡片视图
+// ============================================================
+
+.dns-records-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: @spacing-3;
+    margin-bottom: @spacing-4;
+    
+    @media (max-width: @breakpoint-lg) {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+    
+    @media (max-width: @breakpoint-md) {
+        grid-template-columns: 1fr;
+    }
+    
+    .dns-record-card {
+        background: @color-background-primary;
+        border: 1px solid @color-border;
+        border-radius: @radius-md;
+        padding: @spacing-3;
+        transition: all @transition-default;
+        box-shadow: @shadow-sm;
+        
+        &:hover {
+            border-color: @color-primary;
+            transform: translateY(-4px);
+            box-shadow: @shadow-md;
+        }
+        
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: @spacing-2;
+            
+            .record-type {
+                display: inline-block;
+                padding: @spacing-1 @spacing-2;
+                border-radius: @radius-sm;
+                font-size: @font-size-xs;
+                font-weight: @font-weight-semibold;
+                text-transform: uppercase;
+                
+                &.type-a {
+                    background: @color-primary-light;
+                    color: @color-primary;
+                }
+                
+                &.type-aaaa {
+                    background: @color-info-light;
+                    color: @color-info;
+                }
+                
+                &.type-cname {
+                    background: @color-success-light;
+                    color: @color-success;
+                }
+                
+                &.type-mx {
+                    background: @color-warning-light;
+                    color: @color-warning;
+                }
+                
+                &.type-txt {
+                    background: @color-danger-light;
+                    color: @color-danger;
+                }
+                
+                &.type-ns {
+                    background: rgba(100, 100, 100, 0.1);
+                    color: #666;
+                }
+            }
+            
+            .record-actions {
+                display: flex;
+                gap: @spacing-1;
+                
+                button {
+                    width: 32px;
+                    height: 32px;
+                    border: none;
+                    border-radius: @radius-sm;
+                    background: @color-background-secondary;
+                    color: @color-text-primary;
+                    cursor: pointer;
+                    transition: all @transition-default;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    
+                    &:hover {
+                        background: @color-primary;
+                        color: white;
+                    }
+                    
+                    &.delete {
+                        &:hover {
+                            background: @color-danger;
+                        }
+                    }
+                }
+            }
+        }
+        
+        .record-body {
+            .record-field {
+                margin-bottom: @spacing-2;
+                
+                &:last-child {
+                    margin-bottom: 0;
+                }
+                
+                .field-label {
+                    font-size: @font-size-xs;
+                    font-weight: @font-weight-semibold;
+                    color: @color-text-secondary;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    margin-bottom: @spacing-1;
+                }
+                
+                .field-value {
+                    font-size: @font-size-sm;
+                    color: @color-text-primary;
+                    word-break: break-word;
+                    font-family: 'Courier New', monospace;
+                    background: @color-background-secondary;
+                    padding: @spacing-1 @spacing-2;
+                    border-radius: @radius-sm;
+                }
+            }
+        }
+        
+        .record-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: @spacing-2;
+            border-top: 1px solid @color-border;
+            font-size: @font-size-xs;
+            color: @color-text-secondary;
+            margin-top: @spacing-2;
+            
+            .record-status {
+                display: inline-block;
+                
+                .status-dot {
+                    display: inline-block;
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    margin-right: @spacing-1;
+                    vertical-align: middle;
+                    
+                    &.active {
+                        background: @color-success;
+                        box-shadow: 0 0 6px rgba(@color-success, 0.5);
+                    }
+                    
+                    &.inactive {
+                        background: @color-text-disabled;
+                    }
+                }
+            }
+            
+            .record-ttl {
+                font-family: 'Courier New', monospace;
+            }
+        }
+    }
+}
+
+// ============================================================
+// DNS 记录表格视图
+// ============================================================
+
+.dns-records-table {
+    background: @color-background-primary;
+    border-radius: @radius-md;
+    overflow: hidden;
+    box-shadow: @shadow-sm;
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        
+        thead {
+            background: @color-background-secondary;
+            border-bottom: 2px solid @color-border;
+            
+            th {
+                padding: @spacing-3;
+                text-align: left;
+                font-weight: @font-weight-semibold;
+                color: @color-text-primary;
+                font-size: @font-size-sm;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+        }
+        
+        tbody {
+            tr {
+                border-bottom: 1px solid @color-border;
+                transition: background-color @transition-default;
+                
+                &:hover {
+                    background: @color-background-secondary;
+                }
+                
+                &:last-child {
+                    border-bottom: none;
+                }
+                
+                td {
+                    padding: @spacing-3;
+                    font-size: @font-size-sm;
+                    color: @color-text-primary;
+                    
+                    // 类型列
+                    &.type {
+                        .type-badge {
+                            display: inline-block;
+                            padding: @spacing-1 @spacing-2;
+                            border-radius: @radius-sm;
+                            font-size: @font-size-xs;
+                            font-weight: @font-weight-semibold;
+                            text-transform: uppercase;
+                            
+                            &.type-a {
+                                background: @color-primary-light;
+                                color: @color-primary;
+                            }
+                            
+                            &.type-aaaa {
+                                background: @color-info-light;
+                                color: @color-info;
+                            }
+                            
+                            &.type-cname {
+                                background: @color-success-light;
+                                color: @color-success;
+                            }
+                            
+                            &.type-mx {
+                                background: @color-warning-light;
+                                color: @color-warning;
+                            }
+                            
+                            &.type-txt {
+                                background: @color-danger-light;
+                                color: @color-danger;
+                            }
+                        }
+                    }
+                    
+                    // 值列
+                    &.value {
+                        font-family: 'Courier New', monospace;
+                        word-break: break-all;
+                    }
+                    
+                    // TTL 列
+                    &.ttl {
+                        text-align: center;
+                        font-family: 'Courier New', monospace;
+                    }
+                    
+                    // 状态列
+                    &.status {
+                        text-align: center;
+                        
+                        .status-badge {
+                            display: inline-flex;
+                            align-items: center;
+                            gap: @spacing-1;
+                            padding: @spacing-1 @spacing-2;
+                            border-radius: @radius-sm;
+                            font-size: @font-size-xs;
+                            font-weight: @font-weight-semibold;
+                            
+                            &.active {
+                                background: @color-success-light;
+                                color: @color-success;
+                                
+                                .status-dot {
+                                    width: 6px;
+                                    height: 6px;
+                                    background: @color-success;
+                                    border-radius: 50%;
+                                }
+                            }
+                            
+                            &.inactive {
+                                background: @color-danger-light;
+                                color: @color-danger;
+                                
+                                .status-dot {
+                                    width: 6px;
+                                    height: 6px;
+                                    background: @color-danger;
+                                    border-radius: 50%;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // 操作列
+                    &.actions {
+                        text-align: right;
+                        
+                        button,
+                        a {
+                            display: inline-block;
+                            padding: @spacing-1 @spacing-2;
+                            margin-left: @spacing-2;
+                            border: none;
+                            border-radius: @radius-sm;
+                            font-size: @font-size-xs;
+                            cursor: pointer;
+                            text-decoration: none;
+                            transition: all @transition-default;
+                            
+                            &.btn-edit {
+                                background: @color-info;
+                                color: white;
+                                
+                                &:hover {
+                                    background: darken(@color-info, 10%);
+                                    transform: translateY(-1px);
+                                }
+                            }
+                            
+                            &.btn-delete {
+                                background: @color-danger;
+                                color: white;
+                                
+                                &:hover {
+                                    background: darken(@color-danger, 10%);
+                                    transform: translateY(-1px);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    @media (max-width: @breakpoint-md) {
+        overflow-x: auto;
+        
+        table {
+            min-width: 600px;
+        }
+    }
+}
+
+// ============================================================
+// 显示切换
+// ============================================================
+
+.view-toggle {
+    display: flex;
+    gap: @spacing-1;
+    margin-bottom: @spacing-3;
+    
+    button {
+        padding: @spacing-2;
+        border: 1px solid @color-border;
+        background: @color-background-primary;
+        border-radius: @radius-sm;
+        cursor: pointer;
+        transition: all @transition-default;
+        
+        &.active {
+            background: @color-primary;
+            color: white;
+            border-color: @color-primary;
+        }
+        
+        &:hover {
+            border-color: @color-primary;
+        }
+    }
+}
+
+// ============================================================
+// 空状态
+// ============================================================
+
+.empty-state {
+    text-align: center;
+    padding: @spacing-4;
+    color: @color-text-disabled;
+    
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: @spacing-2;
+        opacity: 0.3;
+    }
+    
+    .empty-title {
+        font-size: @font-size-lg;
+        font-weight: @font-weight-semibold;
+        margin-bottom: @spacing-1;
+        color: @color-text-secondary;
+    }
+    
+    .empty-message {
+        font-size: @font-size-sm;
+        margin-bottom: @spacing-3;
+    }
+}
+
+// ============================================================
+// 分页
+// ============================================================
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: @spacing-1;
+    margin-top: @spacing-4;
+    
+    button,
+    a {
+        padding: @spacing-2 @spacing-3;
+        border: 1px solid @color-border;
+        background: @color-background-primary;
+        color: @color-text-primary;
+        border-radius: @radius-sm;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all @transition-default;
+        
+        &:hover {
+            background: @color-background-secondary;
+            border-color: @color-primary;
+        }
+        
+        &.active {
+            background: @color-primary;
+            color: white;
+            border-color: @color-primary;
+        }
+        
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        &.ellipsis {
+            pointer-events: none;
+            border: none;
+            background: none;
+        }
+    }
+}
+
+// ============================================================
+// 响应式设计 - 平板
+// ============================================================
+
+@media (max-width: @breakpoint-lg) {
+    .dns-records-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+// ============================================================
+// 响应式设计 - 手机
+// ============================================================
+
+@media (max-width: @breakpoint-md) {
+    .dns-page {
+        padding: @spacing-2;
+    }
+    
+    .dns-toolbar {
+        gap: @spacing-2;
+        padding: @spacing-2;
+    }
+    
+    .dns-records-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+// ============================================================
+// 小屏幕
+// ============================================================
+
+@media (max-width: @breakpoint-sm) {
+    .dns-page {
+        padding: 0;
+    }
+    
+    .dns-toolbar {
+        border-radius: 0;
+        padding: @spacing-2;
+    }
+    
+    .view-toggle {
+        margin-bottom: @spacing-2;
+    }
 }

@@ -136,15 +136,20 @@ form {
       &::placeholder { color: var(--fc-text-hint); }
     }
 
-    // 图标
+    // 图标 — 强制垂直居中
     i.icon {
+      position: absolute !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      left: 0 !important;
       color: var(--fc-text-hint) !important;
       font-size: 1em !important;
-      line-height: 48px !important;
-      height: 48px !important;
+      height: auto !important;
       width: 46px !important;
+      line-height: 1 !important;
       text-align: center !important;
       transition: color var(--fc-transition) !important;
+      margin: 0 !important;
     }
 
     // 聚焦时图标变色

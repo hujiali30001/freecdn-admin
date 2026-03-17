@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-17 | 当前版本 v0.9.2（已发布）| 当前阶段：**阶段二 — UI 升级**
+> 更新于 2026-03-17 | 当前版本 v0.9.2（已发布）| 当前阶段：**阶段二 — UI 升级（已完成）**
 
 ---
 
@@ -345,6 +345,7 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 - [x] **阶段 C-3 完成（v0.8.0，2026-03-17）**：freecdn-admin 在 7788 端口加 `/health` 端点，freecdn-api 在 8004 端口加 `/health` 端点，freecdn-api/node module 名确认重命名完成（B-3/B-4），faq.md 版本更新；amd64/arm64 Release 发布完成
 - [x] **阶段 C-2 完成（v0.9.0，2026-03-17）**：新增 `freecdn-init` Go 工具（cmd/freecdn-init + internal/initdb），替代 install.sh 中 7 步 bash 数据库初始化，支持 upgrade/setup/api_admin.yaml 写入/api.yaml 同步/管理员创建/品牌写入全流程，保留 bash 兜底路径；版本号统一至 v0.9.0；amd64/arm64 Release 发布完成
 - [x] **SSH 安装节点专项修复（v0.9.1，2026-03-17）**：完整走通从管理后台 SSH 安装边缘节点全流程，累计修复 7 个坑：(1) install.sh 自动上传到 Release；(2) CRLF 换行符转 LF；(3) edge-node zip 存放路径修正（`${API_DIR}/deploy/` + 版本号文件名）；(4) zip 内部目录结构修正（`edge-node/bin/edge-node` + `edge-node/configs/`）；(5) `unzip.go` 加 `MkdirAll` 防止 zip 缺目录条目时 OpenFile 失败；(6) 修复代码需重新编译并手动推到服务器（仅重启 api 不够）；(7) Python zipfile 在 Windows 上 create_system=0 导致目录权限 0664（缺 x 位），修复为 create_system=3（Unix）；amd64 Release 已更新并部署
+- [x] **阶段二 UI 升级完成（v0.9.2，2026-03-17）**：管理后台主布局 UI 全面升级（顶栏+左菜单+表格）；顶栏深紫色渐变 + 白色文字；左菜单深紫色背景 + 亮紫色活跃项；表格行 hover 淡紫色背景；统一紫色渐变主题（品牌色 #667eea-#764ba2）；commit `535b1f31`
 
 ---
 
@@ -465,16 +466,14 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 - 按钮：渐变背景 + `box-shadow` 悬浮上移效果
 - 已编译并同步到 WSL 服务器，commit `754a222c`
 
-#### 管理页面主布局（进行中）
+#### 管理页面主布局（已完成，v0.9.2）
 
-文件：`web/views/@default/@layout.less` + `@left_menu.less`
+文件：`web/views/@default/@layout.less` + `web/views/@default/@left_menu.less`
 
-计划改动：
-- 顶栏：渐变背景（与登录页一致），取消 theme1~7 蓝色系，统一紫色渐变
-- 左侧菜单：深紫色背景（`#2d1b69`），白色文字，活跃项品牌色高亮
-- 内容区：浅灰底（`#f5f7ff`），卡片白色圆角样式
-- 分页组件：品牌色高亮
-- 表格行：hover 时淡紫色背景
+- 顶栏：深紫色渐变 (`linear-gradient(90deg, #667eea 0%, #764ba2 100%)`) + 白色文字 + 活跃项品牌色高亮
+- 左侧菜单：深紫色背景 (`#2d1b69`) + 白色文字 + 亮紫色活跃项 (`#667eea`) + 左边框高亮
+- 表格行：hover 改为淡紫色背景 (`rgba(102, 126, 234, 0.08)`)，表头品牌色文字 + 加粗
+- 已编译并 push 到 GitHub（commit `535b1f31`）
 
 ---
 

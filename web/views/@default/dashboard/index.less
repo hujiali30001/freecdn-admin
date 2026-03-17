@@ -1,20 +1,56 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// FreeCDN Dashboard — 仪表盘专属样式
+// ─────────────────────────────────────────────────────────────────────────────
+
+// 消息提示图标定位
 .ui.message {
-	a {
-		.icon {
-			position: absolute;
-			right: 1em;
-			top: 2em;
-		}
-	}
+  a {
+    .icon {
+      position: absolute;
+      right: 1em;
+      top: 2em;
+    }
+  }
 }
 
+// 图表容器高度（比原来的 14em 更高，视觉更现代）
 .chart-box {
-	height: 14em;
+  height: 260px;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
+// 图表卡片标题下方的副标题
 h4 {
-	span {
-		font-size: 0.8em;
-		color: grey;
-	}
+  span {
+    font-size: 0.82em;
+    color: #718096;
+    font-weight: 500;
+    margin-left: 6px;
+  }
+}
+
+// 流量切换 Tab（24小时/15天）适配
+.ui.menu.text.blue {
+  margin-top: 0 !important;
+  margin-bottom: 4px !important;
+
+  .item {
+    font-size: 13px !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+
+    &.active {
+      color: #667eea !important;
+      font-weight: 600 !important;
+      background: rgba(102, 126, 234, 0.08) !important;
+    }
+  }
+}
+
+// 图表卡片之间的分隔线细化
+.ui.divider {
+  margin: 10px 0 12px !important;
+  border-color: rgba(226, 232, 240, 0.7) !important;
 }

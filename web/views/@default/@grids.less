@@ -1,77 +1,215 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// FreeCDN Grids — 仪表盘统计卡片 & 图表卡片
+// 参考设计：浅色彩色渐变卡片 + 白色图表卡片
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── 统计数字卡片（columns-grid → .grid.counter-chart）
 .grid.counter-chart {
-	margin-top: 1em !important;
-	margin-left: 0.4em !important;
+  margin-top: 1.2em !important;
+  margin-left: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px !important;
 
-	.column {
-		margin-bottom: 1em;
-		font-size: 0.85em;
-		text-align: center;
-		position: relative;
-		border: 1px rgba(0, 0, 0, .1) solid;
-		border-right: 0;
+  // 消除 Semantic UI 默认的 column 宽度干扰
+  &.one   .column { width: 100% !important; }
+  &.two   .column { width: 100% !important; }
+  &.three .column { width: 100% !important; }
+  &.four  .column { width: 100% !important; }
+  &.five  .column { width: 100% !important; }
+  &.six   .column { width: 100% !important; }
+  &.seven .column { width: 100% !important; }
 
-		div.value {
-			margin-top: 1.5em;
-			font-weight: normal;
+  .column {
+    margin-bottom: 0 !important;
+    border: none !important;
+    border-right: none !important;
+    padding: 22px 20px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06) !important;
+    text-align: left !important;
+    position: relative;
+    transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+    overflow: hidden;
 
-			span {
-				font-size: 1.5em;
-				margin-right: 0.2em;
-			}
-		}
-	}
+    &::before {
+      content: "";
+      position: absolute;
+      top: -20px;
+      right: -20px;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      pointer-events: none;
+    }
 
-	.column.with-border {
-		border-right: 1px rgba(0, 0, 0, .1) solid;
-	}
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -30px;
+      right: 10px;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.10);
+      pointer-events: none;
+    }
 
-	h4 {
-		color: grey;
-		position: relative;
+    &:hover {
+      transform: translateY(-3px) !important;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.10) !important;
 
-		a {
-			position: absolute;
-			right: 0.1em;
-			font-size: 1.26em;
-			display: none;
-		}
+      h4 a { display: inline !important; }
+    }
 
-		font-size: 1.0em;
-		text-align: left;
-	}
+    // 标题
+    h4 {
+      color: #4a5568 !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      text-align: left !important;
+      margin: 0 0 10px !important;
+      position: relative;
 
-	.column:hover {
-		background: rgba(0, 0, 0, .03) !important;
+      a {
+        position: absolute;
+        right: 0;
+        font-size: 13px !important;
+        display: none;
+        color: #667eea !important;
+      }
+    }
 
-		a {
-			display: inline;
-		}
-	}
+    // 数字
+    div.value {
+      margin-top: 0 !important;
+      font-weight: 600 !important;
+      text-align: left !important;
+      color: #1a202c !important;
+      line-height: 1.2;
+
+      span {
+        font-size: 2.2em !important;
+        font-weight: 700 !important;
+        margin-right: 0.15em !important;
+        color: #1a202c !important;
+        letter-spacing: -0.5px;
+        display: inline-block;
+      }
+
+      // 离线节点红色
+      a span.red, span.red {
+        font-size: 0.75em !important;
+        color: #e84040 !important;
+        font-weight: 600 !important;
+      }
+    }
+
+    // 卡片颜色循环——按位置区分
+    // 第1个：蓝色（集群）
+    &:nth-child(1)  { background: linear-gradient(135deg, #d4e5f9 0%, #c5d8f5 100%) !important; }
+    // 第2个：紫色（边缘节点）
+    &:nth-child(2)  { background: linear-gradient(135deg, #e5d8f9 0%, #d8c8f5 100%) !important; }
+    // 第3个：青紫（API节点）
+    &:nth-child(3)  { background: linear-gradient(135deg, #d8e8f9 0%, #ccd5f5 100%) !important; }
+    // 第4个：粉色（用户）
+    &:nth-child(4)  { background: linear-gradient(135deg, #f9e5ec 0%, #f5d8e3 100%) !important; }
+    // 第5个：薰衣草（网站）
+    &:nth-child(5)  { background: linear-gradient(135deg, #f0e5f9 0%, #e5d8f5 100%) !important; }
+    // 第6个：浅青（当天IP）
+    &:nth-child(6)  { background: linear-gradient(135deg, #d4f0f9 0%, #c5e8f5 100%) !important; }
+    // 第7个：浅绿（当天流量）
+    &:nth-child(7)  { background: linear-gradient(135deg, #d4f9e5 0%, #c5f5d8 100%) !important; }
+    // 第8个及以后：回到蓝紫
+    &:nth-child(n+8) { background: linear-gradient(135deg, #e8e5f9 0%, #ddd5f5 100%) !important; }
+  }
+
+  // 移除参考 Semantic UI 的 with-border 标记（我们用 grid gap 代替）
+  .column.with-border {
+    border-right: none !important;
+  }
 }
 
+// ── 图表卡片（chart-columns-grid → .grid.chart-grid）
 .grid.chart-grid {
-	margin-top: 1em !important;
-	margin-left: 0.4em !important;
+  margin-top: 1.2em !important;
+  margin-left: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px !important;
 
-	.column {
-		margin-bottom: 1em;
-		border: 1px rgba(0, 0, 0, .1) solid;
-		border-right: 0;
+  &.one   .column { width: 100% !important; }
+  &.two   .column { width: 100% !important; }
+  &.three .column { width: 100% !important; }
+  &.four  .column { width: 100% !important; }
 
-		.menu {
-			margin-top: -0.6em !important;
-			margin-bottom: -0.6em !important;
-		}
+  .column {
+    margin-bottom: 0 !important;
+    border: none !important;
+    border-right: none !important;
+    padding: 20px 24px !important;
+    border-radius: 16px !important;
+    background: #ffffff !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid rgba(226, 232, 240, 0.6) !important;
+    transition: box-shadow 0.25s ease !important;
 
-		h4 {
-			span {
-				font-size: 0.8em;
-				color: grey;
-			}
-		}
-	}
+    &:hover {
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08) !important;
+    }
 
-	.column.with-border {
-		border-right: 1px rgba(0, 0, 0, .1) solid;
-	}
+    // 图表区域内的菜单（切换24h/15天）
+    .menu {
+      margin-top: -0.3em !important;
+      margin-bottom: 0 !important;
+    }
+
+    // 图表区域标题
+    h4 {
+      font-size: 15px !important;
+      font-weight: 700 !important;
+      color: #1a202c !important;
+      margin: 0 0 4px !important;
+
+      span {
+        font-size: 12px !important;
+        color: #718096 !important;
+        font-weight: 500 !important;
+        margin-left: 6px;
+      }
+    }
+
+    // 分隔线
+    .ui.divider {
+      margin: 12px 0 !important;
+      border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
+    }
+  }
+
+  .column.with-border {
+    border-right: none !important;
+  }
+}
+
+// ── 响应式
+@media screen and (max-width: 1200px) {
+  .grid.counter-chart {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+  }
+  .grid.chart-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .grid.counter-chart {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .grid.counter-chart {
+    grid-template-columns: 1fr !important;
+  }
 }

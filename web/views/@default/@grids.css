@@ -1,42 +1,206 @@
 .grid.counter-chart {
-  margin-top: 1em !important;
-  margin-left: 0.4em !important;
+  margin-top: 1.2em !important;
+  margin-left: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px !important;
+}
+.grid.counter-chart.one .column {
+  width: 100% !important;
+}
+.grid.counter-chart.two .column {
+  width: 100% !important;
+}
+.grid.counter-chart.three .column {
+  width: 100% !important;
+}
+.grid.counter-chart.four .column {
+  width: 100% !important;
+}
+.grid.counter-chart.five .column {
+  width: 100% !important;
+}
+.grid.counter-chart.six .column {
+  width: 100% !important;
+}
+.grid.counter-chart.seven .column {
+  width: 100% !important;
 }
 .grid.counter-chart .column {
-  margin-bottom: 1em;
-  font-size: 0.85em;
-  text-align: center;
+  margin-bottom: 0 !important;
+  border: none !important;
+  border-right: none !important;
+  padding: 22px 20px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06) !important;
+  text-align: left !important;
   position: relative;
-  border: 1px rgba(0, 0, 0, 0.1) solid;
-  border-right: 0;
+  transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+  overflow: hidden;
 }
-.grid.counter-chart .column div.value {
-  margin-top: 1.5em;
-  font-weight: normal;
-}
-.grid.counter-chart .column div.value span {
-  font-size: 1.5em;
-  margin-right: 0.2em;
-}
-.grid.counter-chart .column.with-border {
-  border-right: 1px rgba(0, 0, 0, 0.1) solid;
-}
-.grid.counter-chart h4 {
-  color: grey;
-  position: relative;
-  font-size: 1em;
-  text-align: left;
-}
-.grid.counter-chart h4 a {
+.grid.counter-chart .column::before {
+  content: "";
   position: absolute;
-  right: 0.1em;
-  font-size: 1.26em;
-  display: none;
+  top: -20px;
+  right: -20px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+}
+.grid.counter-chart .column::after {
+  content: "";
+  position: absolute;
+  bottom: -30px;
+  right: 10px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  pointer-events: none;
 }
 .grid.counter-chart .column:hover {
-  background: rgba(0, 0, 0, 0.03) !important;
+  transform: translateY(-3px) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1) !important;
 }
-.grid.counter-chart .column:hover a {
-  display: inline;
+.grid.counter-chart .column:hover h4 a {
+  display: inline !important;
 }
-/*# sourceMappingURL=@grids.css.map */
+.grid.counter-chart .column h4 {
+  color: #4a5568 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+  margin: 0 0 10px !important;
+  position: relative;
+}
+.grid.counter-chart .column h4 a {
+  position: absolute;
+  right: 0;
+  font-size: 13px !important;
+  display: none;
+  color: #667eea !important;
+}
+.grid.counter-chart .column div.value {
+  margin-top: 0 !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+  color: #1a202c !important;
+  line-height: 1.2;
+}
+.grid.counter-chart .column div.value span {
+  font-size: 2.2em !important;
+  font-weight: 700 !important;
+  margin-right: 0.15em !important;
+  color: #1a202c !important;
+  letter-spacing: -0.5px;
+  display: inline-block;
+}
+.grid.counter-chart .column div.value a span.red,
+.grid.counter-chart .column div.value span.red {
+  font-size: 0.75em !important;
+  color: #e84040 !important;
+  font-weight: 600 !important;
+}
+.grid.counter-chart .column:nth-child(1) {
+  background: linear-gradient(135deg, #d4e5f9 0%, #c5d8f5 100%) !important;
+}
+.grid.counter-chart .column:nth-child(2) {
+  background: linear-gradient(135deg, #e5d8f9 0%, #d8c8f5 100%) !important;
+}
+.grid.counter-chart .column:nth-child(3) {
+  background: linear-gradient(135deg, #d8e8f9 0%, #ccd5f5 100%) !important;
+}
+.grid.counter-chart .column:nth-child(4) {
+  background: linear-gradient(135deg, #f9e5ec 0%, #f5d8e3 100%) !important;
+}
+.grid.counter-chart .column:nth-child(5) {
+  background: linear-gradient(135deg, #f0e5f9 0%, #e5d8f5 100%) !important;
+}
+.grid.counter-chart .column:nth-child(6) {
+  background: linear-gradient(135deg, #d4f0f9 0%, #c5e8f5 100%) !important;
+}
+.grid.counter-chart .column:nth-child(7) {
+  background: linear-gradient(135deg, #d4f9e5 0%, #c5f5d8 100%) !important;
+}
+.grid.counter-chart .column:nth-child(n+8) {
+  background: linear-gradient(135deg, #e8e5f9 0%, #ddd5f5 100%) !important;
+}
+.grid.counter-chart .column.with-border {
+  border-right: none !important;
+}
+.grid.chart-grid {
+  margin-top: 1.2em !important;
+  margin-left: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px !important;
+}
+.grid.chart-grid.one .column {
+  width: 100% !important;
+}
+.grid.chart-grid.two .column {
+  width: 100% !important;
+}
+.grid.chart-grid.three .column {
+  width: 100% !important;
+}
+.grid.chart-grid.four .column {
+  width: 100% !important;
+}
+.grid.chart-grid .column {
+  margin-bottom: 0 !important;
+  border: none !important;
+  border-right: none !important;
+  padding: 20px 24px !important;
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid rgba(226, 232, 240, 0.6) !important;
+  transition: box-shadow 0.25s ease !important;
+}
+.grid.chart-grid .column:hover {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08) !important;
+}
+.grid.chart-grid .column .menu {
+  margin-top: -0.3em !important;
+  margin-bottom: 0 !important;
+}
+.grid.chart-grid .column h4 {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: #1a202c !important;
+  margin: 0 0 4px !important;
+}
+.grid.chart-grid .column h4 span {
+  font-size: 12px !important;
+  color: #718096 !important;
+  font-weight: 500 !important;
+  margin-left: 6px;
+}
+.grid.chart-grid .column .ui.divider {
+  margin: 12px 0 !important;
+  border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+.grid.chart-grid .column.with-border {
+  border-right: none !important;
+}
+@media screen and (max-width: 1200px) {
+  .grid.counter-chart {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+  }
+  .grid.chart-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+@media screen and (max-width: 768px) {
+  .grid.counter-chart {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+@media screen and (max-width: 480px) {
+  .grid.counter-chart {
+    grid-template-columns: 1fr !important;
+  }
+}

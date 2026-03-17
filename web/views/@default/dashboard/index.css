@@ -4,10 +4,33 @@
   top: 2em;
 }
 .chart-box {
-  height: 14em;
+  height: 260px;
+  border-radius: 8px;
+  overflow: hidden;
 }
 h4 span {
-  font-size: 0.8em;
-  color: grey;
+  font-size: 0.82em;
+  color: #718096;
+  font-weight: 500;
+  margin-left: 6px;
+}
+.ui.menu.text.blue {
+  margin-top: 0 !important;
+  margin-bottom: 4px !important;
+}
+.ui.menu.text.blue .item {
+  font-size: 13px !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+.ui.menu.text.blue .item.active {
+  color: #667eea !important;
+  font-weight: 600 !important;
+  background: rgba(102, 126, 234, 0.08) !important;
+}
+.ui.divider {
+  margin: 10px 0 12px !important;
+  border-color: rgba(226, 232, 240, 0.7) !important;
 }
 /*# sourceMappingURL=index.css.map */

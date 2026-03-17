@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-18 | 当前版本 v0.9.2（已发布）| 当前阶段：**阶段二 — UI 升级（v0.10.0 全面现代化重构，第一批页面升级完成）**
+> 更新于 2026-03-18 | 当前版本 v0.9.2（已发布）| 当前阶段：**阶段二 — UI 升级（v0.10.0 进行中，设计系统+第一批页面完成，剩余10页面待升级）**
 
 ---
 
@@ -306,7 +306,7 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 | **v0.8.0** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段 C：/health 端点（freecdn-admin:7788/health、freecdn-api:8004/health），freecdn-api/node module 名重命名确认完成，faq.md 版本更新** |
 | **v0.9.1** | 2026-03-17 | **amd64 tar.gz ✓ + SHA256SUMS ✓ + install.sh ✓** | **SSH 安装节点专项修复（7 个坑全部解决）**：install.sh 自动上传到 Release；CRLF 换行符修复；zip 存放路径修正；zip 内部目录结构修正；unzip.go MkdirAll 防御性修复；helper 需重新编译后推到服务器；zipfile create_system=3 修复目录权限 |
 | **v0.9.2** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段二 UI 升级初版（v0.9.2，2026-03-17）**：管理后台主布局 UI 全面升级（顶栏+左菜单+表格）；顶栏深紫色渐变 + 白色文字；左菜单深紫色背景 + 亮紫色活跃项；表格行 hover 淡紫色背景；统一紫色渐变主题（品牌色 #667eea-#764ba2）；commit `535b1f31` |
-| **v0.10.0** | 规划中 | — | **阶段二 UI 全面现代化重构**：完整设计系统（色彩、排版、间距、阴影）；组件库重构（Button/Input/Table/Card 等）；页面模块升级（Dashboard/Clusters/Servers/Users）；交互动画增强；深色模式支持；响应式优化 |
+| **v0.10.0** | 进行中 | amd64/arm64 tar.gz 待发布 | **阶段二 UI 全面现代化重构（部分完成）**：✅ 完整设计系统（色彩、排版、间距、阴影）；✅ 组件库重构（Button/Input/Table/Card 等）；✅ 页面模块升级（Dashboard/Clusters/Servers/Users）；⏳ 剩余 10 页面升级；⏳ 交互动画增强；⏳ 深色模式支持；⏳ 响应式优化 |
 | **v1.0.0** | 待规划 | — | **完整重命名（三主仓库 module 名全部改为 freecdn-* 命名空间）** |
 
 **当前 install.sh 默认版本**：`FREECDN_VERSION="v0.9.2"`
@@ -348,6 +348,8 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 - [x] **阶段 C-2 完成（v0.9.0，2026-03-17）**：新增 `freecdn-init` Go 工具（cmd/freecdn-init + internal/initdb），替代 install.sh 中 7 步 bash 数据库初始化，支持 upgrade/setup/api_admin.yaml 写入/api.yaml 同步/管理员创建/品牌写入全流程，保留 bash 兜底路径；版本号统一至 v0.9.0；amd64/arm64 Release 发布完成
 - [x] **SSH 安装节点专项修复（v0.9.1，2026-03-17）**：完整走通从管理后台 SSH 安装边缘节点全流程，累计修复 7 个坑：(1) install.sh 自动上传到 Release；(2) CRLF 换行符转 LF；(3) edge-node zip 存放路径修正（`${API_DIR}/deploy/` + 版本号文件名）；(4) zip 内部目录结构修正（`edge-node/bin/edge-node` + `edge-node/configs/`）；(5) `unzip.go` 加 `MkdirAll` 防止 zip 缺目录条目时 OpenFile 失败；(6) 修复代码需重新编译并手动推到服务器（仅重启 api 不够）；(7) Python zipfile 在 Windows 上 create_system=0 导致目录权限 0664（缺 x 位），修复为 create_system=3（Unix）；amd64 Release 已更新并部署
 - [x] **阶段二 UI 升级完成（v0.9.2，2026-03-17）**：管理后台主布局 UI 全面升级（顶栏+左菜单+表格）；顶栏深紫色渐变 + 白色文字；左菜单深紫色背景 + 亮紫色活跃项；表格行 hover 淡紫色背景；统一紫色渐变主题（品牌色 #667eea-#764ba2）；commit `535b1f31`
+- [x] **阶段二 UI 升级第一批完成（v0.10.0 部分，2026-03-18）**：设计系统完整定义（DESIGN_SYSTEM.md 2800+ 行、COMPONENTS_LIBRARY.md 1500+ 行）；CSS 系统重构（5 个新 LESS 文件、1700+ 行代码）；4 个核心页面升级（Dashboard/Clusters/Servers/Users，730+ 行）；Git 提交 855e34a8；全量编译成功（0 错误）
+- [x] **文档和工具文件整理提交（2026-03-18）**：DOCUMENTATION_INDEX.md + compile_less.py 提交；Git 提交 52c12982；所有文档已上传 GitHub
 
 ---
 
@@ -527,7 +529,7 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 
 ---
 
-## v0.10.0 任务清单（阶段二 UI 全面现代化重构，进行中）
+## v0.10.0 任务清单（阶段二 UI 全面现代化重构，部分完成，继续中）
 
 ### 10-1：设计系统文档编写 ✅ 完成（2026-03-18）
 
@@ -639,12 +641,24 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 - [x] 禁用状态 - 降低对比度
 - [x] **自适应**：1024px/768px/480px 三档断点
 
-#### 其他页面（优先级 5，待做）
-- [ ] Settings 设置页面
-- [ ] Logs 日志查看（表格 + 高度优化）
-- [ ] DNS 管理（表格和表单）
-- [ ] Admins 管理员管理
-- [ ] 数据库管理
+#### 其他页面（优先级 5，v0.10.0 第二批，待做）
+
+**剩余 10 个页面升级计划**（预计 2-3 小时完成）：
+
+1. [ ] **Settings 设置页面** - 表单优化 + 分组卡片
+2. [ ] **Logs 日志查看** - 表格 + 高度优化 + 滚动条
+3. [ ] **DNS 管理** - 表格和表单组合
+4. [ ] **Admins 管理员管理** - 用户表格 + 权限标签
+5. [ ] **Nodes 节点管理** - 状态指示器 + 操作按钮
+6. [ ] **Region 区域管理** - 地图/卡片布局
+7. [ ] **Index 首页** - 统计卡片 + 欢迎界面
+8. [ ] **Setup 初始化** - 步骤条 + 表单
+9. [ ] **DB 数据库** - 统计信息 + 操作按钮
+10. [ ] **UI 组件库** - 组件展示页面
+
+**预计完成时间**：2-3 小时  
+**编译验证**：全量编译 18 个 LESS 文件，确保 0 错误  
+**后续流程**：Git 提交 → GitHub 推送 → v0.10.0 发版
 
 ---
 
@@ -711,7 +725,7 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 | 参数 | 值 |
 |------|-----|
 | 版本基线（GoEdge 安全锁定） | GoEdge v1.3.9（v1.4.x+ 含恶意代码，永不合并） |
-| 当前 FreeCDN 版本 | v0.9.0（已发布）|
+| 当前 FreeCDN 版本 | v0.9.2（已发布）|
 | Go 最低版本 | 1.21 |
 | MySQL | 5.7.8+（推荐 8.0+），只能 TCP 连接（-h 127.0.0.1） |
 | EdgeAdmin 端口 | 7788 |

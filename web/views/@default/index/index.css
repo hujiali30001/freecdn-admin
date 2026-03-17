@@ -61,7 +61,7 @@ body > div {
 form {
   position: static;
   width: 100%;
-  max-width: 420px;
+  max-width: 400px;
   margin: 0;
   top: auto;
   left: auto;
@@ -72,7 +72,7 @@ form .ui.segment.stacked {
   border-radius: var(--fc-radius-lg) !important;
   border: none !important;
   box-shadow: var(--fc-shadow-lg) !important;
-  padding: 44px 36px 36px !important;
+  padding: 40px 30px 32px !important;
   position: relative;
   overflow: visible;
 }
@@ -226,7 +226,141 @@ body::after {
     max-width: 100%;
   }
   form .ui.segment.stacked {
-    padding: 36px 24px 28px !important;
+    padding: 32px 20px 24px !important;
   }
+}
+@keyframes swalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.swal2-container.swal2-backdrop-show {
+  background: rgba(45, 27, 105, 0.45) !important;
+  backdrop-filter: blur(4px);
+}
+.swal2-popup {
+  max-width: 350px !important;
+  width: 350px !important;
+  padding: 32px 28px !important;
+  border-radius: 20px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18) !important;
+  border: none !important;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif !important;
+  animation: swalFadeIn 0.3s ease-out !important;
+}
+.swal2-icon {
+  margin: 0 auto 16px !important;
+  width: 52px !important;
+  height: 52px !important;
+  border-width: 2px !important;
+}
+.swal2-icon.swal2-error {
+  border-color: var(--fc-brand) !important;
+  color: var(--fc-brand) !important;
+}
+.swal2-icon.swal2-error .swal2-x-mark-line-left,
+.swal2-icon.swal2-error .swal2-x-mark-line-right {
+  background-color: var(--fc-brand) !important;
+  top: 22px !important;
+  width: 28px !important;
+}
+.swal2-icon.swal2-error .swal2-x-mark-line-left {
+  left: 11px !important;
+}
+.swal2-icon.swal2-error .swal2-x-mark-line-right {
+  right: 11px !important;
+}
+.swal2-icon.swal2-warning {
+  border-color: var(--fc-brand) !important;
+  color: var(--fc-brand) !important;
+}
+.swal2-icon.swal2-success {
+  border-color: #48bb78 !important;
+}
+.swal2-icon.swal2-success .swal2-success-ring {
+  border-color: rgba(72, 187, 120, 0.25) !important;
+}
+.swal2-icon.swal2-success [class^=swal2-success-line] {
+  background-color: #48bb78 !important;
+}
+.swal2-title {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: var(--fc-text-primary) !important;
+  padding: 0 0 8px !important;
+  line-height: 1.4 !important;
+}
+.swal2-html-container {
+  font-size: 14px !important;
+  color: var(--fc-text-second) !important;
+  line-height: 1.6 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden;
+}
+.swal2-actions {
+  margin: 20px 0 0 !important;
+  gap: 10px;
+  justify-content: center !important;
+}
+.swal2-confirm {
+  background: linear-gradient(135deg, var(--fc-brand) 0%, var(--fc-brand-end) 100%) !important;
+  border: 3px #fff solid !important;
+  border-radius: var(--fc-radius) !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  padding: 10px 28px !important;
+  min-width: 90px !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.35) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  letter-spacing: 0.02em;
+}
+.swal2-confirm:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 22px rgba(102, 126, 234, 0.5) !important;
+}
+.swal2-confirm:active {
+  transform: translateY(0) !important;
+}
+.swal2-confirm:focus {
+  border: 3px rgba(102, 126, 234, 0.4) solid !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.35) !important;
+}
+.swal2-cancel {
+  background: #f7f8fc !important;
+  border: 3px #fff solid !important;
+  border-radius: var(--fc-radius) !important;
+  color: var(--fc-text-second) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  padding: 10px 28px !important;
+  min-width: 90px !important;
+  margin-left: 0 !important;
+  transition: background 0.2s ease !important;
+}
+.swal2-cancel:hover {
+  background: #eef0f8 !important;
+}
+.swal2-cancel:focus {
+  border: 3px rgba(102, 126, 234, 0.3) solid !important;
+}
+.swal2-close {
+  color: var(--fc-text-hint) !important;
+  font-size: 22px !important;
+  border: 0 !important;
+  transition: color 0.2s ease !important;
+}
+.swal2-close:hover {
+  color: var(--fc-text-primary) !important;
+}
+.swal2-close:focus {
+  border: 0 !important;
+  box-shadow: none !important;
 }
 /*# sourceMappingURL=index.css.map */

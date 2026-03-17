@@ -422,3 +422,190 @@ body[data-page*="authority"] .main-box,
 body[data-route*="authority"] .main-box {
   display: none !important;
 }
+
+// ── 20. Modal 弹窗
+.ui.modal {
+  border-radius: var(--fc-radius-lg) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18) !important;
+  border: none !important;
+
+  > .header {
+    border-radius: var(--fc-radius-lg) var(--fc-radius-lg) 0 0 !important;
+    border-bottom: 1px solid var(--fc-border) !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: var(--fc-text-primary) !important;
+    padding: 16px 20px !important;
+    background: var(--fc-white) !important;
+  }
+
+  > .content {
+    padding: 20px !important;
+    background: var(--fc-white) !important;
+  }
+
+  > .actions {
+    border-radius: 0 0 var(--fc-radius-lg) var(--fc-radius-lg) !important;
+    border-top: 1px solid var(--fc-border) !important;
+    background: #FAFAFA !important;
+    padding: 12px 20px !important;
+  }
+
+  .close.icon {
+    color: var(--fc-text-second) !important;
+    &:hover { color: var(--fc-text-primary) !important; }
+  }
+}
+
+.ui.dimmer { background: rgba(0,0,0,.45) !important; }
+
+// ── 21. Dropdown
+.ui.dropdown {
+  border-radius: var(--fc-radius) !important;
+
+  .menu {
+    border-radius: var(--fc-radius) !important;
+    border: 1px solid var(--fc-border) !important;
+    box-shadow: var(--fc-shadow) !important;
+    margin-top: 2px !important;
+
+    .item {
+      font-size: 13px !important;
+      padding: 8px 12px !important;
+      color: var(--fc-text-primary) !important;
+      transition: background var(--fc-transition) !important;
+
+      &:hover, &.active { background: var(--fc-brand-light) !important; color: var(--fc-brand) !important; }
+    }
+  }
+
+  &.selection {
+    border: 1px solid var(--fc-border) !important;
+    background: var(--fc-white) !important;
+    font-size: 13px !important;
+    min-height: 36px !important;
+    line-height: 36px !important;
+    padding: 0 2.8em 0 .9em !important;
+
+    &:focus, &.active {
+      border-color: var(--fc-brand) !important;
+      box-shadow: 0 0 0 3px rgba(0,82,217,.12) !important;
+    }
+  }
+}
+
+// ── 22. Progress 进度条
+.ui.progress {
+  border-radius: var(--fc-radius) !important;
+  background: #EBEBEB !important;
+  margin: .6em 0 !important;
+
+  .bar {
+    border-radius: var(--fc-radius) !important;
+    background: var(--fc-brand) !important;
+    min-width: 0 !important;
+    transition: width .4s ease !important;
+  }
+
+  &.success .bar { background: var(--fc-success) !important; }
+  &.error   .bar { background: var(--fc-danger) !important; }
+}
+
+// ── 23. 步骤条
+.ui.steps {
+  border-radius: var(--fc-radius) !important;
+  border: 1px solid var(--fc-border) !important;
+  box-shadow: none !important;
+
+  .step {
+    font-size: 13px !important;
+
+    &.active {
+      background: var(--fc-brand-light) !important;
+      .title { color: var(--fc-brand) !important; }
+      .icon  { color: var(--fc-brand) !important; }
+    }
+
+    &.completed {
+      .icon { color: var(--fc-success) !important; }
+    }
+  }
+}
+
+// ── 24. 代码块 / Pre
+pre, code {
+  font-family: "SFMono-Regular", "Consolas", "Fira Code", "Menlo", monospace !important;
+  font-size: 12px !important;
+}
+
+pre {
+  background: #F7F8FA !important;
+  border: 1px solid var(--fc-border) !important;
+  border-radius: var(--fc-radius) !important;
+  padding: .8em 1em !important;
+  line-height: 1.6 !important;
+  overflow-x: auto;
+  color: var(--fc-text-primary) !important;
+}
+
+// ── 25. 统计数字卡片（dashboard）
+.ui.statistic {
+  .value { color: var(--fc-brand) !important; font-weight: 700 !important; }
+  .label { color: var(--fc-text-second) !important; font-size: 12px !important; }
+}
+
+// ── 26. 面包屑
+.ui.breadcrumb {
+  font-size: 13px !important;
+
+  .section { color: var(--fc-text-second) !important; }
+  .active.section { color: var(--fc-text-primary) !important; font-weight: 500 !important; }
+  .divider { color: var(--fc-text-disable) !important; }
+}
+
+// ── 27. 图标按钮悬停
+.ui.icon.button {
+  border-radius: var(--fc-radius) !important;
+  background: transparent !important;
+  color: var(--fc-text-second) !important;
+  box-shadow: none !important;
+  padding: .5em .7em !important;
+
+  &:hover {
+    background: var(--fc-brand-light) !important;
+    color: var(--fc-brand) !important;
+  }
+}
+
+// ── 28. 输入框 addon
+.ui.input {
+  > input {
+    border-radius: var(--fc-radius) !important;
+    border: 1px solid var(--fc-border) !important;
+    font-size: 13px !important;
+    height: 36px !important;
+    transition: border-color var(--fc-transition), box-shadow var(--fc-transition) !important;
+
+    &:focus {
+      border-color: var(--fc-brand) !important;
+      box-shadow: 0 0 0 3px rgba(0,82,217,.12) !important;
+    }
+  }
+
+  > .button { border-radius: 0 var(--fc-radius) var(--fc-radius) 0 !important; }
+  &.action > input { border-radius: var(--fc-radius) 0 0 var(--fc-radius) !important; }
+}
+
+// ── 29. 顶部进度条（加载中）
+.ui.active.inline.loader {
+  &:before { border-color: rgba(0,82,217,.15) !important; }
+  &:after  { border-color: var(--fc-brand) transparent transparent !important; }
+}
+
+// ── 30. 空状态提示
+.ui.placeholder.segment {
+  background: var(--fc-white) !important;
+  border: 1px dashed var(--fc-border) !important;
+  box-shadow: none !important;
+  border-radius: var(--fc-radius-lg) !important;
+}

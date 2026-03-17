@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-17 | 当前版本 v0.9.1（已发布）| 当前阶段：**阶段 C — 一键部署终极版（持续推进）**
+> 更新于 2026-03-17 | 当前版本 v0.9.2（已发布）| 当前阶段：**阶段二 — UI 升级**
 
 ---
 
@@ -16,10 +16,14 @@
 
 | 角色 | IP | 服务 |
 |------|----|------|
-| 管理节点 + 边缘节点（合一） | 134.175.67.168 | freecdn-admin、freecdn-node |
+| 管理节点（WSL 本地） | 172.24.213.247 | freecdn-admin、edge-api |
 
-管理后台：`http://134.175.67.168:7788`  
-MySQL：`freecdn:****@tcp(127.0.0.1:3306)/freecdn`（密码见 deploy/.env）
+管理后台：`http://172.24.213.247:7788`  
+账号：`admin` / `FreeCDN2026!!`  
+MySQL：`freecdn:****@tcp(127.0.0.1:3306)/freecdn`
+
+> 腾讯云服务器已退订，改用 WSL 本地环境开发测试。重启 WSL 后运行：  
+> `python.exe c:\Users\Administrator\.workbuddy\FreeCDN\dist\wsl_restart.py`
 
 ---
 
@@ -493,6 +497,7 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 - **坑5：zip 缺少目录条目导致 unzip 失败**：Python `zipfile.writestr("edge-node/configs/api_node.yaml", "")` 只写文件条目，不自动创建父目录条目；`unzip.go` 在写文件前不做 `MkdirAll`，导致 `write '...configs/api_node.yaml': file does not exist`；**双修**：(a) `unzip.go` 写文件前加 `filepath.Dir` + `MkdirAll`；(b) `_make_node_zip()` 显式写入 `edge-node/`、`edge-node/bin/`、`edge-node/configs/` 目录条目
 - **坑6：修复代码未编译进已部署的 helper**：`unzip.go` 修复在 push 之前就触发了构建，服务器上的 `edge-installer-helper-linux-amd64` 还是旧版本（无 MkdirAll）；仅重启 freecdn-api 不够——helper 是独立二进制，必须重新编译整个 api 包再手动推到服务器；二进制大小相同不代表内容相同（Go `-trimpath -s -w` 编译会压缩）；**修复**：重新构建 v0.9.1、手动上传 helper+edge-api+zip 到服务器、验证方式是在服务器用 helper 解压无目录条目的测试 zip
 - **坑7：Python zipfile 在 Windows 上 create_system=0 导致目录权限 0664**：Python `zipfile.ZipInfo` 在 Windows 宿主机上默认 `create_system=0`（Windows），Go 的 `archive/zip` 读到 `CreatorVersion>>8 != 3(Unix)` 时走 Windows 分支，忽略 `external_attr` 里的 Unix 权限位，用默认 `0666` 创建目录（umask 后变 `0664`），目录缺少执行位导致 `stat .../bin/: permission denied`；**修复**：`_make_node_zip()` 里所有 `ZipInfo` 对象显式设置 `create_system=3`（Unix），并同时设置 `compress_type=ZIP_STORED`（目录条目）；这也是本次安装失败的根本原因
+- **坑8：SFTP 写 api_node.yaml 报 Permission Denied（root chown 文件本身漏掉）**：helper 以 root 解压 zip，`api_node.yaml` 归属 root:root 0644；`installer_node.go` 的 sudo 分支只 chown 了 `configs/` 目录，但文件本身仍属 root，SFTP（以 ubuntu 身份）直接写时被拒绝；**修复**：chown configs 目录的同时也 chown `api_node.yaml` 文件本身；helper 不需要每次手动推——`install.sh` 已将其安装到 `${API_DIR}/installers/`，代码用 `Tea.Root+"/installers/"+exeName` 找它，完全自动
 
 ---
 

@@ -1,38 +1,203 @@
+:root {
+  --fc-brand: #0052D9;
+  --fc-brand-hover: #1167F0;
+  --fc-brand-active: #0035A4;
+  --fc-brand-light: #E7F0FF;
+  --fc-text-primary: #1A1A1A;
+  --fc-text-second: #4B4B4B;
+  --fc-text-disable: #C5C5C5;
+  --fc-border: #DCDCDC;
+  --fc-bg: #F0F4FF;
+  --fc-white: #FFFFFF;
+  --fc-radius: 6px;
+  --fc-radius-lg: 10px;
+  --fc-shadow-lg: 0 8px 32px rgba(0, 40, 140, 0.14);
+  --fc-transition: 0.18s ease;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0052D9 0%, #1B4FD8 40%, #0A3AB4 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+body > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+}
 .form-box {
-  position: fixed;
-  top: 2em;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: static;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2em 1em;
 }
 form {
-  position: fixed;
-  width: 21em;
-  top: 50%;
-  left: 50%;
-  margin-left: -10em;
-  margin-top: -16em;
+  position: static;
+  width: 100%;
+  max-width: 380px;
+  margin: 0;
+  top: auto;
+  left: auto;
 }
-form .header {
+form::before {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 1.2em;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background-image: url("/images/logo.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+form .ui.segment.stacked {
+  background: var(--fc-white);
+  border-radius: var(--fc-radius-lg);
+  border: none;
+  box-shadow: var(--fc-shadow-lg);
+  padding: 2em 2.2em 1.8em;
+  position: relative;
+  overflow: visible;
+}
+form .ui.segment.stacked::after {
+  display: none;
+}
+form .ui.header {
   text-align: center;
+  font-size: 1.15em !important;
+  font-weight: 600 !important;
+  color: var(--fc-text-primary) !important;
+  margin-bottom: 1.4em !important;
+  letter-spacing: 0.02em;
+}
+form .ui.field {
+  margin-bottom: 0.9em !important;
+}
+form .ui.left.icon.input {
+  width: 100%;
+}
+form .ui.left.icon.input input {
+  width: 100% !important;
+  height: 40px !important;
+  border: 1px solid var(--fc-border) !important;
+  border-radius: var(--fc-radius) !important;
+  font-size: 13px !important;
+  padding-left: 2.6em !important;
+  color: var(--fc-text-primary) !important;
+  background: var(--fc-white) !important;
+  transition: border-color var(--fc-transition), box-shadow var(--fc-transition) !important;
+  outline: none;
+}
+form .ui.left.icon.input input:focus {
+  border-color: var(--fc-brand) !important;
+  box-shadow: 0 0 0 3px rgba(0, 82, 217, 0.12) !important;
+}
+form .ui.left.icon.input input::placeholder {
+  color: #ABABAB;
+}
+form .ui.left.icon.input i.icon {
+  color: #ABABAB !important;
   font-size: 1em !important;
+  line-height: 40px !important;
+  height: 40px !important;
+  width: 2.6em !important;
+}
+form .ui.button.primary.fluid {
+  width: 100% !important;
+  height: 40px !important;
+  background: var(--fc-brand) !important;
+  color: #fff !important;
+  border-radius: var(--fc-radius) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  border: none !important;
+  cursor: pointer;
+  margin-top: 0.8em !important;
+  transition: background var(--fc-transition), box-shadow var(--fc-transition) !important;
+  box-shadow: 0 2px 8px rgba(0, 82, 217, 0.3) !important;
+}
+form .ui.button.primary.fluid:hover {
+  background: var(--fc-brand-hover) !important;
+  box-shadow: 0 4px 14px rgba(0, 82, 217, 0.35) !important;
+}
+form .ui.button.primary.fluid:active {
+  background: var(--fc-brand-active) !important;
+}
+form .ui.button.primary.fluid.disabled {
+  opacity: 0.7 !important;
+  cursor: not-allowed !important;
+}
+form a {
+  color: var(--fc-brand) !important;
+  font-size: 12px;
+  text-decoration: none;
+}
+form a:hover {
+  color: var(--fc-brand-hover) !important;
+}
+form .ui.checkbox label {
+  font-size: 12px !important;
+  color: var(--fc-text-second) !important;
+}
+form .ui.checkbox input:checked ~ label:before {
+  background: var(--fc-brand) !important;
+  border-color: var(--fc-brand) !important;
 }
 form p {
   font-size: 0.8em;
   margin-top: 0.3em;
   margin-bottom: 0;
-  font-weight: normal;
   padding: 0;
 }
 form .comment {
+  font-size: 12px;
+  color: #999;
   margin-top: 0.5em;
-  padding: 0.5em;
-  color: gray;
 }
-@media screen and (max-width: 512px) {
+.ui.message {
+  border-radius: var(--fc-radius) !important;
+  font-size: 13px !important;
+  max-width: 380px;
+  width: 100%;
+  margin-bottom: 1em;
+}
+body::after {
+  content: "FreeCDN";
+  position: fixed;
+  bottom: 1.2em;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+@media screen and (max-width: 480px) {
   form {
-    width: 80%;
-    margin-left: -40%;
+    max-width: 100%;
+  }
+  form .ui.segment.stacked {
+    padding: 1.6em 1.4em;
   }
 }
 /*# sourceMappingURL=index.css.map */

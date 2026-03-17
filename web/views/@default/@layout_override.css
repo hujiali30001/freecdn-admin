@@ -1,44 +1,31 @@
-/* ────────────────────────────────────────────────────────────────────
-   FreeCDN UI — TDesign 风格视觉升级覆盖层  v0.6.0
-   策略：仅覆盖 CSS，不动 JS / 模板 / Semantic UI 结构
-   主色参考 TDesign: #0052D9 (品牌蓝) / #E7F0FF (浅背景)
-   ──────────────────────────────────────────────────────────────────── */
-
-/* ── 1. CSS 自定义属性（全局令牌） ─────────────────────────────────── */
 :root {
-  --fc-brand:        #0052D9;
-  --fc-brand-hover:  #1167F0;
+  --fc-brand: #0052D9;
+  --fc-brand-hover: #1167F0;
   --fc-brand-active: #0035A4;
-  --fc-brand-light:  #E7F0FF;
-  --fc-success:      #00A870;
-  --fc-warning:      #ED7B2F;
-  --fc-danger:       #E34D59;
+  --fc-brand-light: #E7F0FF;
+  --fc-success: #00A870;
+  --fc-warning: #ED7B2F;
+  --fc-danger: #E34D59;
   --fc-text-primary: #1A1A1A;
-  --fc-text-second:  #4B4B4B;
+  --fc-text-second: #4B4B4B;
   --fc-text-disable: #C5C5C5;
-  --fc-border:       #DCDCDC;
-  --fc-bg:           #F5F5F5;
-  --fc-white:        #FFFFFF;
-  --fc-radius-sm:    3px;
-  --fc-radius:       4px;
-  --fc-radius-lg:    6px;
-  --fc-shadow-sm:    0 1px 4px rgba(0,0,0,.08);
-  --fc-shadow:       0 2px 8px rgba(0,0,0,.10);
-  --fc-shadow-lg:    0 4px 16px rgba(0,0,0,.12);
-  --fc-transition:   0.18s ease;
+  --fc-border: #DCDCDC;
+  --fc-bg: #F5F5F5;
+  --fc-white: #FFFFFF;
+  --fc-radius-sm: 3px;
+  --fc-radius: 4px;
+  --fc-radius-lg: 6px;
+  --fc-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.08);
+  --fc-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --fc-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --fc-transition: 0.18s ease;
 }
-
-/* ── 2. 全局字体 & 基础颜色 ─────────────────────────────────────────── */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
-               "Microsoft YaHei", "Segoe UI", Roboto, sans-serif !important;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif !important;
   color: var(--fc-text-primary) !important;
   background: var(--fc-bg) !important;
   -webkit-font-smoothing: antialiased;
 }
-
-/* ── 3. 顶部导航栏 ────────────────────────────────────────────────────
-   主色改为 TDesign 品牌蓝，去掉 Semantic 多主题的粗糙配色 */
 .ui.menu.top-nav.blue.inverted,
 .ui.menu.top-nav.theme1,
 .ui.menu.top-nav.theme2,
@@ -49,24 +36,19 @@ body {
 .ui.menu.top-nav.theme7 {
   background: var(--fc-brand) !important;
   border-bottom: 1px solid var(--fc-brand-active) !important;
-  box-shadow: 0 2px 6px rgba(0,82,217,.18) !important;
+  box-shadow: 0 2px 6px rgba(0, 82, 217, 0.18) !important;
   height: 48px !important;
 }
-
 .top-nav .item {
   font-size: 13px !important;
-  letter-spacing: .02em;
+  letter-spacing: 0.02em;
   transition: background var(--fc-transition) !important;
 }
-
 .top-nav .item:hover,
 .top-nav .item.active {
-  background: rgba(255,255,255,.12) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
   border-radius: var(--fc-radius) !important;
 }
-
-/* ── 4. 左侧主菜单 ────────────────────────────────────────────────────
-   所有主题颜色统一为 TDesign 深蓝系 */
 .main-menu,
 .main-menu.theme1,
 .main-menu.theme2,
@@ -76,106 +58,124 @@ body {
 .main-menu.theme6,
 .main-menu.theme7 {
   background: #0D2B6B !important;
-  border-right: 1px solid rgba(255,255,255,.06);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
-
-.main-menu .ui.menu,
+.main-menu .menu,
 .main-menu.theme1 .menu,
 .main-menu.theme2 .menu,
 .main-menu.theme3 .menu,
 .main-menu.theme4 .menu,
 .main-menu.theme5 .menu,
 .main-menu.theme6 .menu,
-.main-menu.theme7 .menu {
+.main-menu.theme7 .menu,
+.main-menu .ui.menu,
+.main-menu.theme1 .ui.menu,
+.main-menu.theme2 .ui.menu,
+.main-menu.theme3 .ui.menu,
+.main-menu.theme4 .ui.menu,
+.main-menu.theme5 .ui.menu,
+.main-menu.theme6 .ui.menu,
+.main-menu.theme7 .ui.menu {
   background: transparent !important;
 }
-
-.main-menu .ui.menu .item {
-  color: rgba(255,255,255,.72) !important;
+.main-menu .ui.menu .item,
+.main-menu.theme1 .ui.menu .item,
+.main-menu.theme2 .ui.menu .item,
+.main-menu.theme3 .ui.menu .item,
+.main-menu.theme4 .ui.menu .item,
+.main-menu.theme5 .ui.menu .item,
+.main-menu.theme6 .ui.menu .item,
+.main-menu.theme7 .ui.menu .item {
+  color: rgba(255, 255, 255, 0.72) !important;
   border-radius: var(--fc-radius) !important;
   margin: 1px 6px !important;
   padding: 0.7em 0.8em !important;
   font-size: 13px !important;
   transition: background var(--fc-transition), color var(--fc-transition) !important;
 }
-
-.main-menu .ui.menu .item:hover {
-  background: rgba(255,255,255,.10) !important;
+.main-menu .ui.menu .item:hover,
+.main-menu.theme1 .ui.menu .item:hover,
+.main-menu.theme2 .ui.menu .item:hover,
+.main-menu.theme3 .ui.menu .item:hover,
+.main-menu.theme4 .ui.menu .item:hover,
+.main-menu.theme5 .ui.menu .item:hover,
+.main-menu.theme6 .ui.menu .item:hover,
+.main-menu.theme7 .ui.menu .item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
   color: #fff !important;
 }
-
 .main-menu .ui.menu .item.active,
-.main-menu .ui.menu .item.expend {
+.main-menu.theme1 .ui.menu .item.active,
+.main-menu.theme2 .ui.menu .item.active,
+.main-menu.theme3 .ui.menu .item.active,
+.main-menu.theme4 .ui.menu .item.active,
+.main-menu.theme5 .ui.menu .item.active,
+.main-menu.theme6 .ui.menu .item.active,
+.main-menu.theme7 .ui.menu .item.active,
+.main-menu .ui.menu .item.expend,
+.main-menu.theme1 .ui.menu .item.expend,
+.main-menu.theme2 .ui.menu .item.expend,
+.main-menu.theme3 .ui.menu .item.expend,
+.main-menu.theme4 .ui.menu .item.expend,
+.main-menu.theme5 .ui.menu .item.expend,
+.main-menu.theme6 .ui.menu .item.expend,
+.main-menu.theme7 .ui.menu .item.expend {
   background: var(--fc-brand) !important;
   color: #fff !important;
 }
-
-.main-menu .ui.menu .sub-items .item.active {
-  background: rgba(0,82,217,.7) !important;
+.main-menu .ui.menu .sub-items .item.active,
+.main-menu.theme1 .ui.menu .sub-items .item.active,
+.main-menu.theme2 .ui.menu .sub-items .item.active,
+.main-menu.theme3 .ui.menu .sub-items .item.active,
+.main-menu.theme4 .ui.menu .sub-items .item.active,
+.main-menu.theme5 .ui.menu .sub-items .item.active,
+.main-menu.theme6 .ui.menu .sub-items .item.active,
+.main-menu.theme7 .ui.menu .sub-items .item.active {
+  background: rgba(0, 82, 217, 0.7) !important;
 }
-
-/* ── 5. 按钮 ──────────────────────────────────────────────────────────
-   圆角 + TDesign 蓝色主按钮，去掉 Semantic 的厚重感 */
 .ui.button {
   border-radius: var(--fc-radius) !important;
   font-size: 13px !important;
   font-weight: 500 !important;
-  padding: .6em 1.2em !important;
-  transition: background var(--fc-transition), box-shadow var(--fc-transition),
-              opacity var(--fc-transition) !important;
+  padding: 0.6em 1.2em !important;
+  transition: background var(--fc-transition), box-shadow var(--fc-transition), opacity var(--fc-transition) !important;
   box-shadow: none !important;
-  letter-spacing: .02em;
 }
-
-/* 主按钮（默认蓝） */
 .ui.button:not(.basic):not(.red):not(.orange):not(.green):not(.grey):not(.teal):not(.purple):not(.black) {
   background: var(--fc-brand) !important;
   color: #fff !important;
 }
-
 .ui.button:not(.basic):not(.red):not(.orange):not(.green):not(.grey):not(.teal):not(.purple):not(.black):hover {
   background: var(--fc-brand-hover) !important;
-  box-shadow: 0 2px 8px rgba(0,82,217,.3) !important;
+  box-shadow: 0 2px 8px rgba(0, 82, 217, 0.3) !important;
 }
-
 .ui.button:not(.basic):not(.red):not(.orange):not(.green):not(.grey):not(.teal):not(.purple):not(.black):active {
   background: var(--fc-brand-active) !important;
 }
-
-/* basic 按钮 */
 .ui.button.basic {
   border: 1px solid var(--fc-border) !important;
   background: var(--fc-white) !important;
   color: var(--fc-text-second) !important;
   box-shadow: var(--fc-shadow-sm) !important;
 }
-
 .ui.button.basic:hover {
   border-color: var(--fc-brand) !important;
   color: var(--fc-brand) !important;
   background: var(--fc-brand-light) !important;
 }
-
-/* 危险按钮 */
 .ui.button.red {
   background: var(--fc-danger) !important;
   color: #fff !important;
   border-radius: var(--fc-radius) !important;
 }
-
 .ui.button.red:hover {
   background: #C9333D !important;
 }
-
-/* 成功按钮 */
 .ui.button.green {
   background: var(--fc-success) !important;
   color: #fff !important;
   border-radius: var(--fc-radius) !important;
 }
-
-/* ── 6. 表格 ──────────────────────────────────────────────────────────
-   清爽边框 + 行 hover 高亮 */
 .ui.table {
   border: 1px solid var(--fc-border) !important;
   border-radius: var(--fc-radius-lg) !important;
@@ -185,18 +185,16 @@ body {
   overflow: hidden;
   background: var(--fc-white) !important;
 }
-
 .ui.table thead tr th {
   background: #F8FAFB !important;
   color: var(--fc-text-second) !important;
   font-weight: 600 !important;
   font-size: 12px !important;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
   border-bottom: 1px solid var(--fc-border) !important;
   padding: 10px 12px !important;
   white-space: nowrap;
 }
-
 .ui.table tbody tr td {
   border-top: 1px solid #F2F2F2 !important;
   padding: 10px 12px !important;
@@ -205,91 +203,100 @@ body {
   color: var(--fc-text-primary) !important;
   transition: background var(--fc-transition) !important;
 }
-
+.ui.table tbody tr:last-child td {
+  border-bottom: none !important;
+}
 .ui.table.selectable tbody tr:hover > td {
   background: var(--fc-brand-light) !important;
   cursor: pointer;
 }
-
-.ui.table tbody tr:last-child td {
-  border-bottom: none !important;
+.ui.table tbody[style*="display: none;"],
+.ui.table tr[style*="display: none;"],
+.ui.table tr > td[style*="display: none;"],
+.ui.table tr > th[style*="display: none;"] {
+  display: none !important;
 }
-
-/* ── 7. 表单元素 ──────────────────────────────────────────────────────
-   聚焦时蓝色边框 + 轻阴影 */
+table th.center,
+table td.center {
+  text-align: center !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+table th.width10 {
+  width: 10em;
+}
+table th.width5 {
+  width: 5em;
+}
+table th.width6 {
+  width: 6em;
+}
 .ui.form input[type="text"],
 .ui.form input[type="password"],
 .ui.form input[type="email"],
 .ui.form input[type="number"],
 .ui.form input[type="url"],
 .ui.form textarea,
-.ui.form select,
-input[type="text"]:not(.swal2-input),
-input[type="password"]:not(.swal2-input),
-input[type="number"],
-input[type="url"],
-textarea {
+.ui.form select {
   border-radius: var(--fc-radius) !important;
   border: 1px solid var(--fc-border) !important;
   background: var(--fc-white) !important;
   color: var(--fc-text-primary) !important;
-  transition: border-color var(--fc-transition), box-shadow var(--fc-transition) !important;
   font-size: 13px !important;
+  transition: border-color var(--fc-transition), box-shadow var(--fc-transition) !important;
 }
-
 .ui.form input:focus,
-.ui.form textarea:focus,
-input[type="text"]:focus,
-input[type="password"]:focus,
-input[type="number"]:focus,
-input[type="url"]:focus,
-textarea:focus {
+.ui.form textarea:focus {
   border-color: var(--fc-brand) !important;
-  box-shadow: 0 0 0 3px rgba(0,82,217,.12) !important;
+  box-shadow: 0 0 0 3px rgba(0, 82, 217, 0.12) !important;
   outline: none !important;
 }
-
-select.dropdown,
-.ui.form select {
+select.dropdown {
   height: auto !important;
   border-radius: var(--fc-radius) !important;
   border: 1px solid var(--fc-border) !important;
   background: var(--fc-white) !important;
   font-size: 13px !important;
 }
-
-/* ── 8. 标签 / Label ─────────────────────────────────────────────────── */
 .ui.label {
   border-radius: var(--fc-radius-sm) !important;
   font-weight: 500 !important;
   font-size: 12px !important;
 }
-
 .ui.label.basic {
   background-color: var(--fc-white) !important;
   border: 1px solid var(--fc-border) !important;
 }
-
 .ui.label.basic.grey {
   border: 1px solid #ccc !important;
   color: var(--fc-text-second) !important;
 }
-
+.ui.label.green {
+  background: #E3FAF1 !important;
+  color: #00A870 !important;
+  border: 1px solid #B4EDD9 !important;
+}
+.ui.label.red {
+  background: #FDF2F2 !important;
+  color: var(--fc-danger) !important;
+  border: 1px solid #F8C9CB !important;
+}
+.ui.label.orange {
+  background: #FEF4EC !important;
+  color: var(--fc-warning) !important;
+  border: 1px solid #F9D4AE !important;
+}
+.ui.label.blue {
+  background: var(--fc-brand-light) !important;
+  color: var(--fc-brand) !important;
+  border: 1px solid #BDD3FF !important;
+}
 .disabled .ui.label {
   color: var(--fc-text-disable) !important;
 }
-
 .ui.basic.grey.label.border-grey {
   border-color: var(--fc-border) !important;
 }
-
-/* 状态 label 样式 */
-.ui.label.green  { background: #E3FAF1 !important; color: #00A870 !important; border: 1px solid #B4EDD9 !important; }
-.ui.label.red    { background: #FDF2F2 !important; color: var(--fc-danger) !important; border: 1px solid #F8C9CB !important; }
-.ui.label.orange { background: #FEF4EC !important; color: var(--fc-warning) !important; border: 1px solid #F9D4AE !important; }
-.ui.label.blue   { background: var(--fc-brand-light) !important; color: var(--fc-brand) !important; border: 1px solid #BDD3FF !important; }
-
-/* ── 9. 消息提示框 / Message ─────────────────────────────────────────── */
 .ui.message {
   border-radius: var(--fc-radius) !important;
   box-shadow: none !important;
@@ -297,59 +304,58 @@ select.dropdown,
   background: var(--fc-white) !important;
   font-size: 13px !important;
 }
-
-.ui.message.error  { background: #FDF2F2 !important; border-color: #F8C9CB !important; color: var(--fc-danger) !important; }
-.ui.message.success{ background: #E3FAF1 !important; border-color: #B4EDD9 !important; color: var(--fc-success) !important; }
-.ui.message.warning{ background: #FEF4EC !important; border-color: #F9D4AE !important; color: var(--fc-warning) !important; }
-.ui.message.info   { background: var(--fc-brand-light) !important; border-color: #BDD3FF !important; color: var(--fc-brand) !important; }
-
-.message .icon.warning {
+.ui.message.error {
+  background: #FDF2F2 !important;
+  border-color: #F8C9CB !important;
+  color: var(--fc-danger) !important;
+}
+.ui.message.success {
+  background: #E3FAF1 !important;
+  border-color: #B4EDD9 !important;
+  color: var(--fc-success) !important;
+}
+.ui.message.warning {
+  background: #FEF4EC !important;
+  border-color: #F9D4AE !important;
+  color: var(--fc-warning) !important;
+}
+.ui.message.info {
+  background: var(--fc-brand-light) !important;
+  border-color: #BDD3FF !important;
+  color: var(--fc-brand) !important;
+}
+.ui.message .icon.warning {
   font-size: 2em !important;
 }
-
-/* ── 10. 卡片 / Segment ──────────────────────────────────────────────── */
 .ui.segment {
   border-radius: var(--fc-radius-lg) !important;
   border: 1px solid var(--fc-border) !important;
   box-shadow: var(--fc-shadow-sm) !important;
   background: var(--fc-white) !important;
 }
-
 .ui.segment.basic {
   box-shadow: none !important;
   border: none !important;
 }
-
-/* ── 11. Toggle / Checkbox ────────────────────────────────────────────── */
 .ui.toggle.checkbox input:focus:checked ~ .box:before,
-.ui.toggle.checkbox input:focus:checked ~ label:before {
-  background-color: var(--fc-brand) !important;
-}
-
+.ui.toggle.checkbox input:focus:checked ~ label:before,
 .ui.toggle.checkbox input:checked ~ .box:before,
 .ui.toggle.checkbox input:checked ~ label:before {
   background-color: var(--fc-brand) !important;
 }
-
-/* ── 12. 二级 Tab 菜单 ───────────────────────────────────────────────── */
 .ui.menu.tab-menu .item.active:not(.title) {
   color: var(--fc-brand) !important;
 }
-
 .ui.menu.tab-menu .item.active:not(.title) .bottom-indicator {
   border-bottom-color: var(--fc-brand) !important;
 }
-
 .ui.menu.tab-menu .item:hover {
   background: var(--fc-brand-light) !important;
 }
-
-/* ── 13. 分页 ────────────────────────────────────────────────────────── */
 .page {
   margin-top: 1em;
   border-left: 1px solid var(--fc-border);
 }
-
 .page a {
   display: inline-block;
   background: var(--fc-white);
@@ -361,165 +367,295 @@ select.dropdown,
   border-left: 0;
   transition: background var(--fc-transition), color var(--fc-transition) !important;
 }
-
 .page a.active {
   background: var(--fc-brand) !important;
   color: var(--fc-white) !important;
   border-color: var(--fc-brand) !important;
 }
-
 .page a:hover:not(.active) {
   background: var(--fc-brand-light) !important;
   color: var(--fc-brand) !important;
 }
-
-/* ── 14. 主内容区背景 ────────────────────────────────────────────────── */
 .main {
   background: var(--fc-bg) !important;
 }
-
-.main-box {
+.main .main-box {
   padding-top: 0.5em;
 }
-
-/* ── 15. 链接颜色 ────────────────────────────────────────────────────── */
+.main table td.color-border {
+  border-left: 2px var(--fc-brand) solid !important;
+}
 a {
   color: var(--fc-brand) !important;
   transition: color var(--fc-transition) !important;
 }
-
 a:hover {
   color: var(--fc-brand-hover) !important;
 }
-
 a.disabled,
 a.disabled:hover,
-a.disabled:active,
+a.disabled:active {
+  color: var(--fc-text-disable) !important;
+}
+a.enabled {
+  color: var(--fc-success) !important;
+}
 span.disabled {
   color: var(--fc-text-disable) !important;
 }
-
-a.enabled,
 span.enabled,
 span.green {
   color: var(--fc-success) !important;
 }
-
 span.red,
 pre.red {
   color: var(--fc-danger) !important;
 }
-
 .link.grey {
   color: #888 !important;
 }
-
 .link.grey:hover {
   color: var(--fc-brand) !important;
 }
-
-/* ── 16. 右侧主操作区主色点 ─────────────────────────────────────────── */
-.main table td.color-border {
-  border-left: 2px var(--fc-brand) solid !important;
-}
-
-/* ── 17. SweetAlert2 弹窗 ────────────────────────────────────────────── */
 body.swal2-shown {
   overflow: auto !important;
 }
-
 .swal2-popup {
   border-radius: var(--fc-radius-lg) !important;
   box-shadow: var(--fc-shadow-lg) !important;
   font-family: inherit !important;
   font-size: 14px !important;
 }
-
 .swal2-confirm {
   background: var(--fc-brand) !important;
   border-radius: var(--fc-radius) !important;
   box-shadow: none !important;
 }
-
 .swal2-confirm:hover {
   background: var(--fc-brand-hover) !important;
 }
-
 .swal2-cancel {
   border-radius: var(--fc-radius) !important;
   margin-left: 2em !important;
 }
-
-.swal2-close, .swal2-close:focus {
+.swal2-close,
+.swal2-close:focus {
   border: 0;
 }
-
-.swal2-confirm:focus, .swal2-cancel:focus {
+.swal2-confirm:focus,
+.swal2-cancel:focus {
   border: 3px #ddd solid !important;
 }
-
-.swal2-confirm, .swal2-cancel {
+.swal2-confirm,
+.swal2-cancel {
   border: 3px #fff solid !important;
 }
-
 .swal2-html-container {
   overflow-x: hidden;
 }
-
-/* ── 18. 表格杂项（继承原有） ────────────────────────────────────────── */
-table th.center,
-table td.center {
-  text-align: center !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
-
-table th.width10 { width: 10em; }
-table th.width5  { width: 5em;  }
-table th.width6  { width: 6em;  }
-
-.ui.table tbody[style*="display: none;"],
-.ui.table tr[style*="display: none;"],
-.ui.table tr > td[style*="display: none;"],
-.ui.table tr > th[style*="display: none;"] {
-  display: none !important;
-}
-
-/* ── 19. 杂项 ────────────────────────────────────────────────────────── */
-form .fields {
-  margin-bottom: 0 !important;
-}
-
-.grid {
-  margin-right: 0 !important;
-}
-
-.fields button {
-  min-width: 5em;
-}
-
-textarea::-webkit-scrollbar {
-  width: 6px !important;
-}
-
-/* scrollbar 整体美化 */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,.18);
+  background: rgba(0, 0, 0, 0.18);
   border-radius: 3px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
-/* ── 20. FreeCDN: 隐藏商业版/授权相关内容 ───────────────────────────── */
+textarea::-webkit-scrollbar {
+  width: 6px !important;
+}
+form .fields {
+  margin-bottom: 0 !important;
+}
+.grid {
+  margin-right: 0 !important;
+}
+.fields button {
+  min-width: 5em;
+}
 body[data-page*="authority"] .main-box,
 body[data-route*="authority"] .main-box {
   display: none !important;
+}
+.ui.modal {
+  border-radius: var(--fc-radius-lg) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18) !important;
+  border: none !important;
+}
+.ui.modal > .header {
+  border-radius: var(--fc-radius-lg) var(--fc-radius-lg) 0 0 !important;
+  border-bottom: 1px solid var(--fc-border) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: var(--fc-text-primary) !important;
+  padding: 16px 20px !important;
+  background: var(--fc-white) !important;
+}
+.ui.modal > .content {
+  padding: 20px !important;
+  background: var(--fc-white) !important;
+}
+.ui.modal > .actions {
+  border-radius: 0 0 var(--fc-radius-lg) var(--fc-radius-lg) !important;
+  border-top: 1px solid var(--fc-border) !important;
+  background: #FAFAFA !important;
+  padding: 12px 20px !important;
+}
+.ui.modal .close.icon {
+  color: var(--fc-text-second) !important;
+}
+.ui.modal .close.icon:hover {
+  color: var(--fc-text-primary) !important;
+}
+.ui.dimmer {
+  background: rgba(0, 0, 0, 0.45) !important;
+}
+.ui.dropdown {
+  border-radius: var(--fc-radius) !important;
+}
+.ui.dropdown .menu {
+  border-radius: var(--fc-radius) !important;
+  border: 1px solid var(--fc-border) !important;
+  box-shadow: var(--fc-shadow) !important;
+  margin-top: 2px !important;
+}
+.ui.dropdown .menu .item {
+  font-size: 13px !important;
+  padding: 8px 12px !important;
+  color: var(--fc-text-primary) !important;
+  transition: background var(--fc-transition) !important;
+}
+.ui.dropdown .menu .item:hover,
+.ui.dropdown .menu .item.active {
+  background: var(--fc-brand-light) !important;
+  color: var(--fc-brand) !important;
+}
+.ui.dropdown.selection {
+  border: 1px solid var(--fc-border) !important;
+  background: var(--fc-white) !important;
+  font-size: 13px !important;
+  min-height: 36px !important;
+  line-height: 36px !important;
+  padding: 0 2.8em 0 0.9em !important;
+}
+.ui.dropdown.selection:focus,
+.ui.dropdown.selection.active {
+  border-color: var(--fc-brand) !important;
+  box-shadow: 0 0 0 3px rgba(0, 82, 217, 0.12) !important;
+}
+.ui.progress {
+  border-radius: var(--fc-radius) !important;
+  background: #EBEBEB !important;
+  margin: 0.6em 0 !important;
+}
+.ui.progress .bar {
+  border-radius: var(--fc-radius) !important;
+  background: var(--fc-brand) !important;
+  min-width: 0 !important;
+  transition: width 0.4s ease !important;
+}
+.ui.progress.success .bar {
+  background: var(--fc-success) !important;
+}
+.ui.progress.error .bar {
+  background: var(--fc-danger) !important;
+}
+.ui.steps {
+  border-radius: var(--fc-radius) !important;
+  border: 1px solid var(--fc-border) !important;
+  box-shadow: none !important;
+}
+.ui.steps .step {
+  font-size: 13px !important;
+}
+.ui.steps .step.active {
+  background: var(--fc-brand-light) !important;
+}
+.ui.steps .step.active .title {
+  color: var(--fc-brand) !important;
+}
+.ui.steps .step.active .icon {
+  color: var(--fc-brand) !important;
+}
+.ui.steps .step.completed .icon {
+  color: var(--fc-success) !important;
+}
+pre,
+code {
+  font-family: "SFMono-Regular", "Consolas", "Fira Code", "Menlo", monospace !important;
+  font-size: 12px !important;
+}
+pre {
+  background: #F7F8FA !important;
+  border: 1px solid var(--fc-border) !important;
+  border-radius: var(--fc-radius) !important;
+  padding: 0.8em 1em !important;
+  line-height: 1.6 !important;
+  overflow-x: auto;
+  color: var(--fc-text-primary) !important;
+}
+.ui.statistic .value {
+  color: var(--fc-brand) !important;
+  font-weight: 700 !important;
+}
+.ui.statistic .label {
+  color: var(--fc-text-second) !important;
+  font-size: 12px !important;
+}
+.ui.breadcrumb {
+  font-size: 13px !important;
+}
+.ui.breadcrumb .section {
+  color: var(--fc-text-second) !important;
+}
+.ui.breadcrumb .active.section {
+  color: var(--fc-text-primary) !important;
+  font-weight: 500 !important;
+}
+.ui.breadcrumb .divider {
+  color: var(--fc-text-disable) !important;
+}
+.ui.icon.button {
+  border-radius: var(--fc-radius) !important;
+  background: transparent !important;
+  color: var(--fc-text-second) !important;
+  box-shadow: none !important;
+  padding: 0.5em 0.7em !important;
+}
+.ui.icon.button:hover {
+  background: var(--fc-brand-light) !important;
+  color: var(--fc-brand) !important;
+}
+.ui.input > input {
+  border-radius: var(--fc-radius) !important;
+  border: 1px solid var(--fc-border) !important;
+  font-size: 13px !important;
+  height: 36px !important;
+  transition: border-color var(--fc-transition), box-shadow var(--fc-transition) !important;
+}
+.ui.input > input:focus {
+  border-color: var(--fc-brand) !important;
+  box-shadow: 0 0 0 3px rgba(0, 82, 217, 0.12) !important;
+}
+.ui.input > .button {
+  border-radius: 0 var(--fc-radius) var(--fc-radius) 0 !important;
+}
+.ui.input.action > input {
+  border-radius: var(--fc-radius) 0 0 var(--fc-radius) !important;
+}
+.ui.active.inline.loader:before {
+  border-color: rgba(0, 82, 217, 0.15) !important;
+}
+.ui.active.inline.loader:after {
+  border-color: var(--fc-brand) transparent transparent !important;
+}
+.ui.placeholder.segment {
+  background: var(--fc-white) !important;
+  border: 1px dashed var(--fc-border) !important;
+  box-shadow: none !important;
+  border-radius: var(--fc-radius-lg) !important;
 }
 /*# sourceMappingURL=@layout_override.css.map */

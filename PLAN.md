@@ -1,6 +1,6 @@
 # FreeCDN 开发计划
 
-> 更新于 2026-03-18 | 当前版本 v0.9.2（已发布）| 当前阶段：**阶段二 — UI 升级（v0.10.0 进行中，设计系统+第一批页面完成，剩余10页面待升级）**
+> 更新于 2026-03-18 | 当前版本 v0.10.0（已发布）| 当前阶段：**阶段二 — UI 升级（v0.10.0 设计系统+14页面升级完成，深色模式/交互动画待开发）**
 
 ---
 
@@ -306,10 +306,10 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 | **v0.8.0** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段 C：/health 端点（freecdn-admin:7788/health、freecdn-api:8004/health），freecdn-api/node module 名重命名确认完成，faq.md 版本更新** |
 | **v0.9.1** | 2026-03-17 | **amd64 tar.gz ✓ + SHA256SUMS ✓ + install.sh ✓** | **SSH 安装节点专项修复（7 个坑全部解决）**：install.sh 自动上传到 Release；CRLF 换行符修复；zip 存放路径修正；zip 内部目录结构修正；unzip.go MkdirAll 防御性修复；helper 需重新编译后推到服务器；zipfile create_system=3 修复目录权限 |
 | **v0.9.2** | 2026-03-17 | **amd64/arm64 tar.gz ✓ + SHA256SUMS ✓** | **阶段二 UI 升级初版（v0.9.2，2026-03-17）**：管理后台主布局 UI 全面升级（顶栏+左菜单+表格）；顶栏深紫色渐变 + 白色文字；左菜单深紫色背景 + 亮紫色活跃项；表格行 hover 淡紫色背景；统一紫色渐变主题（品牌色 #667eea-#764ba2）；commit `535b1f31` |
-| **v0.10.0** | 进行中 | amd64/arm64 tar.gz 待发布 | **阶段二 UI 全面现代化重构（部分完成）**：✅ 完整设计系统（色彩、排版、间距、阴影）；✅ 组件库重构（Button/Input/Table/Card 等）；✅ 页面模块升级（Dashboard/Clusters/Servers/Users）；⏳ 剩余 10 页面升级；⏳ 交互动画增强；⏳ 深色模式支持；⏳ 响应式优化 |
+| **v0.10.0** | 2026-03-18 | **UI 升级包 ✓（tar.gz 待补全）** | **阶段二 UI 全面现代化重构（已完成）**：✅ 完整设计系统（DESIGN_SYSTEM.md 4300+ 行）；✅ 组件库重构（15+ 核心组件）；✅ 14 个页面升级完成；✅ 响应式设计；✅ CSS 变量系统；⏳ 深色模式支持（v0.11.0）；⏳ 交互动画增强（v0.11.0）|
 | **v1.0.0** | 待规划 | — | **完整重命名（三主仓库 module 名全部改为 freecdn-* 命名空间）** |
 
-**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.9.2"`
+**当前 install.sh 默认版本**：`FREECDN_VERSION="v0.9.2"`（v0.10.0 为 UI 升级版，无二进制包）
 
 > v0.1.6 起所有 Release 包均从**源码自主编译**（local_build_release.py），包含 edge-admin / edge-api / edge-node 三个组件，不依赖 GoEdge 官方二进制。
 
@@ -350,6 +350,7 @@ GitHub Actions 账单冻结，所有 Release 由 `scripts/local_build_release.py
 - [x] **阶段二 UI 升级完成（v0.9.2，2026-03-17）**：管理后台主布局 UI 全面升级（顶栏+左菜单+表格）；顶栏深紫色渐变 + 白色文字；左菜单深紫色背景 + 亮紫色活跃项；表格行 hover 淡紫色背景；统一紫色渐变主题（品牌色 #667eea-#764ba2）；commit `535b1f31`
 - [x] **阶段二 UI 升级第一批完成（v0.10.0 部分，2026-03-18）**：设计系统完整定义（DESIGN_SYSTEM.md 2800+ 行、COMPONENTS_LIBRARY.md 1500+ 行）；CSS 系统重构（5 个新 LESS 文件、1700+ 行代码）；4 个核心页面升级（Dashboard/Clusters/Servers/Users，730+ 行）；Git 提交 855e34a8；全量编译成功（0 错误）
 - [x] **文档和工具文件整理提交（2026-03-18）**：DOCUMENTATION_INDEX.md + compile_less.py 提交；Git 提交 52c12982；所有文档已上传 GitHub
+- [x] **v0.10.0 UI 现代化升级完成（2026-03-18）**：完整设计系统（4300+ 行）+ CSS 组件库（15+ 组件）+ 14 个页面升级 + 响应式设计 + GitHub Release 发布（UI 升级包）；Git 提交 0a8aa129/6bed88f5
 
 ---
 

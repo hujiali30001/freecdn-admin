@@ -1,347 +1,424 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// FreeCDN Dashboard — 仪表盘现代化升级（v0.10.0）
-// 应用设计系统：@design_tokens.less + @components_data.less
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * FreeCDN 仪表盘样式 v0.11.0
+ * 现代简约风格
+ */
 
-// 导入设计系统
-@import "../@design_tokens.less";
+// ==================== 页面布局 ====================
 
-// ┌─ 统计卡片容器（columns-grid 组件）
-// └─ 现代卡片样式 + 网格自适应
-columns-grid {
+.dashboard-container {
+  padding: 0;
+}
+
+// ==================== 统计卡片 ====================
+
+.stat-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: @space-lg;
-  margin-bottom: @space-3xl;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: @space-base;
+  margin-bottom: @space-lg;
+}
+
+.stat-card {
+  background: @component-background;
+  border-radius: @border-radius-lg;
+  border: 1px solid @border-color;
   padding: @space-lg;
-  background: @color-surface;
-  border-radius: @radius-lg;
-  border: 1px solid @color-border;
-
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: @space-md;
-    padding: @space-md;
+  display: flex;
+  align-items: flex-start;
+  transition: @transition-base;
+  
+  &:hover {
+    box-shadow: @card-shadow-hover;
+    transform: translateY(-2px);
   }
-
-  @media (max-width: 480px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: @space-sm;
-    padding: @space-md;
-  }
-
-  .ui.column {
-    padding: @space-lg;
-    background: @color-background;
-    border-radius: @radius-md;
-    border: 1px solid @color-border;
-    transition: all @transition-normal;
-    text-align: center;
-
-    &:hover {
-      background: @color-background-hover;
-      border-color: @color-brand;
-      box-shadow: @shadow-sm;
-      transform: translateY(-2px);
+  
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: @border-radius-lg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: @space-base;
+    flex-shrink: 0;
+    
+    i.icon {
+      font-size: 24px;
+      color: white;
     }
-
-    h4 {
-      margin: 0 0 @space-md 0;
+    
+    &.blue {
+      background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+    }
+    
+    &.green {
+      background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+    }
+    
+    &.orange {
+      background: linear-gradient(135deg, #faad14 0%, #ffc53d 100%);
+    }
+    
+    &.red {
+      background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);
+    }
+    
+    &.purple {
+      background: linear-gradient(135deg, #722ed1 0%, #9254de 100%);
+    }
+  }
+  
+  .stat-content {
+    flex: 1;
+    min-width: 0;
+    
+    .stat-title {
       font-size: @font-size-sm;
-      font-weight: @font-weight-medium;
-      color: @color-text-secondary;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-
-      link-icon {
-        margin-left: @space-sm;
-        opacity: 0.6;
-        transition: opacity @transition-fast;
-
-        &:hover {
-          opacity: 1;
-        }
+      color: @text-color-secondary;
+      margin-bottom: @space-xs;
+    }
+    
+    .stat-value {
+      font-size: @font-size-2xl;
+      font-weight: @font-weight-semibold;
+      color: @text-color;
+      line-height: 1.2;
+      
+      small {
+        font-size: @font-size-base;
+        font-weight: @font-weight-normal;
+        color: @text-color-secondary;
+        margin-left: @space-xs;
       }
     }
-
-    .value {
-      font-size: @font-size-3xl;
-      font-weight: @font-weight-bold;
-      color: @color-brand;
-      line-height: 1;
-
-      span {
-        font-size: @font-size-2xl;
-        color: @color-brand;
+    
+    .stat-trend {
+      font-size: @font-size-xs;
+      margin-top: @space-xs;
+      
+      &.up {
+        color: @success-color;
       }
-
-      .red {
-        color: @color-error;
-        font-size: @font-size-lg;
-        margin: 0 @space-xs;
-      }
-
-      a {
-        color: @color-brand;
-        text-decoration: none;
-        transition: color @transition-fast;
-
-        &:hover {
-          color: @color-brand-hover;
-          text-decoration: underline;
-        }
+      
+      &.down {
+        color: @error-color;
       }
     }
   }
 }
 
-// ┌─ 图表容器（chart-columns-grid）
-// └─ 响应式多列布局 + 卡片样式
-chart-columns-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: @space-lg;
-  margin-top: @space-3xl;
+// ==================== 图表区域 ====================
 
-  @media (max-width: 1200px) {
+.chart-section {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: @space-base;
+  margin-bottom: @space-lg;
+  
+  @media @lg {
     grid-template-columns: 1fr;
   }
+}
 
-  @media (max-width: 768px) {
-    gap: @space-md;
+.chart-card {
+  background: @component-background;
+  border-radius: @border-radius-lg;
+  border: 1px solid @border-color;
+  
+  .chart-header {
+    padding: @space-base @space-lg;
+    border-bottom: 1px solid @border-color;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    .chart-title {
+      font-size: @font-size-base;
+      font-weight: @font-weight-semibold;
+      color: @text-color;
+      margin: 0;
+    }
+    
+    .chart-actions {
+      display: flex;
+      gap: @space-sm;
+    }
   }
-
-  .ui.column {
+  
+  .chart-body {
     padding: @space-lg;
-    background: @color-surface;
-    border: 1px solid @color-border;
-    border-radius: @radius-lg;
-    box-shadow: @shadow-xs;
-    transition: box-shadow @transition-normal;
+    min-height: 300px;
+  }
+}
 
-    &:hover {
-      box-shadow: @shadow-md;
+// ==================== 表格卡片 ====================
+
+.table-card {
+  background: @component-background;
+  border-radius: @border-radius-lg;
+  border: 1px solid @border-color;
+  
+  .table-header {
+    padding: @space-base @space-lg;
+    border-bottom: 1px solid @border-color;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    .table-title {
+      font-size: @font-size-base;
+      font-weight: @font-weight-semibold;
+      color: @text-color;
+      margin: 0;
     }
-
-    @media (max-width: 768px) {
-      padding: @space-md;
+    
+    .table-actions {
+      display: flex;
+      gap: @space-sm;
     }
   }
-
-  metric-chart {
-    background: @color-surface;
-    border: 1px solid @color-border;
-    border-radius: @radius-lg;
-    padding: @space-lg;
-    box-shadow: @shadow-xs;
-    transition: box-shadow @transition-normal;
-
-    &:hover {
-      box-shadow: @shadow-md;
+  
+  .table-body {
+    padding: 0;
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      
+      th, td {
+        padding: @space-base @space-lg;
+        text-align: left;
+        border-bottom: 1px solid @border-color-split;
+      }
+      
+      th {
+        background: @gray-3;
+        font-weight: @font-weight-medium;
+        color: @text-color-secondary;
+        font-size: @font-size-sm;
+      }
+      
+      tr:last-child td {
+        border-bottom: none;
+      }
+      
+      tr:hover td {
+        background: @gray-3;
+      }
     }
-
-    @media (max-width: 768px) {
-      padding: @space-md;
+  }
+  
+  .table-footer {
+    padding: @space-base @space-lg;
+    border-top: 1px solid @border-color;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: @gray-3;
+    border-radius: 0 0 @border-radius-lg @border-radius-lg;
+    
+    .pagination-info {
+      color: @text-color-secondary;
+      font-size: @font-size-sm;
     }
   }
 }
 
-// ┌─ 图表容器高度（ECharts 专用）
-// └─ 现代化尺寸 + 响应式
-.chart-box {
-  height: 280px;
-  border-radius: @radius-md;
-  overflow: hidden;
-  background: @color-background;
-  transition: background @transition-normal;
+// ==================== 状态标签 ====================
 
-  @media (max-width: 1024px) {
-    height: 240px;
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px @space-sm;
+  border-radius: @border-radius-sm;
+  font-size: @font-size-xs;
+  font-weight: @font-weight-medium;
+  
+  &.status-success,
+  &.status-active {
+    background: rgba(82, 196, 26, 0.1);
+    color: @success-color;
   }
-
-  @media (max-width: 768px) {
-    height: 200px;
+  
+  &.status-warning {
+    background: rgba(250, 173, 20, 0.1);
+    color: @warning-color;
   }
-
-  @media (max-width: 480px) {
-    height: 160px;
+  
+  &.status-error,
+  &.status-danger {
+    background: rgba(255, 77, 79, 0.1);
+    color: @error-color;
   }
-
-  // 为 ECharts 内部元素提供最优显示
-  canvas {
-    width: 100% !important;
-    height: 100% !important;
+  
+  &.status-info {
+    background: rgba(24, 144, 255, 0.1);
+    color: @primary-color;
+  }
+  
+  &.status-disabled {
+    background: @gray-3;
+    color: @text-color-disabled;
+  }
+  
+  // 带圆点
+  &.has-dot {
+    &::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      margin-right: @space-xs;
+    }
   }
 }
 
-// ┌─ 消息提示样式升级
-// └─ 应用新的设计系统
-.ui.message {
-  margin: @space-md 0 !important;
-  padding: @space-md @space-lg !important;
-  border-radius: @radius-lg !important;
-  border-left: 4px solid transparent !important;
-  background: @color-surface !important;
-  color: @color-text !important;
-  transition: all @transition-normal !important;
+// ==================== 快速操作 ====================
 
-  &.warning {
-    background: rgba(237, 137, 54, 0.08) !important;
-    border-left-color: @color-warning !important;
-
-    &:before {
-      color: @color-warning !important;
-    }
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: @space-base;
+  margin-bottom: @space-lg;
+  
+  @media @md {
+    grid-template-columns: repeat(2, 1fr);
   }
-
-  &.error {
-    background: rgba(245, 101, 101, 0.08) !important;
-    border-left-color: @color-error !important;
-
-    &:before {
-      color: @color-error !important;
-    }
+  
+  @media @xs {
+    grid-template-columns: 1fr;
   }
-
-  &.loading {
-    background: rgba(102, 126, 234, 0.05) !important;
-    border-left-color: @color-brand !important;
-  }
-
-  a {
-    color: @color-brand !important;
+  
+  .action-item {
+    background: @component-background;
+    border: 1px solid @border-color;
+    border-radius: @border-radius-lg;
+    padding: @space-lg;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    transition: @transition-base;
     text-decoration: none;
-    transition: color @transition-fast !important;
-
+    
     &:hover {
-      color: @color-brand-hover !important;
-      text-decoration: underline;
+      border-color: @primary-color;
+      color: @primary-color;
+      
+      .action-icon {
+        background: @primary-color;
+        color: white;
+      }
     }
-  }
-
-  .close {
-    color: @color-text-secondary !important;
-    transition: color @transition-fast !important;
-
-    &:hover {
-      color: @color-text !important;
+    
+    .action-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(24, 144, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: @space-sm;
+      transition: @transition-base;
+      
+      i.icon {
+        font-size: 20px;
+        color: @primary-color;
+      }
     }
-  }
-
-  a .icon {
-    position: absolute;
-    right: @space-lg;
-    top: @space-md;
-    cursor: pointer;
-    transition: transform @transition-fast;
-
-    &:hover {
-      transform: scale(1.2);
+    
+    .action-title {
+      font-size: @font-size-base;
+      font-weight: @font-weight-medium;
+      color: @text-color;
+      margin-bottom: @space-xs;
     }
-  }
-
-  @media (max-width: 768px) {
-    padding: @space-md !important;
-    font-size: @font-size-sm !important;
+    
+    .action-desc {
+      font-size: @font-size-sm;
+      color: @text-color-secondary;
+    }
   }
 }
 
-// ┌─ Tab 选项卡升级（流量切换）
-// └─ 现代风格 + 完整交互反馈
-.ui.menu.text.blue {
-  margin: 0 !important;
-  margin-bottom: @space-md !important;
-  padding: @space-sm @space-md !important;
-  background: @color-background !important;
-  border-bottom: 2px solid @color-border !important;
+// ==================== 消息提示 ====================
+
+.dashboard-messages {
+  margin-bottom: @space-lg;
+  
+  .ui.message {
+    margin-bottom: @space-sm;
+  }
+}
+
+// ==================== 响应式调整 ====================
+
+@media @md {
+  .stat-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media @xs {
+  .stat-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ==================== 加载状态 ====================
+
+.loading-container {
   display: flex;
-  flex-wrap: wrap;
-  gap: @space-sm;
-
-  .item {
-    padding: @space-sm @space-md !important;
-    margin: 0 !important;
-    font-size: @font-size-sm !important;
-    color: @color-text-secondary !important;
-    border-radius: @radius-sm !important;
-    border: none !important;
-    background: transparent !important;
-    cursor: pointer;
-    transition: all @transition-normal !important;
-
-    &:hover {
-      color: @color-brand !important;
-      background: rgba(102, 126, 234, 0.06) !important;
-    }
-
-    &.active {
-      color: @color-brand !important;
-      font-weight: @font-weight-semibold !important;
-      background: rgba(102, 126, 234, 0.12) !important;
-      border-bottom: 2px solid @color-brand !important;
-      padding-bottom: calc(@space-sm - 2px) !important;
-    }
-  }
-
-  @media (max-width: 768px) {
-    gap: @space-xs;
-
-    .item {
-      padding: @space-xs @space-sm !important;
-      font-size: 12px !important;
-    }
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: @space-xl;
+  color: @text-color-secondary;
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid @border-color;
+    border-top-color: @primary-color;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: @space-base;
   }
 }
 
-// ┌─ 分隔线优化
-// └─ 更细、更现代
-.ui.divider {
-  margin: @space-md 0 !important;
-  border-color: @color-border !important;
-  opacity: 0.5;
-  transition: opacity @transition-fast;
-
-  &:hover {
-    opacity: 1;
-  }
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-// ┌─ 卡片标题副标题
-// └─ 改进排版和颜色层级
-h4 {
-  margin: 0 0 @space-md 0 !important;
-  font-size: @font-size-lg !important;
-  font-weight: @font-weight-semibold !important;
-  color: @color-text !important;
-  line-height: @line-height-tight;
+// ==================== 空状态 ====================
 
-  span {
-    font-size: @font-size-xs;
-    color: @color-text-secondary;
-    font-weight: @font-weight-normal;
-    margin-left: @space-sm;
-    display: inline-block;
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: @space-xl;
+  color: @text-color-tertiary;
+  
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: @space-base;
+    opacity: 0.5;
   }
-
-  @media (max-width: 768px) {
-    font-size: @font-size-base !important;
+  
+  .empty-text {
+    font-size: @font-size-base;
+    margin-bottom: @space-sm;
   }
-}
-
-// ┌─ 活跃指示器
-// └─ 增强视觉反馈
-.active {
-  position: relative;
-
-  &:after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: @color-brand;
-    border-radius: 1px;
-    transition: all @transition-normal;
+  
+  .empty-action {
+    margin-top: @space-base;
   }
 }

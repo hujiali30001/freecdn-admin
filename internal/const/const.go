@@ -2,7 +2,7 @@ package teaconst
 
 const (
 	// FreeCDN 版本（基于 GoEdge v1.3.9 安全基线）
-	Version = "0.10.0"
+	Version = "0.11.0"
 
 	// APINodeVersion 期望的 API 节点版本，与 Version 保持一致，只检测自己 Release 的版本
 	APINodeVersion = Version

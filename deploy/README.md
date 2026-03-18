@@ -34,10 +34,10 @@ docker compose -f deploy/docker-compose.yml up -d
 docker compose -f deploy/docker-compose.yml logs -f freecdn-admin
 ```
 
-初始化完成后，访问 `http://你的服务器IP:7788`，使用以下默认账号登录：
+初始化完成后，访问 `http://你的服务器IP:7788`，使用 `deploy/.env` 中配置的管理员账号登录：
 
-- 用户名：`admin`（或 `.env` 中 `ADMIN_USERNAME` 的值）
-- 密码：`REDACTED_SSH_PASS`（或 `.env` 中 `ADMIN_PASSWORD` 的值）
+- 用户名：`.env` 中 `ADMIN_USERNAME` 的值（默认 `admin`）
+- 密码：`.env` 中 `ADMIN_PASSWORD` 的值（必须自行设置强密码）
 
 ---
 
@@ -72,7 +72,7 @@ docker compose -f deploy/docker-compose.yml logs -f freecdn-admin
 |------|--------|------|
 | `MYSQL_ROOT_PASSWORD` | `REDACTED_ROOT_PASS` | MySQL root 密码，建议修改 |
 | `MYSQL_PASSWORD` | `REDACTED_DB_PASS` | FreeCDN 用户密码，建议修改 |
-| `ADMIN_PASSWORD` | `REDACTED_SSH_PASS` | 管理后台初始密码，建议修改 |
+| `ADMIN_PASSWORD` | 无默认值 | 管理后台初始密码，必须设置强密码 |
 | `ADMIN_PORT` | `7788` | 管理后台端口 |
 | `API_PORT` | `8003` | EdgeAPI RPC 端口 |
 | `TZ` | `Asia/Shanghai` | 时区 |

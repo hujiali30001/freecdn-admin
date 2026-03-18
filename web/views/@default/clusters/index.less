@@ -1,169 +1,330 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// FreeCDN Clusters — 集群管理现代化升级（v0.10.0）
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * FreeCDN 集群页面样式 v0.11.0
+ * 现代简约风格
+ */
 
-// 导入设计系统
-@import "../@design_tokens.less";
+// ==================== 页面头部 ====================
 
-// ┌─ 集群名称单元格
-// └─ 操作图标悬停显示 + 现代交互
-.cluster-name-td {
-  position: relative;
-  padding: @space-md !important;
-  transition: all @transition-normal;
-
-  .icon {
-    transition: all @transition-fast;
-
-    &.pin {
-      display: none;
-      position: absolute;
-      right: calc(@space-lg * 2);
-      top: 50%;
-      transform: translateY(-50%);
-      opacity: 0;
-      cursor: pointer;
-      color: @color-text-secondary;
-      transition: all @transition-fast;
-
+.page-header {
+  margin-bottom: @space-lg;
+  
+  h1, h2, h3 {
+    margin: 0 0 @space-sm;
+    font-weight: @font-weight-semibold;
+    color: @text-color;
+  }
+  
+  .breadcrumb {
+    font-size: @font-size-sm;
+    color: @text-color-secondary;
+    margin-bottom: @space-base;
+    
+    a {
+      color: @text-color-secondary;
+      
       &:hover {
-        color: @color-brand;
-        transform: translateY(-50%) scale(1.2);
+        color: @primary-color;
       }
     }
+    
+    .divider {
+      margin: 0 @space-xs;
+    }
+  }
+}
 
-    &.visible {
-      display: inline;
-      opacity: 0.8;
-      transition: opacity @transition-fast;
+// ==================== 工具栏 ====================
 
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: @space-base;
+  flex-wrap: wrap;
+  gap: @space-sm;
+  
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: @space-sm;
+  }
+  
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: @space-sm;
+  }
+  
+  .search-box {
+    position: relative;
+    
+    input {
+      height: @input-height-base;
+      width: 240px;
+      padding: @space-sm @space-base @space-sm 36px;
+      border: 1px solid @border-color;
+      border-radius: @border-radius-base;
+      font-size: @font-size-sm;
+      transition: @transition-base;
+      
       &:hover {
+        border-color: @primary-color-hover;
+      }
+      
+      &:focus {
+        border-color: @primary-color;
+        box-shadow: 0 0 0 2px @primary-color-outline;
+        outline: none;
+      }
+    }
+    
+    i.icon.search {
+      position: absolute;
+      left: @space-base;
+      top: 50%;
+      transform: translateY(-50%);
+      color: @text-color-tertiary;
+    }
+  }
+}
+
+// ==================== 集群卡片列表 ====================
+
+.cluster-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: @space-base;
+}
+
+.cluster-card {
+  background: @component-background;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-lg;
+  padding: @space-lg;
+  transition: @transition-base;
+  cursor: pointer;
+  
+  &:hover {
+    border-color: @primary-color;
+    box-shadow: @card-shadow;
+  }
+  
+  .cluster-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: @space-base;
+    
+    .cluster-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: @border-radius-base;
+      background: rgba(24, 144, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: @space-base;
+      
+      i.icon {
+        font-size: 18px;
+        color: @primary-color;
+      }
+    }
+    
+    .cluster-info {
+      flex: 1;
+      
+      .cluster-name {
+        font-size: @font-size-lg;
+        font-weight: @font-weight-medium;
+        color: @text-color;
+        margin-bottom: 2px;
+      }
+      
+      .cluster-id {
+        font-size: @font-size-xs;
+        color: @text-color-tertiary;
+      }
+    }
+  }
+  
+  .cluster-stats {
+    display: flex;
+    gap: @space-lg;
+    margin-bottom: @space-base;
+    
+    .stat-item {
+      .stat-label {
+        font-size: @font-size-xs;
+        color: @text-color-secondary;
+        margin-bottom: 2px;
+      }
+      
+      .stat-value {
+        font-size: @font-size-lg;
+        font-weight: @font-weight-semibold;
+        color: @text-color;
+      }
+    }
+  }
+  
+  .cluster-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: @space-xs;
+      font-size: @font-size-sm;
+      
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        
+        &.active { background: @success-color; }
+        &.inactive { background: @text-color-disabled; }
+        &.warning { background: @warning-color; }
+        &.error { background: @error-color; }
+      }
+      
+      .status-text {
+        color: @text-color-secondary;
+      }
+    }
+    
+    .cluster-actions {
+      display: flex;
+      gap: @space-xs;
+      opacity: 0;
+      transition: opacity @transition-duration @ease-in-out;
+    }
+    
+    &:hover .cluster-actions {
+      opacity: 1;
+    }
+  }
+}
+
+// ==================== 表格样式 ====================
+
+.data-table {
+  background: @component-background;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-lg;
+  overflow: hidden;
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    
+    th, td {
+      padding: @space-base @space-lg;
+      text-align: left;
+      border-bottom: 1px solid @border-color-split;
+    }
+    
+    th {
+      background: @gray-3;
+      font-weight: @font-weight-medium;
+      color: @text-color-secondary;
+      font-size: @font-size-sm;
+    }
+    
+    tr {
+      transition: background-color @transition-duration @ease-in-out;
+      
+      &:hover {
+        background: @gray-3;
+      }
+      
+      &:last-child td {
+        border-bottom: none;
+      }
+    }
+    
+    td {
+      color: @text-color;
+      
+      &.name-cell {
+        display: flex;
+        align-items: center;
+        
+        .name-text {
+          flex: 1;
+        }
+        
+        .edit-btn {
+          opacity: 0;
+          margin-left: @space-sm;
+          transition: opacity @transition-duration @ease-in-out;
+        }
+      }
+      
+      &:hover .edit-btn {
         opacity: 1;
       }
     }
-
-    &.opacity {
-      opacity: 0.4;
-    }
-
-    &.setting {
-      display: none;
-      position: absolute;
-      right: @space-lg;
-      top: 50%;
-      transform: translateY(-50%);
-      opacity: 0;
-      cursor: pointer;
-      color: @color-text-secondary;
-      transition: all @transition-fast;
-
-      &:hover {
-        color: @color-brand;
-        transform: translateY(-50%) scale(1.2);
-      }
-    }
-  }
-
-  &:hover {
-    background: rgba(102, 126, 234, 0.04);
-    border-radius: @radius-sm;
-
-    .icon.pin {
-      display: inline;
-      opacity: 1;
-    }
-
-    .icon.setting {
-      display: inline;
-      opacity: 1;
-    }
   }
 }
 
-// ┌─ 集群状态指示
-// └─ 清晰的视觉反馈
-.cluster-status {
+// ==================== 节点状态 ====================
+
+.node-status {
   display: inline-flex;
   align-items: center;
-  gap: @space-sm;
-  padding: @space-xs @space-sm;
-  border-radius: @radius-sm;
+  gap: @space-xs;
+  padding: 2px @space-sm;
+  border-radius: @border-radius-sm;
   font-size: @font-size-xs;
   font-weight: @font-weight-medium;
-
-  &.active {
-    background: rgba(72, 187, 120, 0.12);
-    color: @color-success;
-
-    &:before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: @color-success;
-      animation: pulse 2s infinite;
-    }
+  
+  &.status-active {
+    background: rgba(82, 196, 26, 0.1);
+    color: @success-color;
   }
-
-  &.inactive {
-    background: rgba(160, 174, 192, 0.12);
-    color: @color-text-secondary;
-
-    &:before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: @color-text-secondary;
-    }
+  
+  &.status-inactive {
+    background: @gray-3;
+    color: @text-color-tertiary;
   }
-
-  &.warning {
-    background: rgba(237, 137, 54, 0.12);
-    color: @color-warning;
-
-    &:before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: @color-warning;
-      animation: pulse 1s infinite;
-    }
+  
+  &.status-warning {
+    background: rgba(250, 173, 20, 0.1);
+    color: @warning-color;
+  }
+  
+  &.status-error {
+    background: rgba(255, 77, 79, 0.1);
+    color: @error-color;
+  }
+  
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
   }
 }
 
-// ┌─ 脉冲动画（用于活跃状态）
-// └─ 提高视觉吸引力
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
+// ==================== 响应式 ====================
+
+@media @md {
+  .cluster-cards {
+    grid-template-columns: 1fr;
   }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-// ┌─ 操作按钮组
-// └─ 响应式布局
-.cluster-actions {
-  display: flex;
-  gap: @space-sm;
-  flex-wrap: wrap;
-
-  @media (max-width: 768px) {
-    gap: @space-xs;
-
-    .btn {
-      padding: @space-xs @space-sm !important;
-      font-size: @font-size-xs !important;
-    }
-  }
-
-  @media (max-width: 480px) {
+  
+  .toolbar {
     flex-direction: column;
-
-    .btn {
+    align-items: stretch;
+    
+    .toolbar-left,
+    .toolbar-right {
+      width: 100%;
+    }
+    
+    .search-box input {
       width: 100%;
     }
   }

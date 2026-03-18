@@ -1,4 +1,0 @@
-docs: add v0.9.2 release notes and deployment scripts
-- v092_release_notes.md: 详细的版本发布说明
-- deploy_css.sh: WSL 部署脚本
-- deploy_ui.py: Python 部署工具

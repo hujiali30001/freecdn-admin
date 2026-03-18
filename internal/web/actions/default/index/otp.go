@@ -4,7 +4,6 @@ package index
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
@@ -22,7 +21,6 @@ import (
 	"github.com/iwind/TeaGo/actions"
 	"github.com/iwind/TeaGo/maps"
 	"github.com/iwind/TeaGo/rands"
-	stringutil "github.com/iwind/TeaGo/utils/string"
 	"github.com/xlzd/gotp"
 )
 
@@ -54,8 +52,7 @@ func (this *OtpAction) RunGet(params struct {
 	this.Data["isUser"] = false
 	this.Data["menu"] = "signIn"
 
-	var timestamp = fmt.Sprintf("%d", time.Now().Unix())
-	this.Data["token"] = stringutil.Md5(TokenKey+timestamp) + timestamp
+	this.Data["token"] = buildLoginToken(this.Session().Sid, time.Now())
 	this.Data["from"] = params.From
 	this.Data["sid"] = params.Sid
 

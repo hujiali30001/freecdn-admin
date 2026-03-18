@@ -1526,3 +1526,231 @@
     page-break-inside: avoid;
   }
 }
+
+/* ==================== 登录页面样式 ==================== */
+
+/* 页面容器 - 垂直水平居中 */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* 登录卡片容器 */
+.form-box {
+  width: 100%;
+  max-width: 420px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 登录表单 */
+.form-box form {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  padding: 40px 40px 32px;
+  width: 100%;
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 表单内的 segment */
+.form-box .ui.segment.stacked {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* 标题区域 */
+.form-box .ui.header {
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.form-box .comment {
+  text-align: center;
+  color: #718096;
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+
+/* 表单字段 */
+.form-box .ui.field {
+  margin-bottom: 16px;
+}
+
+.form-box .ui.field:last-child {
+  margin-bottom: 0;
+}
+
+/* 输入框 */
+.form-box .ui.input {
+  width: 100%;
+}
+
+.form-box .ui.left.icon.input {
+  position: relative;
+}
+
+.form-box .ui.left.icon.input i.icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a0aec0;
+  font-size: 14px;
+}
+
+.form-box .ui.left.icon.input input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px 0 42px;
+  font-size: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #2d3748;
+  transition: all 200ms ease;
+}
+
+.form-box .ui.left.icon.input input::placeholder {
+  color: #cbd5e0;
+}
+
+.form-box .ui.left.icon.input input:hover {
+  border-color: #667eea;
+}
+
+.form-box .ui.left.icon.input input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* 登录按钮 */
+.form-box button.ui.button.primary {
+  width: 100%;
+  height: 44px;
+  font-size: 15px;
+  font-weight: 500;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 10px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 200ms ease;
+  margin-top: 8px;
+}
+
+.form-box button.ui.button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.form-box button.ui.button.primary:active {
+  transform: translateY(0);
+}
+
+.form-box button.ui.button.primary.disabled,
+.form-box button.ui.button.primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 更多选项 */
+.form-box .ui.field a {
+  color: #718096;
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 150ms;
+}
+
+.form-box .ui.field a:hover {
+  color: #667eea;
+}
+
+.form-box .ui.field a i.icon {
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+/* 复选框 */
+.form-box .ui.checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.form-box .ui.checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.form-box .ui.checkbox label {
+  color: #718096;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* 响应式 */
+@media (max-width: 480px) {
+  .form-box {
+    max-width: 100%;
+    padding: 0 16px;
+  }
+  
+  .form-box form {
+    padding: 32px 24px 24px;
+    border-radius: 12px;
+  }
+  
+  .form-box .ui.header {
+    font-size: 20px;
+  }
+}
+
+/* 菜单隐藏 */
+.menu {
+  display: none;
+}
+
+/* CSRF token 隐藏 */
+csrf-token {
+  display: none;
+}
+
+/* 隐藏的 input */
+input[type="hidden"] {
+  display: none;
+}

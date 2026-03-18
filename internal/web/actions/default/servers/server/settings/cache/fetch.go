@@ -16,6 +16,9 @@ import (
 	"github.com/iwind/TeaGo/types"
 )
 
+const maxCacheTaskKeys = 1000
+const maxCacheTaskKeyLength = 2048
+
 type FetchAction struct {
 	actionutils.ParentAction
 }
@@ -63,6 +66,7 @@ func (this *FetchAction) RunPost(params struct {
 	var cache = webConfig.Cache
 	if cache == nil || !cache.IsOn {
 		this.Fail("当前没有开启缓存")
+		return
 	}
 
 	serverResp, err := this.RPC().ServerRPC().FindEnabledUserServerBasic(this.AdminContext(), &pb.FindEnabledUserServerBasicRequest{ServerId: params.ServerId})
@@ -91,6 +95,7 @@ func (this *FetchAction) RunPost(params struct {
 	var cachePolicyId = cluster.HttpCachePolicyId
 	if cachePolicyId == 0 {
 		this.Fail("当前集群没有设置缓存策略")
+		return
 	}
 
 	cachePolicyResp, err := this.RPC().HTTPCachePolicyRPC().FindEnabledHTTPCachePolicyConfig(this.AdminContext(), &pb.FindEnabledHTTPCachePolicyConfigRequest{HttpCachePolicyId: cachePolicyId})
@@ -101,10 +106,12 @@ func (this *FetchAction) RunPost(params struct {
 	cachePolicyJSON := cachePolicyResp.HttpCachePolicyJSON
 	if len(cachePolicyJSON) == 0 {
 		this.Fail("找不到要操作的缓存策略")
+		return
 	}
 
 	if len(params.Keys) == 0 {
 		this.Fail("请输入要预热的Key列表")
+		return
 	}
 
 	realKeys := []string{}
@@ -116,7 +123,15 @@ func (this *FetchAction) RunPost(params struct {
 		if lists.ContainsString(realKeys, key) {
 			continue
 		}
+		if len(key) > maxCacheTaskKeyLength {
+			this.Fail("存在过长的Key，请缩短后重试")
+			return
+		}
 		realKeys = append(realKeys, key)
+		if len(realKeys) > maxCacheTaskKeys {
+			this.Fail("单次最多提交" + types.String(maxCacheTaskKeys) + "个Key")
+			return
+		}
 	}
 
 	// 校验Key
@@ -138,6 +153,7 @@ func (this *FetchAction) RunPost(params struct {
 	this.Data["failKeys"] = failKeyMaps
 	if len(failKeyMaps) > 0 {
 		this.Fail("有" + types.String(len(failKeyMaps)) + "个Key无法完成操作，请删除后重试")
+		return
 	}
 
 	// 提交任务

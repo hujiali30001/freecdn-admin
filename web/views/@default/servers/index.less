@@ -1,246 +1,300 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// FreeCDN Servers — 服务管理现代化升级（v0.10.0）
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * FreeCDN 服务页面样式 v0.11.0
+ * 现代简约风格
+ */
 
-// 导入设计系统
-@import "../@design_tokens.less";
+// ==================== 页面布局 ====================
 
-// ┌─ 消息容器优化
-// └─ 改进关闭按钮和内容间距
-.ui.message {
-  margin: @space-md 0 !important;
-  padding: @space-lg !important;
-  border-radius: @radius-lg !important;
-  border-left: 4px solid transparent !important;
-  background: @color-surface !important;
-  transition: all @transition-normal !important;
-
-  &.warning {
-    background: rgba(237, 137, 54, 0.08) !important;
-    border-left-color: @color-warning !important;
+.servers-page {
+  .page-header {
+    margin-bottom: @space-lg;
   }
-
-  &.error {
-    background: rgba(245, 101, 101, 0.08) !important;
-    border-left-color: @color-error !important;
-  }
-
-  .icon.remove {
-    position: absolute;
-    right: @space-lg;
-    top: @space-md;
-    cursor: pointer;
-    opacity: 0.6;
-    transition: opacity @transition-fast;
-
-    &:hover {
-      opacity: 1;
-    }
-  }
-
-  .content {
-    padding-right: @space-lg;
-  }
-
-  @media (max-width: 768px) {
-    padding: @space-md !important;
-    font-size: @font-size-sm !important;
-
-    .icon.remove {
-      right: @space-md;
-      top: @space-sm;
+  
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: @space-base;
+    flex-wrap: wrap;
+    gap: @space-sm;
+    
+    .search-input {
+      width: 280px;
+      height: @input-height-base;
+      padding: @space-sm @space-base;
+      border: 1px solid @border-color;
+      border-radius: @border-radius-base;
+      font-size: @font-size-sm;
+      transition: @transition-base;
+      
+      &:focus {
+        border-color: @primary-color;
+        box-shadow: 0 0 0 2px @primary-color-outline;
+        outline: none;
+      }
     }
   }
 }
 
-// ┌─ 节点日志容器
-// └─ 可滚动的日志列表
-.node-logs-box {
-  max-height: 280px;
-  overflow-y: auto;
-  padding: @space-md;
-  background: @color-background;
-  border: 1px solid @color-border;
-  border-radius: @radius-md;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: @font-size-xs;
-  line-height: @line-height-relaxed;
-  color: @color-text-secondary;
+// ==================== 服务列表表格 ====================
 
-  @media (max-width: 768px) {
-    max-height: 200px;
-    font-size: 11px;
-  }
-}
-
-// ┌─ 自定义滚动条（Webkit 浏览器）
-// └─ 现代风格滚动条
-.node-logs-box::-webkit-scrollbar {
-  width: 6px;
-}
-
-.node-logs-box::-webkit-scrollbar-track {
-  background: @color-background;
-  border-radius: 10px;
-}
-
-.node-logs-box::-webkit-scrollbar-thumb {
-  background: rgba(102, 126, 234, 0.3);
-  border-radius: 10px;
-  transition: background @transition-normal;
-
-  &:hover {
-    background: rgba(102, 126, 234, 0.5);
-  }
-}
-
-// ┌─ 服务复选框单元格
-// └─ 悬停显示 + 响应式
-.server-checkbox-td {
-  text-align: center;
-  width: 50px;
-
-  .checkbox {
-    opacity: 0.5;
-    cursor: pointer;
-    transition: opacity @transition-fast;
-  }
-
-  &:hover .checkbox {
-    opacity: 1;
-  }
-
-  @media (max-width: 768px) {
-    width: 40px;
-  }
-}
-
-// ┌─ 服务名称单元格
-// └─ 悬停显示编辑按钮
-.server-name-td {
-  position: relative;
-  padding: @space-md !important;
-  transition: all @transition-normal;
-
-  .icon.setting {
-    display: none;
-    position: absolute;
-    right: @space-lg;
-    top: 50%;
-    transform: translateY(-50%);
-    opacity: 0;
-    cursor: pointer;
-    color: @color-text-secondary;
-    transition: all @transition-fast;
-  }
-
-  &:hover {
-    background: rgba(102, 126, 234, 0.04);
-    border-radius: @radius-sm;
-
-    .icon.setting {
-      display: inline;
-      opacity: 1;
-
+.servers-table {
+  background: @component-background;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-lg;
+  overflow: hidden;
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    
+    thead {
+      background: @gray-3;
+      
+      th {
+        padding: @space-base @space-lg;
+        text-align: left;
+        font-weight: @font-weight-medium;
+        color: @text-color-secondary;
+        font-size: @font-size-sm;
+        border-bottom: 1px solid @border-color;
+      }
+    }
+    
+    tbody tr {
+      border-bottom: 1px solid @border-color-split;
+      transition: background-color @transition-duration @ease-in-out;
+      
       &:hover {
-        color: @color-brand;
-        transform: translateY(-50%) scale(1.2);
+        background: @gray-3;
       }
-    }
-  }
-
-  @media (max-width: 768px) {
-    padding: @space-sm !important;
-
-    .icon.setting {
-      right: @space-sm;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      td {
+        padding: @space-base @space-lg;
+        vertical-align: middle;
+        
+        &.checkbox-cell {
+          width: 48px;
+          
+          input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: @primary-color;
+          }
+        }
+        
+        &.name-cell {
+          .server-name {
+            display: flex;
+            align-items: center;
+            gap: @space-sm;
+            
+            .name-text {
+              color: @text-color;
+              font-weight: @font-weight-medium;
+            }
+            
+            .edit-icon {
+              opacity: 0;
+              color: @primary-color;
+              cursor: pointer;
+              transition: opacity @transition-duration @ease-in-out;
+            }
+          }
+          
+          &:hover .edit-icon {
+            opacity: 1;
+          }
+        }
+        
+        &.status-cell {
+          .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: @space-xs;
+            padding: 2px @space-sm;
+            border-radius: @border-radius-sm;
+            font-size: @font-size-xs;
+            
+            &.running {
+              background: rgba(82, 196, 26, 0.1);
+              color: @success-color;
+            }
+            
+            &.stopped {
+              background: rgba(255, 77, 79, 0.1);
+              color: @error-color;
+            }
+          }
+        }
+        
+        &.bandwidth-cell {
+          .bandwidth {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            
+            .value {
+              font-weight: @font-weight-medium;
+              color: @text-color;
+            }
+            
+            .unit {
+              font-size: @font-size-xs;
+              color: @text-color-secondary;
+            }
+          }
+        }
+      }
     }
   }
 }
 
-// ┌─ 带宽统计显示
-// └─ 区分单位和数值
-.bandwidth-span {
-  display: inline-flex;
-  align-items: baseline;
-  gap: @space-xs;
+// ==================== 批量操作栏 ====================
 
-  var {
-    font-style: normal;
-    font-size: @font-size-xs;
-    color: @color-text-secondary;
+.batch-actions {
+  display: flex;
+  align-items: center;
+  gap: @space-base;
+  padding: @space-base @space-lg;
+  background: @gray-3;
+  border-radius: @border-radius-base;
+  margin-bottom: @space-base;
+  
+  .selected-count {
+    color: @text-color-secondary;
+    font-size: @font-size-sm;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: @space-sm;
+  }
+}
 
-    span {
-      font-size: @font-size-base;
-      color: @color-text;
+// ==================== 消息提示 ====================
+
+.messages-container {
+  margin-bottom: @space-base;
+  
+  .ui.message {
+    display: flex;
+    align-items: flex-start;
+    padding: @space-base @space-lg;
+    border-radius: @border-radius-base;
+    margin-bottom: @space-sm;
+    
+    .close-btn {
+      margin-left: auto;
+      cursor: pointer;
+      opacity: 0.5;
+      
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// ==================== 服务详情侧边栏 ====================
+
+.server-detail-sidebar {
+  position: fixed;
+  right: 0;
+  top: @layout-header-height;
+  bottom: 0;
+  width: 400px;
+  background: @component-background;
+  border-left: 1px solid @border-color;
+  padding: @space-lg;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform @transition-duration-slow @ease-in-out;
+  z-index: @zindex-fixed;
+  
+  &.open {
+    transform: translateX(0);
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: @space-lg;
+    padding-bottom: @space-base;
+    border-bottom: 1px solid @border-color;
+    
+    h3 {
+      margin: 0;
+      font-size: @font-size-lg;
+      font-weight: @font-weight-semibold;
+    }
+    
+    .close-btn {
+      cursor: pointer;
+      color: @text-color-secondary;
+      
+      &:hover {
+        color: @text-color;
+      }
+    }
+  }
+  
+  .detail-section {
+    margin-bottom: @space-lg;
+    
+    .section-title {
+      font-size: @font-size-sm;
       font-weight: @font-weight-medium;
+      color: @text-color-secondary;
+      margin-bottom: @space-sm;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-  }
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 0;
-
-    var {
-      span {
-        display: block;
+    
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      padding: @space-sm 0;
+      border-bottom: 1px solid @border-color-split;
+      
+      &:last-child {
+        border-bottom: none;
       }
-    }
-  }
-}
-
-// ┌─ 表格数值列宽度
-// └─ 统一列宽管理
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  transition: all @transition-normal;
-
-  th.value-column {
-    width: 120px;
-    text-align: center;
-
-    @media (max-width: 1024px) {
-      width: 100px;
-    }
-
-    @media (max-width: 768px) {
-      width: 80px;
-      font-size: @font-size-xs;
-      padding: @space-sm !important;
-    }
-  }
-
-  tr {
-    transition: background @transition-fast;
-
-    &:hover {
-      background: rgba(102, 126, 234, 0.04);
-    }
-
-    td, th {
-      padding: @space-md !important;
-      vertical-align: middle;
-
-      @media (max-width: 768px) {
-        padding: @space-sm !important;
+      
+      .label {
+        color: @text-color-secondary;
+        font-size: @font-size-sm;
+      }
+      
+      .value {
+        color: @text-color;
+        font-weight: @font-weight-medium;
         font-size: @font-size-sm;
       }
     }
   }
+}
 
-  thead {
-    background: @color-background;
-    border-bottom: 2px solid @color-border;
-    font-weight: @font-weight-semibold;
-    color: @color-brand;
-  }
+// ==================== 响应式 ====================
 
-  tbody tr {
-    border-bottom: 1px solid @color-border;
-
-    &:last-child {
-      border-bottom: none;
+@media @md {
+  .servers-table {
+    overflow-x: auto;
+    
+    table {
+      min-width: 800px;
     }
+  }
+  
+  .server-detail-sidebar {
+    width: 100%;
+    max-width: 400px;
   }
 }

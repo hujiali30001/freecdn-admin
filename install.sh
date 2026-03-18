@@ -60,7 +60,7 @@ API_ENDPOINT=""                 # node 模式必填
 NODE_ID=""                      # node 模式必填
 NODE_SECRET=""                  # node 模式必填
 
-FREECDN_VERSION="v0.9.2"        # FreeCDN 自己的 Release 版本
+FREECDN_VERSION="v0.11.0"       # FreeCDN 自己的 Release 版本
 FORCE_REINSTALL="false"
 
 # ── 参数解析 ───────────────────────────────────────────────────────────────────
@@ -299,19 +299,23 @@ fi
 # FreeCDN Release 包命名规则：
 #   freecdn-v0.6.0-linux-amd64.tar.gz
 
-GITHUB_REPO="hujiali30001/freecdn-admin"
+GITHUB_REPO="${FREECDN_GITHUB_REPO:-hujiali30001/freecdn-admin}"
 RELEASE_FILE="freecdn-${FREECDN_VERSION}-linux-${ARCH_TAG}.tar.gz"
 GITHUB_RELEASE_PATH="releases/download/${FREECDN_VERSION}/${RELEASE_FILE}"
 
 # GitHub 镜像站列表（国内常用，实测优先级排序）
 # gh-proxy.com 实测腾讯云广州约 1.6MB/s，排第一；ghfast.top 约 150KB/s 排第二兜底
-GITHUB_MIRRORS=(
-  "https://gh-proxy.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
-  "https://ghfast.top/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
-  "https://hub.gitmirror.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
-  "https://mirror.ghproxy.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
-  "https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
-)
+if [ -n "${FREECDN_RELEASE_URL:-}" ]; then
+  GITHUB_MIRRORS=("${FREECDN_RELEASE_URL}")
+else
+  GITHUB_MIRRORS=(
+    "https://gh-proxy.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
+    "https://ghfast.top/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
+    "https://hub.gitmirror.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
+    "https://mirror.ghproxy.com/https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
+    "https://github.com/${GITHUB_REPO}/${GITHUB_RELEASE_PATH}"
+  )
+fi
 
 # 探测最快的镜像站：
 # 策略：下载前 128KB 计算实际速度（bytes/s），选速度最快的；
@@ -470,7 +474,8 @@ if [ "$MODE" = "admin" ]; then
   elif [ -f "${API_DIR}/bin/edge-api" ]; then
     info "包中无 edge-api，保留现有版本（$(${API_DIR}/bin/edge-api -version 2>/dev/null || echo unknown)）"
   else
-    error "未找到 edge-api 二进制，请检查下载包（期望路径: $API_BIN）"
+    warn "未找到 edge-api 二进制，跳过 API 服务安装（仅更新管理后台 UI）"
+    warn "如需完整功能，请使用包含 edge-api 的完整发布包"
   fi
 
   # 安装 freecdn-init 二进制（数据库初始化工具）

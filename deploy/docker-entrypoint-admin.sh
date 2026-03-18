@@ -43,7 +43,11 @@ MYSQL_DATABASE="${MYSQL_DATABASE:-freecdn}"
 ADMIN_HTTP_PORT="${ADMIN_HTTP_PORT:-7788}"
 API_RPC_PORT="${API_RPC_PORT:-8003}"
 ADMIN_USERNAME="${ADMIN_USERNAME:-admin}"
-ADMIN_PASSWORD="${ADMIN_PASSWORD:-REDACTED_SSH_PASS}"
+ADMIN_PASSWORD="${ADMIN_PASSWORD:-}"
+
+if [ -z "${ADMIN_PASSWORD}" ] || [ "${ADMIN_PASSWORD}" = "REDACTED_SSH_PASS" ]; then
+  error "必须通过 ADMIN_PASSWORD 提供强密码，且不能使用默认占位密码"
+fi
 
 info "FreeCDN Admin 容器启动..."
 info "MySQL: ${MYSQL_USER}@${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}"
@@ -221,7 +225,7 @@ EOF
   chmod 600 "${WORKDIR}/configs/api_admin.yaml"
   info "生成 configs/api_admin.yaml（token=${ADMIN_TOKEN_NODE_ID:0:8}...）"
 
-  # ---- Step 6：创建管理员账号（MD5，首次登录自动升级为 bcrypt）----
+  # ---- Step 6：创建管理员账号 ----
   ADMIN_PASSWORD_MD5=$(echo -n "${ADMIN_PASSWORD}" | md5sum | cut -d' ' -f1)
   $MYSQL_CMD 2>/dev/null <<SQL || warn "edgeAdmins 插入失败（可能已存在，跳过）"
 INSERT IGNORE INTO edgeAdmins (id, isOn, username, password, isSuper, state, createdAt, updatedAt, canLogin)
@@ -233,7 +237,6 @@ SQL
   info "初始化完成！"
   info "  管理后台地址: http://<服务器IP>:${ADMIN_HTTP_PORT}"
   info "  用户名: ${ADMIN_USERNAME}"
-  info "  密  码: ${ADMIN_PASSWORD}"
   info "============================================"
 
 else

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"runtime"
 	"strings"
+	"sync/atomic"
 
 	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
@@ -33,10 +34,10 @@ func (this *IndexAction) RunGet(params struct {
 	this.Data["doCheck"] = params.DoCheck
 
 	// 是否正在升级
-	this.Data["isUpgrading"] = isUpgrading
-	this.Data["isUpgradingDB"] = isUpgradingDB
-	this.Data["upgradeProgress"] = fmt.Sprintf("%.2f", upgradeProgress * 100)
-	if isUpgrading {
+	this.Data["isUpgrading"] = atomic.LoadInt32(&isUpgrading) == 1
+	this.Data["isUpgradingDB"] = atomic.LoadInt32(&isUpgradingDB) == 1
+	this.Data["upgradeProgress"] = fmt.Sprintf("%.2f", float64(atomic.LoadUint32(&upgradeProgressBits)))
+	if atomic.LoadInt32(&isUpgrading) == 1 {
 		this.Data["doCheck"] = false
 	}
 

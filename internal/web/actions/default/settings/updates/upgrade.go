@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"sync/atomic"
 	"time"
 
 	"github.com/hujiali30001/freecdn-admin/internal/utils"
@@ -14,9 +15,9 @@ import (
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/settings/updates/updateutils"
 )
 
-var upgradeProgress float32
-var isUpgrading = false
-var isUpgradingDB = false
+var upgradeProgressBits uint32
+var isUpgrading int32
+var isUpgradingDB int32
 
 type UpgradeAction struct {
 	actionutils.ParentAction
@@ -24,25 +25,23 @@ type UpgradeAction struct {
 
 func (this *UpgradeAction) RunGet(params struct {
 }) {
-	this.Data["isUpgrading"] = isUpgrading
-	this.Data["isUpgradingDB"] = isUpgradingDB
-	this.Data["upgradeProgress"] = fmt.Sprintf("%.2f", upgradeProgress*100)
+	this.Data["isUpgrading"] = atomic.LoadInt32(&isUpgrading) == 1
+	this.Data["isUpgradingDB"] = atomic.LoadInt32(&isUpgradingDB) == 1
+	this.Data["upgradeProgress"] = fmt.Sprintf("%.2f", float64(atomic.LoadUint32(&upgradeProgressBits)))
 	this.Success()
 }
 
 func (this *UpgradeAction) RunPost(params struct {
 	Url string
 }) {
-	if isUpgrading {
+	if !atomic.CompareAndSwapInt32(&isUpgrading, 0, 1) {
 		this.Success()
 		return
 	}
-
-	isUpgrading = true
-	upgradeProgress = 0
+	atomic.StoreUint32(&upgradeProgressBits, 0)
 
 	defer func() {
-		isUpgrading = false
+		atomic.StoreInt32(&isUpgrading, 0)
 	}()
 
 	var manager = utils.NewUpgradeManager("admin", params.Url)
@@ -52,7 +51,7 @@ func (this *UpgradeAction) RunPost(params struct {
 			if manager.IsDownloading() {
 				var progress = manager.Progress()
 				if progress >= 0 {
-					upgradeProgress = progress
+					atomic.StoreUint32(&upgradeProgressBits, uint32(progress*100))
 				}
 			} else {
 				return
@@ -68,7 +67,7 @@ func (this *UpgradeAction) RunPost(params struct {
 	// try to exec local 'edge-api upgrade'
 	exePath, ok := updateutils.CheckLocalAPINode(this.RPC(), this.AdminContext())
 	if ok && len(exePath) > 0 {
-		isUpgradingDB = true
+		atomic.StoreInt32(&isUpgradingDB, 1)
 		var before = time.Now()
 		var cmd = executils.NewCmd(exePath, "upgrade")
 		_ = cmd.Run()
@@ -78,7 +77,7 @@ func (this *UpgradeAction) RunPost(params struct {
 		if costSeconds < 3 {
 			time.Sleep(3 * time.Second)
 		}
-		isUpgradingDB = false
+		atomic.StoreInt32(&isUpgradingDB, 0)
 	}
 
 	// restart

@@ -1,10 +1,7 @@
 /**
- * FreeCDN 基础表单组件
- * Button、Input、Select 等表单控件
- * 版本：v0.10.0
+ * FreeCDN 基础组件 v0.11.0
+ * 现代简约风格 - 参考 Ant Design
  */
-
-@import "@design_tokens.less";
 
 // ==================== 按钮 ====================
 
@@ -12,423 +9,696 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: @space-2;
-  font-family: @font-family-base;
-  border: none;
-  border-radius: @radius-md;
-  cursor: pointer;
-  font-weight: @font-weight-medium;
-  transition: @transition-fast;
-  white-space: nowrap;
-  user-select: none;
-  
-  // 默认标准尺寸
-  height: @btn-height-md;
-  padding: @btn-padding-md;
+  height: @btn-height-base;
+  padding: @space-sm @space-lg;
   font-size: @font-size-base;
+  font-weight: @font-weight-medium;
+  line-height: 1;
+  border-radius: @border-radius-base;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: @transition-base;
+  user-select: none;
+  white-space: nowrap;
   
-  &:focus {
-    outline: none;
+  // 主要按钮
+  &.btn-primary,
+  &.primary {
+    background: @primary-color;
+    color: white;
+    border-color: @primary-color;
+    
+    &:hover,
+    &:focus {
+      background: @primary-color-hover;
+      border-color: @primary-color-hover;
+    }
+    
+    &:active {
+      background: @primary-color-active;
+      border-color: @primary-color-active;
+    }
   }
   
-  // 小尺寸
-  &.btn-sm {
-    height: @btn-height-sm;
-    padding: @btn-padding-sm;
+  // 默认按钮
+  &.btn-default,
+  &.default {
+    background: @component-background;
+    color: @text-color;
+    border-color: @border-color;
+    
+    &:hover,
+    &:focus {
+      color: @primary-color;
+      border-color: @primary-color;
+    }
+    
+    &:active {
+      color: @primary-color-active;
+      border-color: @primary-color-active;
+    }
+  }
+  
+  // 虚线按钮
+  &.btn-dashed {
+    background: @component-background;
+    color: @text-color;
+    border-color: @border-color;
+    border-style: dashed;
+    
+    &:hover {
+      color: @primary-color;
+      border-color: @primary-color;
+    }
+  }
+  
+  // 文字按钮
+  &.btn-link,
+  &.link {
+    background: transparent;
+    color: @primary-color;
+    border-color: transparent;
+    padding: @space-sm @space-sm;
+    
+    &:hover {
+      color: @primary-color-hover;
+    }
+  }
+  
+  // 成功按钮
+  &.btn-success,
+  &.success {
+    background: @success-color;
+    color: white;
+    border-color: @success-color;
+    
+    &:hover {
+      background: @success-color-hover;
+      border-color: @success-color-hover;
+    }
+  }
+  
+  // 警告按钮
+  &.btn-warning,
+  &.warning {
+    background: @warning-color;
+    color: white;
+    border-color: @warning-color;
+    
+    &:hover {
+      background: @warning-color-hover;
+      border-color: @warning-color-hover;
+    }
+  }
+  
+  // 危险按钮
+  &.btn-danger,
+  &.danger,
+  &.negative {
+    background: @error-color;
+    color: white;
+    border-color: @error-color;
+    
+    &:hover {
+      background: @error-color-hover;
+      border-color: @error-color-hover;
+    }
+  }
+  
+  // 禁用状态
+  &.disabled,
+  &[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  
+  // 加载状态
+  &.loading {
+    position: relative;
+    color: transparent;
+    pointer-events: none;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      border-right-color: transparent;
+      animation: spin 0.75s linear infinite;
+    }
+    
+    &.btn-primary::after {
+      border-color: white;
+      border-right-color: transparent;
+    }
+  }
+  
+  // 图标
+  i.icon {
+    margin-right: @space-xs;
+    
+    &:only-child {
+      margin-right: 0;
+    }
+  }
+  
+  // 尺寸
+  &.btn-xs, &.xs { height: @btn-height-xs; padding: @space-xs @space-sm; font-size: @font-size-xs; }
+  &.btn-sm, &.small { height: @btn-height-sm; padding: @space-xs @space-base; font-size: @font-size-sm; }
+  &.btn-lg, &.large { height: @btn-height-lg; padding: @space-base @space-xl; font-size: @font-size-lg; }
+  
+  // 块级
+  &.btn-block, &.fluid { width: 100%; }
+  
+  // 图标按钮
+  &.btn-icon {
+    width: @btn-height-base;
+    padding: 0;
+    
+    &.btn-sm { width: @btn-height-sm; }
+    &.btn-lg { width: @btn-height-lg; }
+  }
+}
+
+// ==================== 输入框 ====================
+
+.form-input,
+.ui.input input,
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+input[type="url"] {
+  height: @input-height-base;
+  padding: @space-sm @space-base;
+  font-size: @font-size-base;
+  color: @text-color;
+  background: @component-background;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-base;
+  outline: none;
+  transition: @transition-base;
+  width: 100%;
+  
+  &:hover {
+    border-color: @primary-color-hover;
+  }
+  
+  &:focus {
+    border-color: @primary-color;
+    box-shadow: 0 0 0 2px @primary-color-outline;
+  }
+  
+  &::placeholder {
+    color: @text-color-disabled;
+  }
+  
+  &:disabled {
+    background: @gray-3;
+    color: @text-color-disabled;
+    cursor: not-allowed;
+    
+    &:hover {
+      border-color: @border-color;
+    }
+  }
+  
+  // 错误状态
+  &.error,
+  .field.error & {
+    border-color: @error-color;
+    
+    &:focus {
+      border-color: @error-color;
+      box-shadow: 0 0 0 2px @error-color-outline;
+    }
+  }
+  
+  // 尺寸
+  &.small, &.sm {
+    height: @input-height-sm;
+    padding: @space-xs @space-sm;
     font-size: @font-size-sm;
   }
   
-  // 大尺寸
-  &.btn-lg {
-    height: @btn-height-lg;
-    padding: @btn-padding-lg;
+  &.large, &.lg {
+    height: @input-height-lg;
+    padding: @space-base @space-lg;
     font-size: @font-size-lg;
   }
+}
+
+// 输入框组
+.input-group {
+  display: flex;
   
-  // 主按钮 - 渐变背景
-  &.btn-primary {
-    background: linear-gradient(90deg, @color-brand-primary 0%, @color-brand-secondary 100%);
-    color: @text-white;
-    box-shadow: 0 1px 3px rgba(102, 126, 234, 0.2);
+  .form-input {
+    flex: 1;
+  }
+  
+  .input-group-addon {
+    display: flex;
+    align-items: center;
+    padding: 0 @space-base;
+    background: @gray-3;
+    border: 1px solid @border-color;
+    color: @text-color-secondary;
     
-    &:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    &:first-child {
+      border-right: none;
+      border-radius: @border-radius-base 0 0 @border-radius-base;
     }
     
-    &:active:not(:disabled) {
-      transform: translateY(0);
-      box-shadow: 0 1px 3px rgba(102, 126, 234, 0.2);
-    }
-    
-    &:focus:not(:disabled) {
-      box-shadow: @shadow-focus;
-    }
-    
-    &:disabled {
-      background: @color-gray-400;
-      color: @color-gray-500;
-      cursor: not-allowed;
-      box-shadow: none;
-      opacity: 0.6;
+    &:last-child {
+      border-left: none;
+      border-radius: 0 @border-radius-base @border-radius-base 0;
     }
   }
   
-  // 次按钮 - 白底紫边
-  &.btn-secondary {
-    background: @bg-secondary;
-    color: @color-brand-primary;
-    border: 1px solid @color-brand-primary;
-    
-    &:hover:not(:disabled) {
-      background: rgba(102, 126, 234, 0.08);
-      transform: translateY(-2px);
-      box-shadow: @shadow-md;
+  .btn {
+    &:first-child {
+      border-radius: @border-radius-base 0 0 @border-radius-base;
     }
     
-    &:active:not(:disabled) {
-      background: rgba(102, 126, 234, 0.15);
-      transform: translateY(0);
-    }
-    
-    &:focus:not(:disabled) {
-      box-shadow: @shadow-focus;
-    }
-    
-    &:disabled {
-      background: @bg-disabled;
-      color: @color-gray-400;
-      border-color: @color-gray-400;
-      cursor: not-allowed;
-      opacity: 0.6;
+    &:last-child {
+      border-radius: 0 @border-radius-base @border-radius-base 0;
     }
   }
+}
+
+// 带图标的输入框
+.ui.input {
+  position: relative;
   
-  // 文字按钮 - 透明背景
-  &.btn-text {
-    background: transparent;
-    color: @color-brand-primary;
-    
-    &:hover:not(:disabled) {
-      background: rgba(102, 126, 234, 0.08);
-      border-radius: @radius-md;
-    }
-    
-    &:active:not(:disabled) {
-      background: rgba(102, 126, 234, 0.15);
-    }
-    
-    &:focus:not(:disabled) {
-      box-shadow: @shadow-focus;
-    }
-    
-    &:disabled {
-      color: @color-gray-400;
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
+  input {
+    .form-input();
   }
   
-  // 危险按钮 - 红色
-  &.btn-danger {
-    background: @color-danger;
-    color: @text-white;
-    
-    &:hover:not(:disabled) {
-      background: darken(@color-danger, 10%);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
-    }
-    
-    &:active:not(:disabled) {
-      background: darken(@color-danger, 15%);
-      transform: translateY(0);
-    }
-    
-    &:focus:not(:disabled) {
-      box-shadow: @shadow-focus-error;
-    }
-    
-    &:disabled {
-      background: @color-gray-400;
-      color: @color-gray-500;
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
+  &.left.icon input {
+    padding-left: 40px;
   }
   
-  // 成功按钮 - 绿色
-  &.btn-success {
-    background: @color-success;
-    color: @text-white;
-    
-    &:hover:not(:disabled) {
-      background: darken(@color-success, 10%);
-      transform: translateY(-2px);
-    }
-    
-    &:active:not(:disabled) {
-      transform: translateY(0);
-    }
-    
-    &:disabled {
-      background: @color-gray-400;
-      color: @color-gray-500;
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
+  &.right.icon input {
+    padding-right: 40px;
   }
   
-  // 块级按钮
-  &.btn-block {
-    width: 100%;
+  > i.icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: @text-color-secondary;
+    
+    &.left {
+      left: @space-base;
+    }
+    
+    &.right {
+      right: @space-base;
+    }
+  }
+}
+
+// ==================== 文本域 ====================
+
+textarea,
+.ui.form textarea {
+  padding: @space-sm @space-base;
+  font-size: @font-size-base;
+  color: @text-color;
+  background: @component-background;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-base;
+  outline: none;
+  transition: @transition-base;
+  resize: vertical;
+  min-height: 80px;
+  
+  &:hover {
+    border-color: @primary-color-hover;
   }
   
-  // 圆形按钮
-  &.btn-round {
-    border-radius: @radius-full;
+  &:focus {
+    border-color: @primary-color;
+    box-shadow: 0 0 0 2px @primary-color-outline;
   }
   
-  // 禁用（通用）
   &:disabled {
+    background: @gray-3;
+    color: @text-color-disabled;
     cursor: not-allowed;
+  }
+}
+
+// ==================== 选择框 ====================
+
+select,
+.ui.selection.dropdown {
+  height: @input-height-base;
+  padding: @space-sm @space-lg @space-sm @space-base;
+  font-size: @font-size-base;
+  color: @text-color;
+  background: @component-background;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-base;
+  outline: none;
+  transition: @transition-base;
+  cursor: pointer;
+  
+  &:hover {
+    border-color: @primary-color-hover;
+  }
+  
+  &:focus {
+    border-color: @primary-color;
+    box-shadow: 0 0 0 2px @primary-color-outline;
+  }
+  
+  &:disabled {
+    background: @gray-3;
+    color: @text-color-disabled;
+    cursor: not-allowed;
+  }
+}
+
+// ==================== 复选框和单选框 ====================
+
+.ui.checkbox {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    margin: 0 @space-sm 0 0;
+    cursor: pointer;
+    accent-color: @primary-color;
+  }
+  
+  label {
+    color: @text-color;
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  &.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    
+    label {
+      cursor: not-allowed;
+    }
+  }
+  
+  // 复选框样式
+  input[type="checkbox"] {
+    appearance: none;
+    border: 1px solid @border-color;
+    border-radius: @border-radius-xs;
+    background: @component-background;
+    transition: @transition-base;
+    
+    &:checked {
+      background: @primary-color;
+      border-color: @primary-color;
+      
+      &::after {
+        content: '✓';
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+      }
+    }
+  }
+  
+  // 单选框样式
+  input[type="radio"] {
+    appearance: none;
+    border: 1px solid @border-color;
+    border-radius: 50%;
+    background: @component-background;
+    transition: @transition-base;
+    
+    &:checked {
+      border-color: @primary-color;
+      border-width: 5px;
+    }
+  }
+}
+
+// ==================== 开关 ====================
+
+.ui.toggle.checkbox {
+  input[type="checkbox"] {
+    width: 44px;
+    height: 22px;
+    appearance: none;
+    background: @gray-5;
+    border-radius: 22px;
+    position: relative;
+    transition: @transition-base;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      width: 18px;
+      height: 18px;
+      background: white;
+      border-radius: 50%;
+      transition: @transition-base;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    &:checked {
+      background: @primary-color;
+      
+      &::after {
+        left: 24px;
+      }
+    }
   }
 }
 
 // ==================== 表单组 ====================
 
 .form-group {
-  margin-bottom: @space-4;
+  margin-bottom: @form-item-margin-bottom;
   
-  &:last-child {
+  .form-label {
+    display: block;
+    margin-bottom: @space-sm;
+    font-size: @font-size-base;
+    font-weight: @font-weight-medium;
+    color: @text-color;
+    
+    .required {
+      color: @error-color;
+      margin-left: 2px;
+    }
+  }
+  
+  .form-help {
+    margin-top: @space-xs;
+    font-size: @font-size-sm;
+    color: @text-color-secondary;
+  }
+  
+  .form-error {
+    margin-top: @space-xs;
+    font-size: @font-size-sm;
+    color: @error-color;
+  }
+}
+
+// 行内表单
+.form-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: @space-base;
+  
+  .form-group {
     margin-bottom: 0;
   }
-}
-
-.form-label {
-  display: block;
-  font-size: @font-size-base;
-  font-weight: @font-weight-medium;
-  color: @text-primary;
-  margin-bottom: @space-2;
   
-  .required {
-    color: @color-danger;
-    margin-left: 2px;
-  }
-  
-  &.form-label-sm {
-    font-size: @font-size-sm;
-  }
-  
-  &.form-label-lg {
-    font-size: @font-size-lg;
+  .form-label {
+    margin-bottom: 0;
+    margin-right: @space-sm;
   }
 }
 
-// ==================== 输入框 ====================
+// ==================== 字段状态 ====================
 
-.form-input {
-  width: 100%;
-  height: @input-height-md;
-  padding: @input-padding-y @input-padding-x;
-  font-size: @font-size-base;
-  font-family: @font-family-base;
-  border: 1px solid @border-color;
-  border-radius: @radius-md;
-  background: @bg-secondary;
-  color: @text-primary;
-  transition: @transition;
+.field {
+  margin-bottom: @form-item-margin-bottom;
   
-  &::placeholder {
-    color: @color-placeholder;
-  }
-  
-  &:focus {
-    outline: none;
-    border-color: @border-focus;
-    box-shadow: @shadow-focus;
-    background: @bg-secondary;
-  }
-  
-  &:disabled {
-    background: @bg-disabled;
-    color: @color-placeholder;
-    cursor: not-allowed;
-    border-color: @border-color;
-    opacity: 0.6;
-  }
-  
-  // 只读
-  &:read-only {
-    background: @bg-tertiary;
-    cursor: default;
-  }
-  
-  // 尺寸变体
-  &.form-input-sm {
-    height: @input-height-sm;
-    padding: @input-padding-y 10px;
-    font-size: @font-size-sm;
-  }
-  
-  &.form-input-lg {
-    height: @input-height-lg;
-    padding: @input-padding-y 14px;
-    font-size: @font-size-lg;
-  }
-  
-  // 错误状态
-  &.is-error {
-    border-color: @border-error;
+  &.error {
+    .form-input,
+    input,
+    textarea,
+    select {
+      border-color: @error-color;
+      
+      &:focus {
+        border-color: @error-color;
+        box-shadow: 0 0 0 2px @error-color-outline;
+      }
+    }
     
-    &:focus {
-      box-shadow: @shadow-focus-error;
-      border-color: @border-error;
+    .form-error {
+      display: block;
+      color: @error-color;
+      font-size: @font-size-sm;
+      margin-top: @space-xs;
     }
   }
   
-  // 成功状态
-  &.is-success {
-    border-color: @color-success;
+  &.success {
+    .form-input,
+    input {
+      border-color: @success-color;
+    }
+  }
+  
+  &.warning {
+    .form-input,
+    input {
+      border-color: @warning-color;
+    }
+  }
+  
+  &.disabled {
+    opacity: 0.5;
     
-    &:focus {
-      box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.1);
-      border-color: @color-success;
+    label {
+      color: @text-color-disabled;
     }
   }
 }
 
-// 表单错误提示
-.form-error {
-  font-size: @font-size-sm;
-  color: @color-danger;
-  margin-top: @space-1;
-}
+// ==================== 标签 ====================
 
-// 表单帮助文字
-.form-help {
-  font-size: @font-size-sm;
-  color: @text-secondary;
-  margin-top: @space-1;
-}
-
-// ==================== 输入框组 ====================
-
-.form-input-group {
-  position: relative;
-  display: flex;
+.tag {
+  display: inline-flex;
   align-items: center;
+  padding: 0 @space-sm;
+  height: 22px;
+  font-size: @font-size-xs;
+  font-weight: @font-weight-medium;
+  line-height: 20px;
+  border-radius: @border-radius-xs;
+  border: 1px solid;
   
-  i {
-    position: absolute;
-    left: @input-padding-x;
-    color: @color-placeholder;
-    pointer-events: none;
-    font-size: @font-size-lg;
-    width: 20px;
-    text-align: center;
+  &.tag-default {
+    background: @gray-3;
+    border-color: @gray-5;
+    color: @text-color;
   }
   
-  .form-input {
-    padding-left: 36px;
+  &.tag-primary {
+    background: rgba(24, 144, 255, 0.1);
+    border-color: @primary-color;
+    color: @primary-color;
   }
   
-  .form-input-append {
-    position: absolute;
-    right: @input-padding-x;
-    color: @text-secondary;
-    font-size: @font-size-sm;
-  }
-}
-
-// ==================== 选择框 ====================
-
-.form-select {
-  width: 100%;
-  height: @input-height-md;
-  padding: @input-padding-y @input-padding-x;
-  font-size: @font-size-base;
-  font-family: @font-family-base;
-  border: 1px solid @border-color;
-  border-radius: @radius-md;
-  background: @bg-secondary url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>') no-repeat right @input-padding-x center;
-  background-size: 20px;
-  padding-right: 36px;
-  color: @text-primary;
-  cursor: pointer;
-  transition: @transition;
-  appearance: none;
-  
-  &:focus {
-    outline: none;
-    border-color: @border-focus;
-    box-shadow: @shadow-focus;
-    background-color: @bg-secondary;
+  &.tag-success {
+    background: rgba(82, 196, 26, 0.1);
+    border-color: @success-color;
+    color: @success-color;
   }
   
-  &:disabled {
-    background-color: @bg-disabled;
-    color: @color-placeholder;
-    cursor: not-allowed;
-    opacity: 0.6;
+  &.tag-warning {
+    background: rgba(250, 173, 20, 0.1);
+    border-color: @warning-color;
+    color: @warning-color;
   }
   
-  &.form-select-sm {
-    height: @input-height-sm;
-    font-size: @font-size-sm;
+  &.tag-error, &.tag-danger {
+    background: rgba(255, 77, 79, 0.1);
+    border-color: @error-color;
+    color: @error-color;
   }
   
-  &.form-select-lg {
-    height: @input-height-lg;
-    font-size: @font-size-lg;
-  }
-}
-
-// ==================== 复选框和单选框 ====================
-
-.form-checkbox,
-.form-radio {
-  margin-right: @space-2;
-  
-  & + label {
-    display: inline-flex;
-    align-items: center;
+  // 可关闭
+  .tag-close {
+    margin-left: @space-xs;
     cursor: pointer;
-    user-select: none;
+    opacity: 0.6;
+    
+    &:hover {
+      opacity: 1;
+    }
   }
 }
 
-// ==================== 文本域 ====================
+// ==================== 徽章 ====================
 
-.form-textarea {
-  width: 100%;
-  padding: @space-2 @input-padding-x;
-  font-size: @font-size-base;
-  font-family: @font-family-base;
-  border: 1px solid @border-color;
-  border-radius: @radius-md;
-  background: @bg-secondary;
-  color: @text-primary;
-  resize: vertical;
-  min-height: 120px;
-  transition: @transition;
+.badge {
+  display: inline-block;
+  padding: 0 6px;
+  font-size: @font-size-xs - 2;
+  font-weight: @font-weight-medium;
+  line-height: 18px;
+  border-radius: 9px;
+  text-align: center;
+  white-space: nowrap;
   
-  &::placeholder {
-    color: @color-placeholder;
+  &.badge-primary { background: @primary-color; color: white; }
+  &.badge-success { background: @success-color; color: white; }
+  &.badge-warning { background: @warning-color; color: white; }
+  &.badge-error { background: @error-color; color: white; }
+  &.badge-info { background: @info-color; color: white; }
+  
+  // 红点
+  &.badge-dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border-radius: 50%;
+    background: @error-color;
+  }
+}
+
+// ==================== 分割线 ====================
+
+.divider {
+  margin: @space-base 0;
+  border: none;
+  border-top: 1px solid @border-color;
+  
+  &.divider-vertical {
+    display: inline-block;
+    width: 1px;
+    height: 1em;
+    margin: 0 @space-sm;
+    vertical-align: middle;
+    border-top: none;
+    border-left: 1px solid @border-color;
   }
   
-  &:focus {
-    outline: none;
-    border-color: @border-focus;
-    box-shadow: @shadow-focus;
-    background: @bg-secondary;
-  }
-  
-  &:disabled {
-    background: @bg-disabled;
-    color: @color-placeholder;
-    cursor: not-allowed;
-    opacity: 0.6;
+  &.divider-text {
+    display: flex;
+    align-items: center;
+    color: @text-color-secondary;
+    font-size: @font-size-sm;
+    
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      border-top: 1px solid @border-color;
+    }
+    
+    &::before { margin-right: @space-base; }
+    &::after { margin-left: @space-base; }
   }
 }

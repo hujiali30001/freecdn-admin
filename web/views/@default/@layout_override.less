@@ -1,836 +1,677 @@
-// ────────────────────────────────────────────────────────────────────
-// FreeCDN UI — 紫色渐变主题 覆盖层  v1.0.0
-// 与登录页保持同一品牌色系：#667eea → #764ba2
-// 策略：仅覆盖 CSS，不动 JS / 模板 / Semantic UI 结构
-// ────────────────────────────────────────────────────────────────────
+/**
+ * FreeCDN Semantic UI 覆盖样式 v0.11.0
+ * 确保新设计系统生效
+ */
 
-// ── 1. CSS 自定义属性（全局令牌）
-:root {
-  // 品牌色（紫色渐变系）
-  --fc-brand:        #667eea;
-  --fc-brand-end:    #764ba2;
-  --fc-brand-hover:  #7c93f0;
-  --fc-brand-active: #5568d4;
-  --fc-brand-light:  rgba(102,126,234,.08);
-  --fc-brand-light2: rgba(102,126,234,.15);
+// ==================== 全局覆盖 ====================
 
-  // 语义色
-  --fc-success:      #00b578;
-  --fc-warning:      #ff8c00;
-  --fc-danger:       #e84040;
-
-  // 文字色
-  --fc-text-primary: #1a202c;
-  --fc-text-second:  #4a5568;
-  --fc-text-hint:    #a0aec0;
-  --fc-text-disable: #cbd5e0;
-
-  // 边框 & 背景
-  --fc-border:       #e2e8f0;
-  --fc-border-light: #f0f4f8;
-  --fc-bg:           #f5f7ff;
-  --fc-white:        #ffffff;
-
-  // 圆角
-  --fc-radius-sm:    4px;
-  --fc-radius:       8px;
-  --fc-radius-lg:    12px;
-  --fc-radius-xl:    16px;
-
-  // 阴影
-  --fc-shadow-sm:    0 1px 4px rgba(102,126,234,.08);
-  --fc-shadow:       0 2px 12px rgba(102,126,234,.12);
-  --fc-shadow-lg:    0 8px 24px rgba(102,126,234,.16);
-  --fc-shadow-card:  0 2px 8px rgba(0,0,0,.06);
-
-  // 过渡
-  --fc-transition:   0.2s ease;
-}
-
-// ── 2. 全局字体 & 基础颜色
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
-               "Microsoft YaHei", "Segoe UI", Roboto, sans-serif !important;
-  color: var(--fc-text-primary) !important;
-  background: var(--fc-bg) !important;
-  -webkit-font-smoothing: antialiased;
-}
-
-// ── 3. 顶部导航栏 — 紫色渐变背景
-.ui.menu.top-nav.blue.inverted,
-.ui.menu.top-nav.theme1,
-.ui.menu.top-nav.theme2,
-.ui.menu.top-nav.theme3,
-.ui.menu.top-nav.theme4,
-.ui.menu.top-nav.theme5,
-.ui.menu.top-nav.theme6,
-.ui.menu.top-nav.theme7 {
-  background: linear-gradient(135deg, var(--fc-brand) 0%, var(--fc-brand-end) 100%) !important;
-  border-bottom: none !important;
-  box-shadow: 0 2px 12px rgba(102,126,234,.35) !important;
-}
-
-.top-nav {
-  overflow: visible !important;
-  flex-wrap: nowrap !important;
-
-  .item {
-    color: rgba(255,255,255,.92) !important;
-    font-size: 13px !important;
-    letter-spacing: .02em;
-    transition: background var(--fc-transition) !important;
-    white-space: nowrap;
-
-    i.icon {
-      color: rgba(255,255,255,.85) !important;
-    }
-
-    sup {
-      color: rgba(255,255,255,.65) !important;
-      font-size: 10px !important;
-    }
-
-    &:hover, &.active {
-      background: rgba(255,255,255,.15) !important;
-      border-radius: 6px !important;
-      color: #fff !important;
-      i.icon { color: #fff !important; }
-    }
-
-    .disabled {
-      color: rgba(255,255,255,.5) !important;
-    }
-
-    &.red, .red {
-      color: #ffb3b3 !important;
-    }
-  }
-
-  .right.menu {
-    flex-shrink: 0 !important;
-    flex-wrap: nowrap !important;
-    overflow: visible !important;
-    margin-left: auto !important;
-  }
-}
-
-// ── 4. 左侧主菜单 — 深紫色
-.main-menu,
-.main-menu.theme1,
-.main-menu.theme2,
-.main-menu.theme3,
-.main-menu.theme4,
-.main-menu.theme5,
-.main-menu.theme6,
-.main-menu.theme7 {
-  background: #2d1b69 !important;
-  border-right: none !important;
-  box-shadow: 2px 0 12px rgba(45,27,105,.25) !important;
-
-  .menu, .ui.menu {
-    background: transparent !important;
-  }
-
-  .ui.menu .item {
-    color: rgba(255,255,255,.65) !important;
-    border-radius: var(--fc-radius) !important;
-    margin: 2px 8px !important;
-    padding: 0.72em 0.8em !important;
-    font-size: 13px !important;
-    transition: background var(--fc-transition), color var(--fc-transition) !important;
-    position: relative;
-
-    i.icon {
-      color: rgba(255,255,255,.55) !important;
-      transition: color var(--fc-transition) !important;
-    }
-
-    &:hover {
-      background: rgba(255,255,255,.10) !important;
-      color: rgba(255,255,255,.95) !important;
-      i.icon { color: rgba(255,255,255,.9) !important; }
-    }
-
-    &.active, &.expend {
-      background: linear-gradient(135deg, rgba(102,126,234,.6) 0%, rgba(118,75,162,.6) 100%) !important;
-      color: #fff !important;
-      box-shadow: 0 2px 8px rgba(102,126,234,.3) !important;
-      i.icon { color: #fff !important; }
-    }
-
-    // 子菜单分隔线
-    &.separator {
-      border-top: 1px solid rgba(255,255,255,.08) !important;
-    }
-  }
-
-  // 子菜单活跃项
-  .ui.menu .sub-items .item {
-    padding-left: 2.6em !important;
-    color: rgba(255,255,255,.58) !important;
-    font-size: 12px !important;
-    border-radius: 6px !important;
-    margin: 1px 8px !important;
-
-    &:hover {
-      background: rgba(255,255,255,.08) !important;
-      color: rgba(255,255,255,.9) !important;
-    }
-
-    &.active {
-      background: rgba(102,126,234,.5) !important;
-      color: #fff !important;
-    }
-  }
-
-  // 侧栏顶部 logo 间距
-  .ui.menu > .item:first-child {
-    min-height: 12px;
-  }
-}
-
-// ── 5. 按钮
+// 按钮
 .ui.button {
-  border-radius: var(--fc-radius) !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  padding: .6em 1.2em !important;
-  transition: background var(--fc-transition), box-shadow var(--fc-transition),
-              transform var(--fc-transition), opacity var(--fc-transition) !important;
-  box-shadow: none !important;
-  letter-spacing: .01em;
-
-  // 默认/Primary 按钮 — 渐变紫
-  &:not(.basic):not(.red):not(.orange):not(.green):not(.grey):not(.teal):not(.purple):not(.black):not(.yellow):not(.olive):not(.brown):not(.pink):not(.violet) {
-    background: linear-gradient(135deg, var(--fc-brand) 0%, var(--fc-brand-end) 100%) !important;
-    color: #fff !important;
-
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(102,126,234,.4) !important;
+  height: @height-base;
+  padding: @space-sm @space-lg;
+  font-size: @font-size-base;
+  font-weight: @font-weight-medium;
+  border-radius: @border-radius-base;
+  border: 1px solid transparent;
+  background: @component-background;
+  color: @text-color;
+  cursor: pointer;
+  transition: @transition-base;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: @space-xs;
+  
+  // Primary
+  &.primary {
+    background: @primary-color;
+    color: white;
+    border-color: @primary-color;
+    
+    &:hover, &:focus {
+      background: @primary-color-hover;
+      border-color: @primary-color-hover;
     }
-
-    &:active { transform: translateY(0); }
-  }
-
-  &.blue {
-    background: linear-gradient(135deg, var(--fc-brand) 0%, var(--fc-brand-end) 100%) !important;
-    color: #fff !important;
-
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(102,126,234,.4) !important;
+    
+    &:active {
+      background: @primary-color-active;
     }
   }
-
+  
+  // Secondary
+  &.secondary {
+    background: @gray-3;
+    color: @text-color;
+    border-color: @border-color;
+    
+    &:hover, &:focus {
+      background: @gray-4;
+    }
+  }
+  
+  // Basic
   &.basic {
-    border: 1px solid var(--fc-border) !important;
-    background: var(--fc-white) !important;
-    color: var(--fc-text-second) !important;
-    box-shadow: var(--fc-shadow-sm) !important;
-
-    &:hover {
-      border-color: var(--fc-brand) !important;
-      color: var(--fc-brand) !important;
-      background: var(--fc-brand-light) !important;
+    background: transparent;
+    border-color: @border-color;
+    color: @text-color;
+    
+    &:hover, &:focus {
+      background: @gray-3;
     }
-  }
-
-  &.red {
-    background: var(--fc-danger) !important;
-    color: #fff !important;
-    border-radius: var(--fc-radius) !important;
-    &:hover { background: #c93333 !important; }
-  }
-
-  &.green {
-    background: var(--fc-success) !important;
-    color: #fff !important;
-    border-radius: var(--fc-radius) !important;
-  }
-
-  &.mini {
-    font-size: 11px !important;
-    padding: .4em .8em !important;
-  }
-
-  &.tiny {
-    font-size: 12px !important;
-    padding: .5em 1em !important;
-  }
-}
-
-// ── 6. 表格
-.ui.table {
-  border: 1px solid var(--fc-border) !important;
-  border-radius: var(--fc-radius-lg) !important;
-  border-collapse: separate !important;
-  border-spacing: 0 !important;
-  box-shadow: var(--fc-shadow-card) !important;
-  overflow: hidden;
-  background: var(--fc-white) !important;
-
-  thead tr th {
-    background: linear-gradient(135deg, #f8f6ff 0%, #f5f0fb 100%) !important;
-    color: var(--fc-text-second) !important;
-    font-weight: 600 !important;
-    font-size: 12px !important;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    border-bottom: 1px solid #e8e0f5 !important;
-    padding: 11px 14px !important;
-    white-space: nowrap;
-  }
-
-  tbody tr {
-    td {
-      border-top: 1px solid var(--fc-border-light) !important;
-      padding: 11px 14px !important;
-      font-size: 13px !important;
-      vertical-align: middle !important;
-      color: var(--fc-text-primary) !important;
-      transition: background var(--fc-transition) !important;
-    }
-
-    &:last-child td { border-bottom: none !important; }
-  }
-
-  &.selectable tbody tr:hover > td {
-    background: var(--fc-brand-light) !important;
-    cursor: pointer;
-  }
-}
-
-table {
-  th.center, td.center {
-    text-align: center !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-  th.width10 { width: 10em; }
-  th.width5  { width: 5em;  }
-  th.width6  { width: 6em;  }
-}
-
-// ── 7. 表单元素
-.ui.form {
-  input[type="text"],
-  input[type="password"],
-  input[type="email"],
-  input[type="number"],
-  input[type="url"],
-  textarea,
-  select {
-    border-radius: var(--fc-radius) !important;
-    border: 1px solid var(--fc-border) !important;
-    background: var(--fc-white) !important;
-    color: var(--fc-text-primary) !important;
-    font-size: 13px !important;
-    transition: border-color var(--fc-transition), box-shadow var(--fc-transition) !important;
-  }
-
-  input:focus,
-  textarea:focus {
-    border-color: var(--fc-brand) !important;
-    box-shadow: 0 0 0 3px rgba(102,126,234,.12) !important;
-    outline: none !important;
-  }
-}
-
-select.dropdown {
-  height: auto !important;
-  border-radius: var(--fc-radius) !important;
-  border: 1px solid var(--fc-border) !important;
-  background: var(--fc-white) !important;
-  font-size: 13px !important;
-}
-
-// ── 8. 标签 Label
-.ui.label {
-  border-radius: var(--fc-radius-sm) !important;
-  font-weight: 500 !important;
-  font-size: 12px !important;
-
-  &.basic {
-    background-color: var(--fc-white) !important;
-    border: 1px solid var(--fc-border) !important;
-    &.grey { border: 1px solid #ccc !important; color: var(--fc-text-second) !important; }
-  }
-
-  &.green  { background: #e6faf4 !important; color: #00a06a !important; border: 1px solid #b3edda !important; }
-  &.red    { background: #fff0f0 !important; color: var(--fc-danger) !important; border: 1px solid #ffc5c5 !important; }
-  &.orange { background: #fff7ec !important; color: var(--fc-warning) !important; border: 1px solid #ffd9a0 !important; }
-  &.blue,
-  &.purple { background: var(--fc-brand-light) !important; color: var(--fc-brand) !important; border: 1px solid rgba(102,126,234,.25) !important; }
-}
-
-.disabled .ui.label { color: var(--fc-text-disable) !important; }
-
-// ── 9. 消息提示框
-.ui.message {
-  border-radius: var(--fc-radius-lg) !important;
-  box-shadow: none !important;
-  border: 1px solid var(--fc-border) !important;
-  background: var(--fc-white) !important;
-  font-size: 13px !important;
-
-  &.error   { background: #fff0f0 !important; border-color: #ffc5c5 !important; color: var(--fc-danger) !important; }
-  &.success { background: #e6faf4 !important; border-color: #b3edda !important; color: #00a06a !important; }
-  &.warning { background: #fff7ec !important; border-color: #ffd9a0 !important; color: var(--fc-warning) !important; }
-  &.info    { background: var(--fc-brand-light) !important; border-color: rgba(102,126,234,.25) !important; color: var(--fc-brand) !important; }
-
-  .icon.warning { font-size: 2em !important; }
-}
-
-// ── 10. Segment 卡片
-.ui.segment {
-  border-radius: var(--fc-radius-lg) !important;
-  border: 1px solid var(--fc-border) !important;
-  box-shadow: var(--fc-shadow-card) !important;
-  background: var(--fc-white) !important;
-
-  &.basic { box-shadow: none !important; border: none !important; }
-}
-
-// ── 11. Toggle
-.ui.toggle.checkbox {
-  input:focus:checked ~ .box:before,
-  input:focus:checked ~ label:before,
-  input:checked ~ .box:before,
-  input:checked ~ label:before {
-    background: linear-gradient(135deg, var(--fc-brand) 0%, var(--fc-brand-end) 100%) !important;
-  }
-}
-
-// ── 12. Tab 菜单
-.ui.menu.tab-menu {
-  .item.active:not(.title) {
-    color: var(--fc-brand) !important;
-    font-weight: 600 !important;
-
-    .bottom-indicator {
-      border-bottom: 2px solid var(--fc-brand) !important;
-    }
-  }
-
-  .item:hover {
-    background: var(--fc-brand-light) !important;
-    color: var(--fc-brand) !important;
-  }
-}
-
-// ── 13. 分页
-.page {
-  margin-top: 1em;
-  border-left: 1px solid var(--fc-border);
-
-  a {
-    display: inline-block;
-    background: var(--fc-white);
-    color: var(--fc-text-second);
-    padding: 5px 12px;
-    margin: 0;
-    font-size: 13px;
-    border: 1px solid var(--fc-border);
-    border-left: 0;
-    transition: background var(--fc-transition), color var(--fc-transition) !important;
-
-    &.active {
-      background: linear-gradient(135deg, var(--fc-brand) 0%, var(--fc-brand-end) 100%) !important;
-      color: var(--fc-white) !important;
-      border-color: var(--fc-brand) !important;
-    }
-
-    &:hover:not(.active) {
-      background: var(--fc-brand-light) !important;
-      color: var(--fc-brand) !important;
-    }
-  }
-}
-
-// ── 14. 主内容区
-.main {
-  background: var(--fc-bg) !important;
-
-  .main-box {
-    padding-top: 0.6em;
-  }
-
-  // h3 标题左侧品牌色竖线
-  h3 {
-    font-weight: 600 !important;
-    color: var(--fc-text-primary) !important;
-    padding-left: 10px !important;
-    border-left: 3px solid var(--fc-brand) !important;
-    margin-left: -2px !important;
-  }
-
-  table td.color-border {
-    border-left: 3px var(--fc-brand) solid !important;
-  }
-}
-
-// ── 15. 链接
-a {
-  color: var(--fc-brand) !important;
-  transition: color var(--fc-transition) !important;
-
-  &:hover { color: var(--fc-brand-hover) !important; }
-  &.disabled, &.disabled:hover, &.disabled:active { color: var(--fc-text-disable) !important; }
-  &.enabled { color: var(--fc-success) !important; }
-}
-
-span.disabled { color: var(--fc-text-disable) !important; }
-span.enabled, span.green { color: var(--fc-success) !important; }
-span.red, pre.red { color: var(--fc-danger) !important; }
-span.blue { color: var(--fc-brand) !important; }
-
-// ── 16. SweetAlert2
-body.swal2-shown { overflow: auto !important; }
-
-.swal2-popup {
-  border-radius: var(--fc-radius-xl) !important;
-  box-shadow: 0 20px 60px rgba(102,126,234,.2) !important;
-  font-family: inherit !important;
-  font-size: 14px !important;
-}
-
-.swal2-confirm {
-  background: linear-gradient(135deg, var(--fc-brand) 0%, var(--fc-brand-end) 100%) !important;
-  border-radius: var(--fc-radius) !important;
-  box-shadow: 0 4px 12px rgba(102,126,234,.35) !important;
-  border: none !important;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(102,126,234,.45) !important;
-  }
-}
-
-.swal2-cancel {
-  border-radius: var(--fc-radius) !important;
-  margin-left: 2em !important;
-}
-
-.swal2-close, .swal2-close:focus { border: 0; }
-.swal2-confirm:focus, .swal2-cancel:focus { border: 3px rgba(102,126,234,.3) solid !important; }
-.swal2-confirm, .swal2-cancel { border: 3px #fff solid !important; }
-.swal2-html-container { overflow-x: hidden; }
-
-// ── 17. Scrollbar
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-thumb {
-  background: rgba(102,126,234,.25);
-  border-radius: 3px;
-  &:hover { background: rgba(102,126,234,.45); }
-}
-::-webkit-scrollbar-track { background: transparent; }
-textarea::-webkit-scrollbar { width: 6px !important; }
-
-// ── 18. 杂项
-form .fields { margin-bottom: 0 !important; }
-.grid { margin-right: 0 !important; }
-.fields button { min-width: 5em; }
-
-// ── 19. FreeCDN: 隐藏商业版/授权相关内容
-body[data-page*="authority"] .main-box,
-body[data-route*="authority"] .main-box {
-  display: none !important;
-}
-
-// ── 20. Modal 弹窗
-.ui.modal {
-  border-radius: var(--fc-radius-xl) !important;
-  box-shadow: 0 20px 60px rgba(102,126,234,.2), 0 4px 20px rgba(0,0,0,.12) !important;
-  border: none !important;
-
-  > .header {
-    border-radius: var(--fc-radius-xl) var(--fc-radius-xl) 0 0 !important;
-    border-bottom: 1px solid var(--fc-border) !important;
-    font-size: 15px !important;
-    font-weight: 600 !important;
-    color: var(--fc-text-primary) !important;
-    padding: 18px 24px !important;
-    background: var(--fc-white) !important;
-  }
-
-  > .content {
-    padding: 20px 24px !important;
-    background: var(--fc-white) !important;
-  }
-
-  > .actions {
-    border-radius: 0 0 var(--fc-radius-xl) var(--fc-radius-xl) !important;
-    border-top: 1px solid var(--fc-border) !important;
-    background: #faf9ff !important;
-    padding: 14px 24px !important;
-  }
-
-  .close.icon {
-    color: var(--fc-text-second) !important;
-    &:hover { color: var(--fc-text-primary) !important; }
-  }
-}
-
-.ui.dimmer { background: rgba(45,27,105,.35) !important; }
-
-// ── 21. Dropdown
-.ui.dropdown {
-  border-radius: var(--fc-radius) !important;
-
-  .menu {
-    border-radius: var(--fc-radius) !important;
-    border: 1px solid var(--fc-border) !important;
-    box-shadow: var(--fc-shadow) !important;
-    margin-top: 2px !important;
-
-    .item {
-      font-size: 13px !important;
-      padding: 8px 14px !important;
-      color: var(--fc-text-primary) !important;
-      transition: background var(--fc-transition) !important;
-
-      &:hover, &.active {
-        background: var(--fc-brand-light) !important;
-        color: var(--fc-brand) !important;
+    
+    &.primary {
+      border-color: @primary-color;
+      color: @primary-color;
+      
+      &:hover, &:focus {
+        background: rgba(24, 144, 255, 0.05);
       }
     }
   }
-
-  &.selection {
-    border: 1px solid var(--fc-border) !important;
-    background: var(--fc-white) !important;
-    font-size: 13px !important;
-    min-height: 36px !important;
-    line-height: 36px !important;
-    padding: 0 2.8em 0 .9em !important;
-
-    &:focus, &.active {
-      border-color: var(--fc-brand) !important;
-      box-shadow: 0 0 0 3px rgba(102,126,234,.12) !important;
+  
+  // Danger/Negative
+  &.negative, &.red {
+    background: @error-color;
+    color: white;
+    border-color: @error-color;
+    
+    &:hover, &:focus {
+      background: @error-color-hover;
+    }
+  }
+  
+  // Success/Green
+  &.positive, &.green {
+    background: @success-color;
+    color: white;
+    border-color: @success-color;
+    
+    &:hover, &:focus {
+      background: @success-color-hover;
+    }
+  }
+  
+  // Sizes
+  &.mini, &.tiny {
+    height: @height-xs;
+    padding: @space-xs @space-sm;
+    font-size: @font-size-xs;
+  }
+  
+  &.small {
+    height: @height-sm;
+    padding: @space-xs @space-base;
+    font-size: @font-size-sm;
+  }
+  
+  &.large, &.big {
+    height: @height-lg;
+    padding: @space-base @space-xl;
+    font-size: @font-size-lg;
+  }
+  
+  // Fluid
+  &.fluid {
+    width: 100%;
+  }
+  
+  // Disabled
+  &.disabled, &[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    pointer-events: none;
+  }
+  
+  // Icon
+  i.icon {
+    margin: 0;
+    
+    &:not(:only-child) {
+      margin-right: @space-xs;
     }
   }
 }
 
-// ── 22. Progress 进度条
-.ui.progress {
-  border-radius: var(--fc-radius) !important;
-  background: #ede8f8 !important;
-  margin: .6em 0 !important;
+// ==================== 表单 ====================
 
-  .bar {
-    border-radius: var(--fc-radius) !important;
-    background: linear-gradient(135deg, var(--fc-brand) 0%, var(--fc-brand-end) 100%) !important;
-    min-width: 0 !important;
-    transition: width .4s ease !important;
-  }
-
-  &.success .bar { background: var(--fc-success) !important; }
-  &.error   .bar { background: var(--fc-danger) !important; }
-}
-
-// ── 23. 步骤条
-.ui.steps {
-  border-radius: var(--fc-radius) !important;
-  border: 1px solid var(--fc-border) !important;
-  box-shadow: none !important;
-
-  .step {
-    font-size: 13px !important;
-
-    &.active {
-      background: var(--fc-brand-light) !important;
-      .title { color: var(--fc-brand) !important; }
-      .icon  { color: var(--fc-brand) !important; }
-    }
-
-    &.completed {
-      .icon { color: var(--fc-success) !important; }
+.ui.form {
+  .field {
+    margin-bottom: @form-item-margin-bottom;
+    
+    > label {
+      display: block;
+      margin-bottom: @space-sm;
+      font-weight: @font-weight-medium;
+      color: @text-color;
+      font-size: @font-size-base;
     }
   }
-}
-
-// ── 24. 代码块 / Pre
-pre, code {
-  font-family: "SFMono-Regular", "Consolas", "Fira Code", "Menlo", monospace !important;
-  font-size: 12px !important;
-}
-
-pre {
-  background: #f8f6ff !important;
-  border: 1px solid #e8e0f5 !important;
-  border-radius: var(--fc-radius) !important;
-  padding: .8em 1em !important;
-  line-height: 1.65 !important;
-  overflow-x: auto;
-  color: var(--fc-text-primary) !important;
-}
-
-// ── 25. 统计数字卡片（dashboard）
-.ui.statistic {
-  .value {
-    background: linear-gradient(135deg, var(--fc-brand) 0%, var(--fc-brand-end) 100%);
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    font-weight: 700 !important;
-  }
-  .label { color: var(--fc-text-second) !important; font-size: 12px !important; }
-}
-
-// ── 26. 面包屑
-.ui.breadcrumb {
-  font-size: 13px !important;
-
-  .section { color: var(--fc-text-second) !important; }
-  .active.section { color: var(--fc-text-primary) !important; font-weight: 600 !important; }
-  .divider { color: var(--fc-text-hint) !important; }
-}
-
-// ── 27. 图标按钮悬停
-.ui.icon.button {
-  border-radius: var(--fc-radius) !important;
-  background: transparent !important;
-  color: var(--fc-text-second) !important;
-  box-shadow: none !important;
-  padding: .5em .7em !important;
-
-  &:hover {
-    background: var(--fc-brand-light) !important;
-    color: var(--fc-brand) !important;
-  }
-}
-
-// ── 28. 输入框
-.ui.input {
-  > input {
-    border-radius: var(--fc-radius) !important;
-    border: 1px solid var(--fc-border) !important;
-    font-size: 13px !important;
-    height: 36px !important;
-    transition: border-color var(--fc-transition), box-shadow var(--fc-transition) !important;
-
-    &:focus {
-      border-color: var(--fc-brand) !important;
-      box-shadow: 0 0 0 3px rgba(102,126,234,.12) !important;
+  
+  .ui.input {
+    position: relative;
+    
+    input {
+      width: 100%;
+      height: @input-height-base;
+      padding: @space-sm @space-base;
+      font-size: @font-size-base;
+      border: 1px solid @border-color;
+      border-radius: @border-radius-base;
+      background: @component-background;
+      color: @text-color;
+      transition: @transition-base;
+      
+      &:hover {
+        border-color: @primary-color-hover;
+      }
+      
+      &:focus {
+        border-color: @primary-color;
+        box-shadow: 0 0 0 2px @primary-color-outline;
+        outline: none;
+      }
+      
+      &::placeholder {
+        color: @text-color-disabled;
+      }
     }
+    
+    &.left.icon input {
+      padding-left: 40px;
+    }
+    
+    &.left.icon i.icon {
+      position: absolute;
+      left: @space-base;
+      top: 50%;
+      transform: translateY(-50%);
+      color: @text-color-tertiary;
+      margin: 0;
+    }
+    
+    // Sizes
+    &.mini input { height: @height-xs; padding: @space-xs @space-sm; font-size: @font-size-xs; }
+    &.small input { height: @height-sm; padding: @space-xs @space-base; font-size: @font-size-sm; }
+    &.large input { height: @height-lg; padding: @space-base @space-lg; font-size: @font-size-lg; }
   }
-
-  > .button { border-radius: 0 var(--fc-radius) var(--fc-radius) 0 !important; }
-  &.action > input { border-radius: var(--fc-radius) 0 0 var(--fc-radius) !important; }
-}
-
-// ── 29. Loading
-.ui.active.inline.loader {
-  &:before { border-color: rgba(102,126,234,.15) !important; }
-  &:after  { border-color: var(--fc-brand) transparent transparent !important; }
-}
-
-// ── 30. 空状态
-.ui.placeholder.segment {
-  background: var(--fc-white) !important;
-  border: 1px dashed rgba(102,126,234,.3) !important;
-  box-shadow: none !important;
-  border-radius: var(--fc-radius-lg) !important;
-}
-
-// ── 31. 底部 Footer
-#footer.ui.menu {
-  background: linear-gradient(135deg, var(--fc-brand) 0%, var(--fc-brand-end) 100%) !important;
-  box-shadow: 0 -2px 8px rgba(102,126,234,.2) !important;
-  border-top: none !important;
-
-  .item,
-  a.item {
-    color: rgba(255,255,255,.8) !important;
-    font-size: 12px !important;
-    transition: background var(--fc-transition), color var(--fc-transition) !important;
-
+  
+  // Select
+  .ui.selection.dropdown {
+    height: @input-height-base;
+    padding: @space-sm @space-base;
+    border: 1px solid @border-color;
+    border-radius: @border-radius-base;
+    background: @component-background;
+    min-height: auto;
+    
     &:hover {
-      background: rgba(255,255,255,.12) !important;
-      color: #fff !important;
+      border-color: @primary-color-hover;
+    }
+    
+    &:focus {
+      border-color: @primary-color;
+      box-shadow: 0 0 0 2px @primary-color-outline;
+    }
+    
+    .text {
+      color: @text-color;
+    }
+  }
+  
+  // Checkbox
+  .ui.checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: @space-sm;
+    
+    input[type="checkbox"],
+    input[type="radio"] {
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      cursor: pointer;
+      accent-color: @primary-color;
+    }
+    
+    label {
+      color: @text-color;
+      font-size: @font-size-base;
+      cursor: pointer;
+      
+      &:before {
+        display: none;
+      }
+    }
+  }
+  
+  // Textarea
+  textarea {
+    width: 100%;
+    padding: @space-base;
+    font-size: @font-size-base;
+    border: 1px solid @border-color;
+    border-radius: @border-radius-base;
+    resize: vertical;
+    min-height: 80px;
+    transition: @transition-base;
+    
+    &:hover {
+      border-color: @primary-color-hover;
+    }
+    
+    &:focus {
+      border-color: @primary-color;
+      box-shadow: 0 0 0 2px @primary-color-outline;
+      outline: none;
+    }
+  }
+  
+  // Error state
+  .field.error {
+    input, textarea, select {
+      border-color: @error-color;
+      
+      &:focus {
+        border-color: @error-color;
+        box-shadow: 0 0 0 2px @error-color-outline;
+      }
     }
   }
 }
 
-// ── 32. 卡片式 Segment（仪表盘统计卡片）
-.ui.cards > .card,
+// ==================== Segment ====================
+
+.ui.segment {
+  background: @component-background;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-lg;
+  box-shadow: none;
+  padding: @space-lg;
+  margin: 0;
+  
+  &.raised {
+    box-shadow: @card-shadow;
+  }
+  
+  &.stacked {
+    &:before, &:after {
+      background: @gray-3;
+    }
+  }
+}
+
+// ==================== Message ====================
+
+.ui.message {
+  padding: @space-base @space-lg;
+  border-radius: @border-radius-base;
+  border: 1px solid;
+  background: @gray-3;
+  color: @text-color;
+  
+  .header {
+    font-weight: @font-weight-semibold;
+    margin-bottom: @space-xs;
+  }
+  
+  .close.icon {
+    position: absolute;
+    right: @space-base;
+    top: @space-base;
+    cursor: pointer;
+    opacity: 0.5;
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+  
+  &.info {
+    background: rgba(24, 144, 255, 0.1);
+    border-color: rgba(24, 144, 255, 0.3);
+    color: @primary-color;
+  }
+  
+  &.success, &.positive {
+    background: rgba(82, 196, 26, 0.1);
+    border-color: rgba(82, 196, 26, 0.3);
+    color: @success-color;
+  }
+  
+  &.warning {
+    background: rgba(250, 173, 20, 0.1);
+    border-color: rgba(250, 173, 20, 0.3);
+    color: @warning-color;
+  }
+  
+  &.error, &.negative {
+    background: rgba(255, 77, 79, 0.1);
+    border-color: rgba(255, 77, 79, 0.3);
+    color: @error-color;
+  }
+}
+
+// ==================== Label ====================
+
+.ui.label {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px @space-sm;
+  font-size: @font-size-xs;
+  font-weight: @font-weight-medium;
+  border-radius: @border-radius-sm;
+  background: @gray-3;
+  color: @text-color;
+  border: none;
+  
+  &.blue { background: rgba(24, 144, 255, 0.1); color: @primary-color; }
+  &.green { background: rgba(82, 196, 26, 0.1); color: @success-color; }
+  &.orange { background: rgba(250, 173, 20, 0.1); color: @warning-color; }
+  &.red { background: rgba(255, 77, 79, 0.1); color: @error-color; }
+  
+  // Tag style
+  &.tag {
+    border-radius: @border-radius-xs;
+  }
+}
+
+// ==================== Table ====================
+
+.ui.table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-lg;
+  background: @component-background;
+  
+  thead th {
+    background: @gray-3;
+    padding: @space-base @space-lg;
+    font-weight: @font-weight-medium;
+    color: @text-color-secondary;
+    font-size: @font-size-sm;
+    text-align: left;
+    border-bottom: 1px solid @border-color;
+  }
+  
+  tbody tr {
+    &:hover {
+      background: @gray-3;
+    }
+    
+    td {
+      padding: @space-base @space-lg;
+      border-bottom: 1px solid @border-color-split;
+    }
+    
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+  
+  // Variants
+  &.striped tbody tr:nth-child(even) {
+    background: @gray-3;
+  }
+  
+  &.celled td {
+    border-right: 1px solid @border-color;
+    
+    &:last-child {
+      border-right: none;
+    }
+  }
+}
+
+// ==================== Card ====================
+
 .ui.card {
-  border-radius: var(--fc-radius-lg) !important;
-  border: 1px solid var(--fc-border) !important;
-  box-shadow: var(--fc-shadow-card) !important;
-  transition: box-shadow var(--fc-transition), transform var(--fc-transition) !important;
-
-  &:hover {
-    box-shadow: var(--fc-shadow) !important;
-    transform: translateY(-2px);
-  }
-
-  > .content {
-    border-top: 1px solid var(--fc-border) !important;
-    padding: 14px 16px !important;
-
-    > .header {
-      font-size: 14px !important;
-      font-weight: 600 !important;
-      color: var(--fc-text-primary) !important;
-    }
-
-    > .description {
-      font-size: 13px !important;
-      color: var(--fc-text-second) !important;
-    }
-  }
-
-  > .content:first-child { border-top: none !important; }
-}
-
-// ── 33. 仪表盘图表区样式增强
-.chart-box {
-  border-radius: var(--fc-radius-lg);
+  background: @component-background;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-lg;
+  box-shadow: @card-shadow;
   overflow: hidden;
-}
-
-// ── 34. 子页面通用容器增强
-.right-box {
-  .ui.segment:not(.basic) {
-    margin-bottom: 1em;
+  
+  .image {
+    img {
+      width: 100%;
+      display: block;
+    }
+  }
+  
+  .content {
+    padding: @space-lg;
+    
+    .header {
+      font-size: @font-size-lg;
+      font-weight: @font-weight-semibold;
+      color: @text-color;
+      margin-bottom: @space-xs;
+    }
+    
+    .meta {
+      font-size: @font-size-sm;
+      color: @text-color-secondary;
+      margin-bottom: @space-sm;
+    }
+    
+    .description {
+      color: @text-color;
+      font-size: @font-size-base;
+    }
+  }
+  
+  .extra.content {
+    border-top: 1px solid @border-color;
+    background: @gray-3;
   }
 }
 
-// ── 35. 状态指示点（在线/离线）
-span.enabled, a.enabled {
-  color: var(--fc-success) !important;
-  font-weight: 500 !important;
-}
+// ==================== Modal ====================
 
-span.disabled, a.disabled {
-  color: var(--fc-text-hint) !important;
-}
-
-// ── 36. 次级文字菜单 (.text.menu)
-.ui.text.menu {
-  .item {
-    color: var(--fc-text-second) !important;
-    font-size: 13px !important;
-    transition: color var(--fc-transition) !important;
-    border-radius: var(--fc-radius-sm) !important;
-
-    &:hover { color: var(--fc-brand) !important; }
-    &.active {
-      color: var(--fc-brand) !important;
-      font-weight: 600 !important;
+.ui.modal {
+  border-radius: @border-radius-lg;
+  box-shadow: @modal-shadow;
+  
+  > .header {
+    padding: @space-lg;
+    font-size: @font-size-lg;
+    font-weight: @font-weight-semibold;
+    color: @text-color;
+    border-bottom: 1px solid @border-color;
+    background: @component-background;
+  }
+  
+  > .content {
+    padding: @space-lg;
+    background: @component-background;
+  }
+  
+  > .actions {
+    padding: @space-base @space-lg;
+    border-top: 1px solid @border-color;
+    background: @gray-3;
+    text-align: right;
+    
+    .button {
+      margin-left: @space-sm;
     }
   }
 }
 
-// ── 37. 输入错误状态
-input.error {
-  border: 1px #ffc5c5 solid !important;
-  background: #fff8f8 !important;
-  box-shadow: 0 0 0 3px rgba(232,64,64,.08) !important;
+// ==================== Dropdown ====================
+
+.ui.dropdown {
+  .menu {
+    background: @component-background;
+    border: 1px solid @border-color;
+    border-radius: @border-radius-base;
+    box-shadow: @shadow-lg;
+    padding: @space-xs 0;
+    
+    > .item {
+      padding: @space-sm @space-base;
+      color: @text-color;
+      font-size: @font-size-base;
+      transition: @transition-base;
+      
+      &:hover {
+        background: @gray-3;
+        color: @primary-color;
+      }
+      
+      &.active {
+        background: rgba(24, 144, 255, 0.1);
+        color: @primary-color;
+        font-weight: @font-weight-medium;
+      }
+    }
+    
+    .divider {
+      border-top: 1px solid @border-color;
+      margin: @space-xs 0;
+    }
+    
+    .header {
+      padding: @space-sm @space-base;
+      font-size: @font-size-xs;
+      color: @text-color-secondary;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
 }
 
-// ── 38. 响应式
-@media screen and (max-width: 512px) {
-  .main-menu { box-shadow: none !important; }
+// ==================== Menu ====================
+
+.ui.menu {
+  background: @component-background;
+  border: 1px solid @border-color;
+  border-radius: @border-radius-base;
+  
+  .item {
+    padding: @space-sm @space-base;
+    color: @text-color;
+    transition: @transition-base;
+    
+    &:hover {
+      background: @gray-3;
+      color: @primary-color;
+    }
+    
+    &.active {
+      background: rgba(24, 144, 255, 0.1);
+      color: @primary-color;
+      font-weight: @font-weight-medium;
+    }
+  }
+  
+  // Vertical menu
+  &.vertical {
+    border-radius: @border-radius-lg;
+  }
+  
+  // Inverted
+  &.inverted {
+    background: #001529;
+    border: none;
+    
+    .item {
+      color: rgba(255, 255, 255, 0.65);
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+      }
+      
+      &.active {
+        background: @primary-color;
+        color: white;
+      }
+    }
+  }
+}
+
+// ==================== Header ====================
+
+.ui.header {
+  color: @text-color;
+  
+  .sub.header {
+    color: @text-color-secondary;
+  }
+}
+
+// ==================== Icon ====================
+
+i.icon {
+  font-family: 'Icons' !important;
+  
+  &.disabled {
+    opacity: 0.45;
+  }
+}
+
+// ==================== Divider ====================
+
+.ui.divider {
+  margin: @space-base 0;
+  border-top: 1px solid @border-color;
+  
+  &:not(.vertical):not(.horizontal) {
+    border-top: 1px solid @border-color;
+    border-bottom: none;
+  }
+}
+
+// ==================== Popup/Tooltip ====================
+
+.ui.popup {
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  border-radius: @border-radius-base;
+  padding: @space-sm @space-base;
+  font-size: @font-size-sm;
+  box-shadow: @shadow-base;
+}
+
+// ==================== Progress ====================
+
+.ui.progress {
+  background: @gray-3;
+  border-radius: @border-radius-base;
+  
+  .bar {
+    background: @primary-color;
+    border-radius: @border-radius-base;
+    height: 8px;
+    min-height: 8px;
+  }
+  
+  .label {
+    color: @text-color-secondary;
+    font-size: @font-size-sm;
+    margin-top: @space-xs;
+  }
+  
+  &.success .bar { background: @success-color; }
+  &.warning .bar { background: @warning-color; }
+  &.error .bar { background: @error-color; }
+}
+
+// ==================== Loader ====================
+
+.ui.loader {
+  &:before {
+    border-color: @border-color;
+  }
+  
+  &:after {
+    border-color: @primary-color transparent transparent;
+  }
+  
+  &.text {
+    color: @text-color-secondary;
+    font-size: @font-size-sm;
+  }
 }

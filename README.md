@@ -2,10 +2,10 @@
 
 **一条命令自建 CDN，免费开源，完全自托管。**
 
-基于 [GoEdge](https://github.com/TeaOSLab/EdgeAdmin) v1.3.9 二次开发，保留完整的 CDN + WAF 能力，去掉商业计费模块，增加一键安装脚本和 Docker 支持。一台 1 核 1GB 服务器就能跑起来。
+基于 GoEdge v1.3.9 二次开发，保留完整的 CDN + WAF 能力，去掉商业计费模块，更新 UI 界面，并与上游发布渠道切割，实现完全自主可控。一台 1 核 1GB 服务器就能跑起来。
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Based on GoEdge](https://img.shields.io/badge/based%20on-GoEdge%20v1.3.9-green.svg)](https://github.com/TeaOSLab/EdgeAdmin)
+[![Based on GoEdge](https://img.shields.io/badge/based%20on-GoEdge%20v1.3.9-green.svg)](docs/ARCHITECTURE.md)
 
 ---
 
@@ -24,6 +24,8 @@ curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/inst
 ```
 
 安装完成后，脚本会直接输出管理后台地址和初始账号密码，用浏览器访问即可。
+
+离线或弱网环境请参考 [离线/私有源安装](docs/INSTALL.md#离线私有源安装)。
 
 **第二步：添加边缘节点**
 
@@ -58,7 +60,7 @@ docker compose -f deploy/docker-compose.yml up -d
 
 # 4. 等约 60 秒后访问管理后台
 # 默认地址：http://localhost:7788
-# 默认账号：admin / REDACTED_SSH_PASS
+# 账号密码：使用 deploy/.env 中配置的 ADMIN_USERNAME / ADMIN_PASSWORD
 ```
 
 **国内服务器提速建议**
@@ -129,8 +131,25 @@ sudo systemctl daemon-reload && sudo systemctl restart docker
 
 - **版本锁定**：基于 v1.3.9，这是恶意代码植入前最后一个干净版本，也是中文社区公认的安全基线
 - **不自动跟踪上游**：v1.4.x 及以后的所有版本，必须经过逐行代码审计后才会考虑合并，永远不会自动同步
-- **每周自动检查**：GitHub Actions 每周检查 GoEdge 上游是否有新 tag，自动创建 Issue 供维护者人工审查
+- **定期人工审计**：定期审查上游关键变更，只选择安全且必要的改动合入
 - **供应链透明**：从源码编译，三个依赖仓库（EdgeAdmin、EdgeAPI、EdgeCommon）均为自有 Fork，不依赖 GoEdge 官方的分发渠道
+
+### 治理模型（简版）
+
+```
+上游变更情报（仅输入）
+        │
+        ▼
+安全审计与差异评估
+        │
+        ▼
+FreeCDN 内部实现 / 选择性合并
+        │
+        ▼
+FreeCDN 版本发布（唯一输出）
+```
+
+完整版本治理和发布说明见：[系统架构](docs/ARCHITECTURE.md) 与 [常见问题](docs/FAQ.md#版本治理与发布)。
 
 ---
 

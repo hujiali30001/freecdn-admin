@@ -5,6 +5,7 @@
 - [系统要求](#系统要求)
 - [方案一：Docker 一键部署（推荐）](#方案一docker-一键部署推荐)
 - [方案二：一键脚本安装](#方案二一键脚本安装)
+- [离线/私有源安装](#离线私有源安装)
 - [添加边缘节点](#添加边缘节点)
 - [完成初始化向导](#完成初始化向导)
 - [甲骨文免费云零成本部署](#甲骨文免费云零成本部署)
@@ -19,7 +20,7 @@
 | 边缘节点 (Node) | 1 核 512MB | 1 核 1GB |
 | 操作系统 | Ubuntu 20.04 / Debian 11 / CentOS 7 | Ubuntu 22.04 LTS |
 | 架构 | linux/amd64 或 linux/arm64 | - |
-| 开放端口 | 管理节点: 7788, 8001 / 边缘节点: 80, 443 | - |
+| 开放端口 | 管理节点: 7788, 8003 / 边缘节点: 80, 443 | - |
 
 ---
 
@@ -42,7 +43,7 @@ docker compose -f deploy/docker-compose.yml up -d
 
 # 4. 查看启动状态
 docker compose -f deploy/docker-compose.yml ps
-docker compose -f deploy/docker-compose.yml logs -f edge-admin
+docker compose -f deploy/docker-compose.yml logs -f freecdn-admin
 
 # 5. 访问管理台
 # http://你的服务器IP:7788
@@ -53,13 +54,13 @@ docker compose -f deploy/docker-compose.yml logs -f edge-admin
 ```bash
 # Ubuntu/Debian (ufw)
 ufw allow 7788/tcp  # 管理台（建议只对自己 IP 开放）
-ufw allow 8001/tcp  # API 节点（边缘节点需要连接此端口）
+ufw allow 8003/tcp  # API 节点（边缘节点需要连接此端口）
 ufw allow 80/tcp    # HTTP（边缘节点）
 ufw allow 443/tcp   # HTTPS（边缘节点）
 
 # CentOS/Rocky (firewalld)
 firewall-cmd --permanent --add-port=7788/tcp
-firewall-cmd --permanent --add-port=8001/tcp
+firewall-cmd --permanent --add-port=8003/tcp
 firewall-cmd --reload
 ```
 
@@ -83,8 +84,7 @@ sudo systemctl restart sshd
 # 腾讯云默认未启用 ufw，如果 `ufw status` 显示 inactive 可跳过
 sudo ufw allow 22/tcp    # SSH，务必先放行，否则会断连
 sudo ufw allow 7788/tcp  # 管理台
-sudo ufw allow 8001/tcp  # API 节点（边缘节点连接用）
-sudo ufw allow 8003/tcp  # gRPC（内部通信）
+sudo ufw allow 8003/tcp  # API 节点（边缘节点连接用）
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
 sudo ufw --force enable
@@ -92,7 +92,6 @@ sudo ufw --force enable
 # CentOS/Rocky（firewalld）
 sudo firewall-cmd --permanent --add-port=22/tcp
 sudo firewall-cmd --permanent --add-port=7788/tcp
-sudo firewall-cmd --permanent --add-port=8001/tcp
 sudo firewall-cmd --permanent --add-port=8003/tcp
 sudo firewall-cmd --permanent --add-port=80/tcp
 sudo firewall-cmd --permanent --add-port=443/tcp
@@ -117,6 +116,41 @@ curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/inst
 
 ---
 
+## 离线/私有源安装
+
+### 方式一：离线预置安装包
+
+```bash
+# 在可联网机器下载对应版本和架构安装包
+VERSION=v0.10.0
+ARCH=amd64
+wget "https://github.com/hujiali30001/freecdn-admin/releases/download/${VERSION}/freecdn-${VERSION}-linux-${ARCH}.tar.gz"
+
+# 上传到目标服务器固定路径
+scp "freecdn-${VERSION}-linux-${ARCH}.tar.gz" root@YOUR_SERVER:/tmp/freecdn-pkg.tar.gz
+
+# 在目标服务器执行安装（脚本会直接使用本地包）
+curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash -s -- --version "${VERSION}"
+```
+
+### 方式二：使用私有仓库或私有发布地址
+
+```bash
+# 从私有仓库读取 Release 包
+export FREECDN_GITHUB_REPO="your-org/freecdn-admin"
+curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
+
+# 或直接指定单一包下载地址（内网对象存储/CDN）
+export FREECDN_RELEASE_URL="https://your-mirror.example.com/freecdn-v0.10.0-linux-amd64.tar.gz"
+curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
+```
+
+说明：
+- 预置包模式会跳过二进制下载，但系统依赖安装与 MySQL 安装步骤仍按脚本逻辑执行。
+- `FREECDN_GITHUB_REPO` 与 `FREECDN_RELEASE_URL` 只影响安装包下载来源，不影响运行配置。
+
+---
+
 ## 添加边缘节点
 
 管理台初始化完成后，按以下步骤添加边缘节点：
@@ -133,7 +167,7 @@ curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/inst
 
 ```bash
 # 从管理台"节点 > 安装"页面获取以下三个参数
-ENDPOINTS="http://管理节点IP:8001"
+ENDPOINTS="http://管理节点IP:8003"
 CLUSTERID="集群ID"
 SECRET="节点密钥"
 
@@ -185,7 +219,7 @@ systemctl enable --now edge-node
 
 1. **设置 API 节点**
    - API 节点 Host: `0.0.0.0`（监听所有网卡）
-   - API 节点 Port: `8001`
+   - API 节点 Port: `8003`
 
 2. **配置数据库**
    - Host: `mysql`（Docker 部署）或 `127.0.0.1`
@@ -333,7 +367,7 @@ sudo certbot renew --dry-run
 iptables -I INPUT -p tcp --dport 80 -j ACCEPT
 iptables -I INPUT -p tcp --dport 443 -j ACCEPT
 iptables -I INPUT -p tcp --dport 7788 -j ACCEPT
-iptables -I INPUT -p tcp --dport 8001 -j ACCEPT
+iptables -I INPUT -p tcp --dport 8003 -j ACCEPT
 # 持久化规则
 apt-get install -y iptables-persistent
 netfilter-persistent save

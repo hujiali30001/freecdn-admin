@@ -10,5 +10,8 @@
 #     --node-secret NODE_SECRET
 # ==============================================================================
 
-curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh \
-  | bash -s -- --node "$@"
+INSTALL_REPO="${FREECDN_INSTALL_REPO:-hujiali30001/freecdn-admin}"
+INSTALL_REF="${FREECDN_INSTALL_REF:-main}"
+INSTALL_URL="https://raw.githubusercontent.com/${INSTALL_REPO}/${INSTALL_REF}/install.sh"
+
+curl -sSL "${INSTALL_URL}" | bash -s -- --node "$@"

@@ -1,386 +1,209 @@
-@import "../@design_tokens.less";
-@import "../@components_base.less";
-@import "../@components_data.less";
-@import "../@components_feedback.less";
+/**
+ * FreeCDN 登录页样式 v0.11.0
+ * 现代简约风格
+ */
 
-// ==================== 首页容器 ====================
-.page-index {
-  padding: @space-4;
-  background-color: @bg-primary;
+// ==================== 页面背景 ====================
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
-
-  @media (max-width: 768px) {
-    padding: @space-3;
-  }
-}
-
-// ==================== 页面标题 ====================
-.page-title {
-  margin: 0 0 @space-5 0;
-  
-  h1 {
-    font-size: 28px;
-    font-weight: 600;
-    color: @text-primary;
-    margin: 0 0 @space-1 0;
-    letter-spacing: -0.5px;
-  }
-
-  p {
-    margin: 0;
-    font-size: 14px;
-    color: @text-secondary;
-  }
-
-  @media (max-width: 768px) {
-    h1 {
-      font-size: 24px;
-    }
-  }
-}
-
-// ==================== 统计卡片组 ====================
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: @space-4;
-  margin-bottom: @space-6;
-
-  @media (max-width: 1024px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: @space-3;
-  }
-}
-
-.stat-card {
-  background-color: @bg-secondary;
-  border-radius: @radius-md;
-  padding: @space-4;
-  border: 1px solid @border-color;
-  transition: all @transition-base;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, @color-brand-primary 0%, @color-brand-secondary 100%);
-    opacity: 0.8;
-  }
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: @shadow-lg;
-    border-color: @color-brand-light;
-  }
-
-  .stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: @radius-sm;
-    background-color: rgba(@color-brand-primary, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: @space-3;
-    font-size: 24px;
-    color: @color-brand-primary;
-  }
-
-  .stat-label {
-    font-size: 12px;
-    color: @text-secondary;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: @space-1;
-  }
-
-  .stat-value {
-    font-size: 32px;
-    font-weight: 700;
-    color: @text-primary;
-    margin-bottom: @space-2;
-    letter-spacing: -1px;
-  }
-
-  .stat-change {
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: @space-1;
-
-    &.positive {
-      color: @color-success;
-    }
-
-    &.negative {
-      color: @color-danger;
-    }
-
-    &.neutral {
-      color: @text-secondary;
-    }
-  }
-}
-
-// ==================== 内容容器 ====================
-.content-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: @space-4;
-  margin-bottom: @space-4;
-
-  @media (max-width: 1024px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-
-  &.full-width {
-    grid-template-columns: 1fr;
-  }
-}
-
-// ==================== 卡片容器 ====================
-.card {
-  background-color: @bg-secondary;
-  border-radius: @radius-md;
-  border: 1px solid @border-color;
-  padding: @space-4;
-  transition: all @transition-base;
-
-  &:hover {
-    border-color: @color-brand-light;
-    box-shadow: @shadow-sm;
-  }
-
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: @space-3;
-    padding-bottom: @space-3;
-    border-bottom: 1px solid @border-color;
-
-    h2 {
-      font-size: 16px;
-      font-weight: 600;
-      color: @text-primary;
-      margin: 0;
-    }
-
-    .card-actions {
-      display: flex;
-      gap: @space-2;
-    }
-
-    .action-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: @radius-sm;
-      border: none;
-      background-color: @bg-tertiary;
-      color: @text-secondary;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all @transition-base;
-      font-size: 16px;
-
-      &:hover {
-        background-color: @bg-quaternary;
-        color: @text-primary;
-      }
-    }
-  }
-
-  .card-body {
-    font-size: 14px;
-    color: @text-secondary;
-    line-height: 1.6;
-  }
-
-  .card-footer {
-    margin-top: @space-4;
-    padding-top: @space-3;
-    border-top: 1px solid @border-color;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-}
-
-// ==================== 列表 ====================
-.item-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-
-  li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: @space-3;
-    border-bottom: 1px solid @border-color;
-    transition: all @transition-base;
-
-    &:last-child {
-      border-bottom: none;
-    }
-
-    &:hover {
-      background-color: @bg-tertiary;
-    }
-
-    .item-info {
-      flex: 1;
-
-      .item-title {
-        font-size: 14px;
-        font-weight: 500;
-        color: @text-primary;
-        margin-bottom: @space-1;
-      }
-
-      .item-desc {
-        font-size: 12px;
-        color: @text-secondary;
-      }
-    }
-
-    .item-value {
-      font-size: 14px;
-      font-weight: 600;
-      color: @color-brand-primary;
-      min-width: 80px;
-      text-align: right;
-    }
-
-    .item-badge {
-      margin-left: @space-2;
-      padding: @space-1 @space-2;
-      border-radius: @radius-sm;
-      font-size: 12px;
-      font-weight: 500;
-      white-space: nowrap;
-
-      &.badge-success {
-        background-color: rgba(34, 197, 94, 0.1);
-        color: @color-success;
-      }
-
-      &.badge-warning {
-        background-color: rgba(251, 146, 60, 0.1);
-        color: @color-warning;
-      }
-
-      &.badge-danger {
-        background-color: rgba(239, 68, 68, 0.1);
-        color: @color-danger;
-      }
-
-      &.badge-info {
-        background-color: rgba(59, 130, 246, 0.1);
-        color: @color-info;
-      }
-    }
-  }
-}
-
-// ==================== 图表容器 ====================
-.chart-container {
-  height: 300px;
-  padding: @space-3;
-
-  @media (max-width: 768px) {
-    height: 250px;
-  }
-}
-
-// ==================== 空状态 ====================
-.empty-state {
-  text-align: center;
-  padding: @space-6;
-  color: @text-secondary;
-
-  .empty-icon {
-    font-size: 48px;
-    margin-bottom: @space-3;
-    opacity: 0.5;
-  }
-
-  .empty-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: @text-primary;
-    margin-bottom: @space-1;
-  }
-
-  .empty-desc {
-    font-size: 14px;
-    color: @text-secondary;
-    margin-bottom: @space-3;
-  }
-
-  .empty-action {
-    display: inline-block;
-    padding: @space-2 @space-4;
-    background-color: @color-brand-primary;
-    color: white;
-    border-radius: @radius-sm;
-    text-decoration: none;
-    transition: all @transition-base;
-
-    &:hover {
-      background-color: @color-brand-secondary;
-      transform: translateY(-2px);
-    }
-  }
-}
-
-// ==================== 加载状态 ====================
-.loading {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 200px;
+}
 
-  .spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid @border-color;
-    border-top-color: @color-brand-primary;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+// ==================== 登录卡片 ====================
+
+.form-box {
+  width: 100%;
+  max-width: 400px;
+  padding: 0 @space-lg;
+  
+  form {
+    background: @component-background;
+    border-radius: @border-radius-xl;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    padding: @space-xl @space-xl @space-lg;
+    animation: slideUp 0.4s @ease-out;
   }
 }
 
-@keyframes spin {
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-// ==================== 响应式工具 ====================
-@media print {
-  .page-index {
-    padding: 0;
-    background-color: white;
-  }
+// ==================== 标题区域 ====================
 
-  .stat-card,
-  .card {
-    page-break-inside: avoid;
+.ui.header {
+  text-align: center;
+  margin-bottom: @space-lg;
+  
+  .header {
+    font-size: @font-size-2xl;
+    font-weight: @font-weight-semibold;
+    color: @text-color;
+    margin-bottom: @space-xs;
   }
+}
+
+.comment {
+  text-align: center;
+  color: @text-color-secondary;
+  font-size: @font-size-sm;
+  margin-bottom: @space-lg;
+}
+
+// ==================== 表单字段 ====================
+
+.ui.form {
+  .ui.field {
+    margin-bottom: @space-base;
+    
+    // 图标输入框
+    .ui.left.icon.input {
+      position: relative;
+      
+      i.icon {
+        position: absolute;
+        left: @space-base;
+        top: 50%;
+        transform: translateY(-50%);
+        color: @text-color-tertiary;
+        font-size: @font-size-base;
+      }
+      
+      input {
+        height: @input-height-base;
+        width: 100%;
+        padding: @space-sm @space-base @space-sm 40px;
+        font-size: @font-size-base;
+        border: 1px solid @border-color;
+        border-radius: @border-radius-base;
+        transition: @transition-base;
+        background: @component-background;
+        
+        &:hover {
+          border-color: @primary-color-hover;
+        }
+        
+        &:focus {
+          border-color: @primary-color;
+          box-shadow: 0 0 0 2px @primary-color-outline;
+          outline: none;
+        }
+        
+        &::placeholder {
+          color: @text-color-disabled;
+        }
+      }
+    }
+  }
+  
+  // 更多选项
+  .ui.field {
+    a {
+      color: @text-color-secondary;
+      font-size: @font-size-sm;
+      
+      &:hover {
+        color: @primary-color;
+      }
+      
+      i.icon {
+        margin-left: @space-xs;
+        font-size: 10px;
+      }
+    }
+    
+    // 复选框
+    .ui.checkbox {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      
+      input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        margin-right: @space-sm;
+        cursor: pointer;
+        accent-color: @primary-color;
+      }
+      
+      label {
+        color: @text-color-secondary;
+        font-size: @font-size-sm;
+        cursor: pointer;
+      }
+    }
+  }
+}
+
+// ==================== 登录按钮 ====================
+
+button.ui.button {
+  &.primary {
+    width: 100%;
+    height: @input-height-base;
+    font-size: @font-size-base;
+    font-weight: @font-weight-medium;
+    background: @primary-color;
+    border-color: @primary-color;
+    border-radius: @border-radius-base;
+    margin-top: @space-base;
+    
+    &:hover {
+      background: @primary-color-hover;
+      border-color: @primary-color-hover;
+    }
+    
+    &:active {
+      background: @primary-color-active;
+    }
+    
+    &.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// ==================== 响应式 ====================
+
+@media @sm {
+  .form-box {
+    padding: 0 @space-base;
+    
+    form {
+      padding: @space-lg @space-base;
+    }
+  }
+}
+
+// ==================== 其他元素 ====================
+
+// 菜单（如果有）
+.menu {
+  display: none;
+}
+
+// CSRF token
+csrf-token {
+  display: none;
+}
+
+// 隐藏的 input
+input[type="hidden"] {
+  display: none;
 }

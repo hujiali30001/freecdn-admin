@@ -8,7 +8,7 @@
 - [性能与缓存](#性能与缓存)
 - [证书与 HTTPS](#证书与-https)
 - [运维与故障排查](#运维与故障排查)
-- [上游同步与升级](#上游同步与升级)
+- [版本治理与发布](#版本治理与发布)
 
 ---
 
@@ -39,11 +39,27 @@ curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/free
 如果所有镜像都失败，可以手动下载后上传到服务器：
 
 ```bash
-# 从 Release 页面手动下载（以最新版本为例）
-wget https://github.com/hujiali30001/freecdn-admin/releases/download/v0.5.0/freecdn-v0.5.0-linux-amd64.tar.gz
+# 从 Release 页面手动下载（按你的版本和架构替换）
+VERSION=v0.10.0
+ARCH=amd64
+wget "https://github.com/hujiali30001/freecdn-admin/releases/download/${VERSION}/freecdn-${VERSION}-linux-${ARCH}.tar.gz"
 # 上传到目标服务器
-scp freecdn-v0.5.0-linux-amd64.tar.gz root@YOUR_SERVER:/tmp/freecdn-pkg.tar.gz
+scp "freecdn-${VERSION}-linux-${ARCH}.tar.gz" root@YOUR_SERVER:/tmp/freecdn-pkg.tar.gz
 # 然后在服务器上执行 install.sh，脚本会自动检测到已存在的包，跳过下载
+```
+
+### Q: 可以使用私有仓库或内网镜像安装吗？
+
+可以，安装脚本支持覆盖下载来源：
+
+```bash
+# 指定私有仓库（仍走 GitHub Release 目录结构）
+export FREECDN_GITHUB_REPO="your-org/freecdn-admin"
+curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
+
+# 或指定单一发布包 URL（内网对象存储/企业镜像）
+export FREECDN_RELEASE_URL="https://your-mirror.example.com/freecdn-v0.10.0-linux-amd64.tar.gz"
+curl -sSL https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash
 ```
 
 ### Q: 甲骨文 ARM64 实例应该下载哪个版本？
@@ -75,12 +91,12 @@ yum install -y devtoolset-8-bash
 
 1. 确认服务正在运行：
    ```bash
-   systemctl status freecdn-admin freecdn-api
+   systemctl status freecdn-admin
    ```
 
 2. 确认端口监听正常：
    ```bash
-   ss -tlnp | grep -E '7788|8001'
+   ss -tlnp | grep -E '7788|8003'
    ```
 
 3. 检查防火墙：
@@ -111,7 +127,7 @@ mysql -u freecdn -p freecdn
 ### Q: 初始化向导 API 节点填什么？
 
 - **API 节点 Host**：`0.0.0.0`（让 EdgeAPI 监听所有网卡，边缘节点才能连接）
-- **API 节点 Port**：`8001`（默认值）
+- **API 节点 Port**：`8003`（默认值）
 
 如果管理台和 API 在同一台服务器，`localhost` 也可以，但这样边缘节点无法从外部连接 API。
 
@@ -123,10 +139,10 @@ mysql -u freecdn -p freecdn
 
 **常见原因：**
 
-1. **边缘节点无法连接 API**：确认管理节点 8001 端口对边缘节点服务器 IP 开放：
+1. **边缘节点无法连接 API**：确认管理节点 8003 端口对边缘节点服务器 IP 开放：
    ```bash
    # 在边缘节点服务器上测试
-   curl -v http://管理节点IP:8001
+   curl -v http://管理节点IP:8003
    ```
 
 2. **节点 ID / Secret 填错**：在管理台重新复制节点安装命令，注意不要有多余的空格。
@@ -299,9 +315,6 @@ sudo crontab -l | grep certbot
 # 实时查看管理台日志
 journalctl -u freecdn-admin -f
 
-# 查看 API 节点日志
-journalctl -u freecdn-api -f
-
 # 查看边缘节点日志
 journalctl -u freecdn-node -f
 
@@ -315,14 +328,14 @@ journalctl -u freecdn-admin -n 100 --no-pager
 
 ```bash
 # 重启
-systemctl restart freecdn-api freecdn-admin
+systemctl restart freecdn-admin
 systemctl restart freecdn-node  # 边缘节点
 
 # 停止
-systemctl stop freecdn-admin freecdn-api
+systemctl stop freecdn-admin
 
 # 查看状态
-systemctl status freecdn-admin freecdn-api freecdn-node
+systemctl status freecdn-admin freecdn-node
 ```
 
 ### Q: 管理台密码忘了怎么办？
@@ -365,45 +378,47 @@ find /var/backups/ -name "freecdn-*.sql.gz" -mtime +7 -delete
 
 ---
 
-## 上游同步与升级
+## 版本治理与发布
 
-### Q: 如何手动同步上游 GoEdge 更新？
+### Q: FreeCDN 的版本治理策略是什么？
 
-```bash
-bash scripts/upstream-sync.sh
-```
+当前策略是“**安全基线锁定 + 人工审计合并 + 自主发布**”：
 
-或手动操作：
+1. 以 GoEdge v1.3.9 作为安全基线，不自动跟踪后续版本。
+2. 新增能力优先在 FreeCDN 仓库自主实现，避免引入不必要上游依赖。
+3. 如需吸收上游变更，先提 Issue 评审，再做差异审计与灰度验证。
+4. 只有通过审计和验证的改动，才进入 FreeCDN 发布流程。
 
-```bash
-cd src/EdgeAdmin
-git fetch upstream
-git merge upstream/main
-# 解决冲突后
-go build -tags community ./...
-```
+### Q: FreeCDN 的发布流程怎么执行？
 
-### Q: 升级 FreeCDN 版本
+建议按以下顺序：
 
-1. 查看 [Release 页面](https://github.com/hujiali30001/freecdn-admin/releases) 确认新版本变更
-2. 备份数据库
-3. 重新运行安装脚本（`--reinstall` 参数会覆盖已有安装）：
+1. 在发布分支完成功能冻结和回归测试。
+2. 执行 CI 质量门禁（测试、lint、打包）。
+3. 生成并上传 Release 产物（`freecdn-<version>-linux-<arch>.tar.gz`）。
+4. 更新安装与升级文档，发布版本说明。
+5. 使用一键安装脚本进行全新安装与升级场景双验证。
+
+发布步骤按本章节执行即可，建议每次发布前完成一次全新安装与升级双验证。
+
+### Q: 如何升级 FreeCDN 版本？
+
+1. 查看 [Release 页面](https://github.com/hujiali30001/freecdn-admin/releases) 确认目标版本变更。
+2. 备份数据库和关键配置目录（`/usr/local/freecdn/edge-admin/configs`）。
+3. 重新运行安装脚本：
    ```bash
-   curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash -s -- --reinstall
+   curl -sSL https://ghfast.top/https://raw.githubusercontent.com/hujiali30001/freecdn-admin/main/install.sh | sudo bash -s -- --reinstall --version v0.10.0
    ```
-4. 重启服务
+4. 验证服务状态与核心功能后再切流。
 
 ### Q: 如何查看当前安装的版本？
 
 ```bash
 # 查看 Admin 版本
-/usr/local/freecdn/admin/freecdn-admin -v
-
-# 查看 EdgeAPI 版本
-/usr/local/freecdn/api/freecdn-api -v
+/usr/local/freecdn/edge-admin/bin/edge-admin -v
 
 # 查看边缘节点版本
-/usr/local/freecdn/edge-node/freecdn-node -v
+/usr/local/freecdn/edge-node/bin/edge-node -v
 ```
 
 也可以在管理台右上角的「关于」页面查看当前版本号。
@@ -412,7 +427,7 @@ go build -tags community ./...
 
 FreeCDN 基于 GoEdge **社区版**（开源部分）开发，不包含 GoEdge 商业版的付费功能（如多租户计费系统、商业支持）。FreeCDN 做了品牌化和简化，去掉了计费相关菜单，核心 CDN 和 WAF 功能完整保留。
 
-如果你需要商业支持或企业级功能，可以考虑 [GoEdge 官方版本](https://goedge.cloud)。
+如果你需要商业支持或企业级功能，建议评估第三方商业 CDN 服务商或自行扩展 FreeCDN 的企业能力模块。
 
 ### Q: 可以商业使用 FreeCDN 吗？
 

@@ -1,8 +1,13 @@
 package index
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"net"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
@@ -39,6 +44,43 @@ type IndexAction struct {
 
 // TokenKey 加密用的密钥
 var TokenKey = stringutil.Rand(32)
+var loginTokenTTLSeconds int64 = 300
+
+func buildLoginToken(sessionId string, now time.Time) string {
+	timestamp := fmt.Sprintf("%d", now.Unix())
+	nonce := stringutil.Rand(16)
+	mac := hmac.New(sha256.New, []byte(TokenKey))
+	mac.Write([]byte(sessionId))
+	mac.Write([]byte(":"))
+	mac.Write([]byte(timestamp))
+	mac.Write([]byte(":"))
+	mac.Write([]byte(nonce))
+	signature := hex.EncodeToString(mac.Sum(nil))
+	return timestamp + ":" + nonce + ":" + signature
+}
+
+func verifyLoginToken(sessionId string, token string, now time.Time) bool {
+	parts := strings.Split(token, ":")
+	if len(parts) != 3 {
+		return false
+	}
+	timestamp, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return false
+	}
+	nowUnix := now.Unix()
+	if timestamp < nowUnix-loginTokenTTLSeconds || timestamp > nowUnix+60 {
+		return false
+	}
+	mac := hmac.New(sha256.New, []byte(TokenKey))
+	mac.Write([]byte(sessionId))
+	mac.Write([]byte(":"))
+	mac.Write([]byte(parts[0]))
+	mac.Write([]byte(":"))
+	mac.Write([]byte(parts[1]))
+	expected := hex.EncodeToString(mac.Sum(nil))
+	return hmac.Equal([]byte(expected), []byte(parts[2]))
+}
 
 func (this *IndexAction) RunGet(params struct {
 	From string
@@ -96,8 +138,7 @@ func (this *IndexAction) RunGet(params struct {
 	this.Data["isUser"] = false
 	this.Data["menu"] = "signIn"
 
-	var timestamp = fmt.Sprintf("%d", time.Now().Unix())
-	this.Data["token"] = stringutil.Md5(TokenKey+timestamp) + timestamp
+	this.Data["token"] = buildLoginToken(this.Session().Sid, time.Now())
 	this.Data["from"] = params.From
 
 	uiConfig, err := configloaders.LoadAdminUIConfig()
@@ -165,24 +206,22 @@ func (this *IndexAction) RunPost(params struct {
 
 	if params.Password == stringutil.Md5("") {
 		this.FailField("password", "请输入密码")
+		return
 	}
 
 	// 检查token
-	if len(params.Token) <= 32 {
+	if len(params.Token) == 0 {
 		this.Fail("请通过登录页面登录")
+		return
 	}
-	var timestampString = params.Token[32:]
-	if stringutil.Md5(TokenKey+timestampString) != params.Token[:32] {
+	if !verifyLoginToken(this.Session().Sid, params.Token, time.Now()) {
 		this.FailField("refresh", "登录页面已过期，请刷新后重试")
-	}
-	var timestamp = types.Int64(timestampString)
-	if timestamp < time.Now().Unix()-1800 {
-		this.FailField("refresh", "登录页面已过期，请刷新后重试")
+		return
 	}
 
 	rpcClient, err := rpc.SharedRPC()
 	if err != nil {
-		this.Fail("服务器出了点小问题：" + err.Error())
+		this.Fail("服务器暂时不可用，请稍后重试")
 		return
 	}
 	resp, err := rpcClient.AdminRPC().LoginAdmin(rpcClient.Context(0), &pb.LoginAdminRequest{

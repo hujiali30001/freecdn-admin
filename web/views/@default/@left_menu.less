@@ -1,173 +1,305 @@
-.left-box {
-	width: 8em;
-	position: fixed;
-	top: 7.5em;
-	bottom: 2.4em;
-	overflow-y: auto;
-	overflow-x: hidden;
-	background: linear-gradient(180deg, #2d1b69 0%, #3d2a7a 100%);
-	border-right: 2px solid #667eea;
-	box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+@import "./@design_tokens";
 
-	.menu {
-		width: 90% !important;
+/**
+ * FreeCDN 侧边栏样式 v0.11.0
+ * 现代简约风格 - 参考 Ant Design 深色菜单
+ */
 
-		.item {
-			line-height: 1.2;
-			position: relative;
-			padding-left: 1em !important;
-			color: #e0d4ff !important;
-			transition: all 0.3s ease !important;
+// ==================== 侧边栏容器 ====================
 
-			.icon {
-				position: absolute;
-				top: 50%;
-				left: 0;
-				margin-top: -0.4em !important;
-				color: #a99fd4 !important;
-			}
-
-			&:hover {
-				background: rgba(102, 126, 234, 0.2) !important;
-				color: #ffffff !important;
-
-				.icon {
-					color: #667eea !important;
-				}
-			}
-		}
-
-		.item.separator {
-			border-bottom: 1px rgba(255, 255, 255, 0.1) solid !important;
-			padding-top: 0;
-			padding-bottom: 0;
-			margin-top: 0 !important;
-			margin-bottom: 0 !important;
-		}
-
-		.item.on {
-			span {
-				border-bottom: 1px #667eea solid;
-			}
-		}
-
-		.item.off {
-			span {
-				var {
-					font-style: normal;
-					background: #db2828;
-					color: white;
-					font-size: 8px;
-					padding: 2px;
-					border-radius: 2px;
-					margin-left: 1em;
-				}
-			}
-		}
-
-		// .header需要在.item下面
-		.header {
-			border-bottom: 1px rgba(255, 255, 255, 0.1) solid;
-			padding-left: 0 !important;
-			padding-bottom: 1em !important;
-			color: #b0a5c9;
-			font-weight: 600;
-		}
-
-		.item.active {
-			background: rgba(102, 126, 234, 0.4) !important;
-			color: #ffffff !important;
-			border-left: 3px solid #667eea !important;
-			padding-left: calc(1em - 3px) !important;
-
-			.icon {
-				color: #667eea !important;
-			}
-		}
-	}
+.left-menu {
+  width: @layout-sider-width;
+  min-height: 100vh;
+  background: #001529;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: @zindex-fixed;
+  transition: width @transition-duration-slow @ease-in-out;
+  overflow: hidden;
+  
+  // 折叠状态
+  &.collapsed {
+    width: @layout-sider-width-collapsed;
+    
+    .menu-item-text,
+    .submenu-title-arrow {
+      display: none;
+    }
+    
+    .submenu-content {
+      display: none;
+    }
+    
+    .menu-item {
+      justify-content: center;
+      padding: 0;
+      
+      i.icon {
+        margin-right: 0;
+      }
+    }
+  }
 }
 
-.left-box::-webkit-scrollbar {
-	width: 4px;
+// ==================== Logo 区域 ====================
+
+.left-menu-logo {
+  height: @layout-header-height;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 @space-lg;
+  background: rgba(255, 255, 255, 0.05);
+  
+  img {
+    height: 32px;
+  }
+  
+  h1 {
+    color: white;
+    font-size: @font-size-lg;
+    font-weight: @font-weight-semibold;
+    margin: 0 0 0 @space-sm;
+    white-space: nowrap;
+  }
 }
 
-.left-box.disabled {
-	opacity: 0.1;
+// ==================== 菜单项 ====================
+
+.left-menu {
+  .ui.menu {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    width: 100%;
+  }
+  
+  .menu-item {
+    display: flex;
+    align-items: center;
+    padding: @space-base @space-lg;
+    color: rgba(255, 255, 255, 0.65);
+    cursor: pointer;
+    transition: @transition-base;
+    text-decoration: none;
+    position: relative;
+    
+    &:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    &.active {
+      color: white;
+      background: @primary-color;
+      
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: white;
+      }
+    }
+    
+    i.icon {
+      margin-right: @space-sm;
+      font-size: @font-size-base;
+    }
+    
+    .menu-item-text {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .menu-item-badge {
+      background: @error-color;
+      color: white;
+      font-size: @font-size-xs - 2;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+  }
 }
 
-.left-box.tiny {
-	top: 10em;
+// ==================== 子菜单 ====================
+
+.left-menu {
+  .submenu {
+    .submenu-title {
+      .menu-item();
+      justify-content: space-between;
+      
+      .submenu-title-arrow {
+        transition: transform @transition-duration @ease-in-out;
+        
+        i.icon {
+          margin-right: 0;
+        }
+      }
+      
+      &.expanded .submenu-title-arrow {
+        transform: rotate(180deg);
+      }
+    }
+    
+    .submenu-content {
+      background: rgba(0, 0, 0, 0.2);
+      
+      .menu-item {
+        padding-left: @space-xl + @space-lg;
+        
+        &.active {
+          background: @primary-color;
+        }
+      }
+    }
+  }
 }
 
-.left-box.without-tabbar {
-	top: 3em;
+// ==================== 菜单分组 ====================
+
+.left-menu {
+  .menu-group {
+    padding: @space-base @space-lg @space-sm;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: @font-size-xs;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
 }
 
-.left-box.with-menu {
-	top: 8.7em;
+// ==================== 底部用户信息 ====================
+
+.left-menu-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: @space-base;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    padding: @space-sm;
+    border-radius: @border-radius-base;
+    cursor: pointer;
+    transition: @transition-base;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: @primary-color;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: @font-weight-medium;
+      margin-right: @space-sm;
+    }
+    
+    .user-name {
+      color: rgba(255, 255, 255, 0.85);
+      font-size: @font-size-sm;
+    }
+  }
 }
 
-.left-box.without-menu {
-	top: 6em;
+// ==================== 折叠按钮 ====================
+
+.menu-collapse-btn {
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  background: @component-background;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: @shadow-sm;
+  z-index: 10;
+  transition: @transition-base;
+  
+  &:hover {
+    background: @primary-color;
+    color: white;
+  }
+  
+  i.icon {
+    margin: 0;
+    font-size: 10px;
+  }
 }
 
-.right-box {
-	position: fixed;
-	top: 7em;
-	bottom: 1.3em;
-	right: 0;
-	left: 18em;
-	padding-right: 2em;
-	padding-bottom: 2em;
-	overflow-y: auto;
+// ==================== 响应式 ====================
 
-	h4:first-child {
-		margin-top: 1em;
-	}
+@media @md {
+  .left-menu {
+    position: fixed;
+    transform: translateX(-100%);
+    
+    &.mobile-visible {
+      transform: translateX(0);
+    }
+  }
+  
+  .layout-main {
+    margin-left: 0 !important;
+  }
+  
+  // 移动端遮罩
+  .menu-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: @zindex-modal-backdrop;
+    
+    &.visible {
+      display: block;
+    }
+  }
 }
 
-.right-box > .comment:first-child {
-	margin-top: 0.5em;
-}
+// ==================== Semantic UI 菜单覆盖 ====================
 
-@media screen and (max-width: 512px) {
-	.right-box {
-		left: 13em;
-		padding-right: 1em;
-	}
-}
-
-body.expanded .right-box {
-	left: 10em;
-}
-
-.right-box.tiny {
-	top: 10em;
-	left: 26.5em;
-}
-
-.right-box::-webkit-scrollbar {
-	width: 4px;
-}
-
-.right-box.without-tabbar {
-	top: 3em;
-}
-
-.right-box.with-menu {
-	top: 8.6em;
-}
-
-.right-box.without-menu {
-	top: 6em;
-}
-
-// main
-.main.without-footer .left-box {
-	bottom: 0.2em;
-}
-
-// scrollbar
-.narrow-scrollbar::-webkit-scrollbar {
-	width: 4px;
+.ui.vertical.menu {
+  &.inverted {
+    background: #001529;
+    
+    .item {
+      color: rgba(255, 255, 255, 0.65);
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+      }
+      
+      &.active {
+        background: @primary-color;
+        color: white;
+      }
+    }
+  }
 }

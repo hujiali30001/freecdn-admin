@@ -63,6 +63,20 @@ docker compose -f deploy/docker-compose.yml up -d
 # 账号密码：使用 deploy/.env 中配置的 ADMIN_USERNAME / ADMIN_PASSWORD
 ```
 
+WSL 本地快速启动（避免本机 7788/8003 端口冲突）：
+
+```bash
+bash deploy/run-wsl.sh
+```
+
+启动后访问：`http://127.0.0.1:17788`
+
+也可以覆盖默认参数：
+
+```bash
+ADMIN_PASSWORD=你的密码 ADMIN_PORT=17788 API_PORT=18003 bash deploy/run-wsl.sh
+```
+
 **国内服务器提速建议**
 
 `docker build` 过程会从 GitHub 下载约 200MB 的软件包，构建脚本已内置多个国内加速源，一般无需额外配置。如果 `docker pull` 基础镜像（debian/mysql）也很慢，可以配置 Docker 镜像加速：

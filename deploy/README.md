@@ -34,6 +34,22 @@ docker compose -f deploy/docker-compose.yml up -d
 docker compose -f deploy/docker-compose.yml logs -f freecdn-admin
 ```
 
+### WSL 本地一条命令启动
+
+如果本机已有服务占用 `7788` 或 `8003`，可以直接使用以下端口启动：
+
+```bash
+bash deploy/run-wsl.sh
+```
+
+访问地址：`http://127.0.0.1:17788`
+
+如需自定义参数：
+
+```bash
+ADMIN_PASSWORD=你的密码 ADMIN_PORT=17788 API_PORT=18003 bash deploy/run-wsl.sh
+```
+
 初始化完成后，访问 `http://你的服务器IP:7788`，使用 `deploy/.env` 中配置的管理员账号登录：
 
 - 用户名：`.env` 中 `ADMIN_USERNAME` 的值（默认 `admin`）

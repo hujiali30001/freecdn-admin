@@ -81,6 +81,7 @@ services:
     image: freecdn/admin:latest
     container_name: freecdn-admin
     restart: unless-stopped
+    user: "0:0"
     networks:
       - freecdn
     depends_on:

@@ -22,9 +22,12 @@ FROM debian:bookworm-slim AS downloader
 ARG TARGETARCH=amd64
 ARG FREECDN_VERSION=v0.10.0
 ARG GITHUB_REPO=hujiali30001/freecdn-admin
+ARG APT_MIRROR=http://mirrors.aliyun.com/debian
 
 # 安装下载工具
-RUN apt-get update -qq && apt-get install -y -qq wget ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN sed -i "s|http://deb.debian.org/debian|${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources \
+    && sed -i "s|http://security.debian.org/debian-security|${APT_MIRROR}-security|g" /etc/apt/sources.list.d/debian.sources \
+    && apt-get update -qq && apt-get install -y -qq wget ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # 下载 FreeCDN Release 包（含品牌替换后的 web/）
 # 可通过 --build-arg FREECDN_MIRROR=https://你的镜像 覆盖镜像前缀
@@ -80,13 +83,16 @@ RUN ARCH="${TARGETARCH}"; \
 
 # ---- 最终镜像 ----
 FROM debian:bookworm-slim
+ARG APT_MIRROR=http://mirrors.aliyun.com/debian
 
 # 安装运行时依赖
 # netcat-openbsd：entrypoint 用于等待 MySQL 就绪
 # default-mysql-client：entrypoint 用于数据库初始化
 # curl + python3：entrypoint auto-setup 和健康检查使用
 # ca-certificates + tzdata：标准依赖
-RUN apt-get update -qq && apt-get install -y -qq \
+RUN sed -i "s|http://deb.debian.org/debian|${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources \
+    && sed -i "s|http://security.debian.org/debian-security|${APT_MIRROR}-security|g" /etc/apt/sources.list.d/debian.sources \
+    && apt-get update -qq && apt-get install -y -qq \
     ca-certificates \
     tzdata \
     netcat-openbsd \

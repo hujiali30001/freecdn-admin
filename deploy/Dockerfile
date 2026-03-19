@@ -108,6 +108,8 @@ WORKDIR /app/edge-admin
 COPY --from=downloader /tmp/freecdn/bin/edge-admin        ./bin/edge-admin
 COPY --from=downloader /tmp/freecdn/edge-api/bin/edge-api ./edge-api/bin/edge-api
 COPY --from=downloader /tmp/freecdn/web                   ./web
+COPY web/views/@default                                   ./web/views/@default
+COPY web/public                                           ./web/public
 
 # 复制 edge-api 部署资源（node zip 等，供参考）
 COPY --from=downloader /tmp/freecdn/edge-api/deploy       ./edge-api/deploy

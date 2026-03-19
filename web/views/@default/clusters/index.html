@@ -1,8 +1,9 @@
 {$layout}
 {$template "menu"}
 
+<div class="fc-page fc-clusters-page">
 <div class="margin"></div>
-<form method="get" action="/clusters" class="ui form">
+<form method="get" action="/clusters" class="ui form fc-toolbar-form">
     <input type="hidden" name="searchType" :value="searchType"/>
     <div class="ui fields inline">
         <div class="ui field">
@@ -16,11 +17,11 @@
         </div>
     </div>
 </form>
-<div class="ui segment" v-if="latestVisible">
+<div class="ui segment fc-latest-segment" v-if="latestVisible">
     常用集群：<span v-for="(cluster, index) in latestClusters"><a :href="'/clusters/cluster?clusterId=' + cluster.id">{{cluster.name}}</a> &nbsp; <span class="disabled" v-if="index != latestClusters.length - 1">|</span> &nbsp;</span>
 </div>
 
-<div class="ui tabular menu" v-if="isSearching">
+<div class="ui tabular menu fc-switch-menu" v-if="isSearching">
     <a :href="'/clusters?searchType=cluster&keyword=' + keyword" class="item" :class="{active: searchType == '' || searchType == 'cluster'}">集群({{countClusters}})</a>
     <a :href="'/clusters/nodes?keyword=' + keyword" class="item" :class="{active: searchType == 'node'}">节点({{countNodes}})</a>
 </div>
@@ -29,7 +30,7 @@
 <div v-show="searchType == '' || searchType == 'cluster'">
     <div class="margin"></div>
     <p class="comment" v-if="clusters.length == 0">暂时还没有集群。</p>
-    <table class="ui table selectable celled" v-if="clusters.length > 0">
+    <table class="ui table selectable celled fc-data-table" v-if="clusters.length > 0">
         <thead>
             <tr>
                 <th>集群名称</th>
@@ -84,4 +85,7 @@
     </table>
 </div>
 
-<page-box></page-box>
+<div class="fc-pagination-wrap">
+    <page-box></page-box>
+</div>
+</div>

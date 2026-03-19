@@ -9,9 +9,19 @@
     <span class="item disabled">|</span>
     <span class="item"><tip-icon content="在这里创建一些指标后，可以在集群中使用这些指标，从而实现阈值、图表等功能"></tip-icon></span>
 </first-menu>
+<style>
+.metric-table.ui.table.selectable tbody tr:hover {
+    background: #faf4ea !important;
+}
+.metric-table .metric-flag.ui.label.basic {
+    border-color: #d9c6a9 !important;
+    color: #8a6a42 !important;
+    background: #fff7ea !important;
+}
+</style>
 
 <p class="comment" v-if="items.length == 0">暂时还没有指标。</p>
-<table class="ui table celled selectable" v-if="items.length > 0">
+<table class="ui table celled selectable metric-table" v-if="items.length > 0">
     <thead>
         <tr>
             <th>指标名称</th>
@@ -26,8 +36,8 @@
         <td>
             <a :href="'/servers/metrics/item?itemId=' + item.id">{{item.name}}</a>
             <div style="margin-top: 0.3em" v-if="item.isPublic || item.code.length > 0">
-                <span class="ui label olive tiny basic" v-if="item.isPublic">公用</span>
-                <span class="ui label olive tiny basic" v-if="item.code.length > 0">内置</span>
+                <span class="ui label tiny basic metric-flag" v-if="item.isPublic">公用</span>
+                <span class="ui label tiny basic metric-flag" v-if="item.code.length > 0">内置</span>
             </div>
         </td>
         <td>

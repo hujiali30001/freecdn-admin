@@ -42,7 +42,7 @@ docker compose -f deploy/docker-compose.yml logs -f freecdn-admin
 bash deploy/run-wsl.sh
 ```
 
-访问地址：`http://127.0.0.1:17788`
+脚本会自动打印 Windows 与 WSL 可访问地址，默认可访问：`http://127.0.0.1:17788`
 
 如需自定义参数：
 

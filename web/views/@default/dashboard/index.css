@@ -9,7 +9,7 @@ columns-grid {
   gap: 16px;
   margin-bottom: 32px;
   padding: 16px;
-  background: #ffffff;
+  background: #fffaf2;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
 }
@@ -29,15 +29,15 @@ columns-grid {
 }
 columns-grid .ui.column {
   padding: 16px;
-  background: #f7fafc;
-  border-radius: 8px;
+  background: #fff7eb;
+  border-radius: 10px;
   border: 1px solid #e2e8f0;
   transition: all 200ms;
   text-align: center;
 }
 columns-grid .ui.column:hover {
-  background: #edf2f7;
-  border-color: #667eea;
+  background: #fdf0de;
+  border-color: #d8c2a0;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   transform: translateY(-2px);
 }
@@ -99,8 +99,8 @@ chart-columns-grid {
 }
 chart-columns-grid .ui.column {
   padding: 16px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: #fffaf2;
+  border: 1px solid #eadfcd;
   border-radius: 12px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   transition: box-shadow 200ms;
@@ -114,8 +114,8 @@ chart-columns-grid .ui.column:hover {
   }
 }
 chart-columns-grid metric-chart {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: #fffaf2;
+  border: 1px solid #eadfcd;
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -133,7 +133,7 @@ chart-columns-grid metric-chart:hover {
   height: 280px;
   border-radius: 8px;
   overflow: hidden;
-  background: #f7fafc;
+  background: #fff3e2;
   transition: background 200ms;
 }
 @media (max-width: 1024px) {
@@ -296,4 +296,23 @@ h4 span {
   background: #667eea;
   border-radius: 1px;
   transition: all 200ms;
+}
+columns-grid .ui.column {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: none !important;
+}
+columns-grid .ui.column:hover {
+  background: #ffffff !important;
+  border-color: #dbe3f0 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06) !important;
+}
+columns-grid .ui.column:before,
+columns-grid .ui.column:after {
+  display: none !important;
+}
+chart-columns-grid .ui.column {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: none !important;
 }

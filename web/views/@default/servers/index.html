@@ -1,6 +1,7 @@
 {$layout}
 {$template "menu"}
 
+<div class="fc-page fc-servers-page">
 <!-- 错误日志 -->
 <div v-if="countNeedFixLogs > 0">
     <div class="margin"></div>
@@ -12,7 +13,7 @@
 </div>
 
 <!-- 搜索表单 -->
-<form method="get" class="ui form" action="/servers">
+<form method="get" class="ui form fc-toolbar-form" action="/servers">
     <input type="hidden" name="auditingFlag" :value="auditingFlag"/>
 	<div class="ui margin"></div>
     <div class="ui fields inline">
@@ -49,7 +50,7 @@
 </form>
 
 <!-- 常用服务 -->
-<div class="ui segment" v-if="latestVisible">
+<div class="ui segment fc-latest-segment" v-if="latestVisible">
     常用网站：<span v-for="(server, index) in latestServers"><a :href="'/servers/server?serverId=' + server.id">{{server.name}}</a> &nbsp; <span class="disabled" v-if="index != latestServers.length - 1">|</span> &nbsp;</span>
 </div>
 
@@ -61,7 +62,7 @@
     <button class="ui button basic" @click.prevent="deleteServers">删除所选{{checkedServerIds.length}}网站</button>
 </div>
 
-<table class="ui table selectable celled" v-if="servers.length > 0">
+<table class="ui table selectable celled fc-data-table" v-if="servers.length > 0">
 	<thead>
 		<tr>
             <th style="width: 1em" class="server-checkbox-td"><checkbox ref="allCheckedCheckboxes" @input="changeAllChecked"></checkbox></th>
@@ -144,4 +145,5 @@
 	</tr>
 </table>
 
-<div class="page" v-html="page"></div>
+<div class="page fc-pagination-wrap" v-html="page"></div>
+</div>

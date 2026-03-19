@@ -1,6 +1,7 @@
 {$layout}
 {$template "/echarts"}
 
+<div class="fc-page fc-dashboard-page">
 <!-- 加载中 -->
 <div style="margin-top: 0.8em">
     <div class="ui message loading" v-if="isLoading">
@@ -65,7 +66,7 @@
 </div>
 
 <!-- 统计图表 -->
-<columns-grid v-if="!isLoading">
+<columns-grid class="fc-stats-grid" v-if="!isLoading">
     <div class="ui column">
         <h4>集群<link-icon href="/clusters" v-if="dashboard.canGoNodes"></link-icon></h4>
         <div class="value"><span>{{dashboard.countNodeClusters}}</span>个</div>
@@ -110,7 +111,7 @@
 
 </columns-grid>
 
-<chart-columns-grid>
+<chart-columns-grid class="fc-chart-grid">
     <div class="ui column">
         <div class="ui menu text blue" v-show="!isLoading">
             <a href="" class="item" :class="{active: trafficTab == 'hourly'}" @click.prevent="selectTrafficTab('hourly')">24小时流量趋势</a>
@@ -141,3 +142,4 @@
                   :v-column="true">
     </metric-chart>
 </chart-columns-grid>
+</div>

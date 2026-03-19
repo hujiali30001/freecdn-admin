@@ -5,9 +5,9 @@
   bottom: 2.4em;
   overflow-y: auto;
   overflow-x: hidden;
-  background: linear-gradient(180deg, #2d1b69 0%, #3d2a7a 100%);
-  border-right: 2px solid #667eea;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  background: #fffaf2;
+  border-right: 1px solid #e8dece;
+  box-shadow: none;
 }
 .left-box .menu {
   width: 90% !important;
@@ -16,7 +16,7 @@
   line-height: 1.2;
   position: relative;
   padding-left: 1em !important;
-  color: #e0d4ff !important;
+  color: #6b5a46 !important;
   transition: all 0.3s ease !important;
 }
 .left-box .menu .item .icon {
@@ -24,14 +24,14 @@
   top: 50%;
   left: 0;
   margin-top: -0.4em !important;
-  color: #a99fd4 !important;
+  color: #b2834f !important;
 }
 .left-box .menu .item:hover {
-  background: rgba(102, 126, 234, 0.2) !important;
-  color: #ffffff !important;
+  background: #f8f3ea !important;
+  color: #4a3b2b !important;
 }
 .left-box .menu .item:hover .icon {
-  color: #667eea !important;
+  color: #b2834f !important;
 }
 .left-box .menu .item.separator {
   border-bottom: 1px rgba(255, 255, 255, 0.1) solid !important;
@@ -53,20 +53,21 @@
   margin-left: 1em;
 }
 .left-box .menu .header {
-  border-bottom: 1px rgba(255, 255, 255, 0.1) solid;
+  border-bottom: 1px #e8dece solid;
   padding-left: 0 !important;
   padding-bottom: 1em !important;
-  color: #b0a5c9;
+  color: #8a7a66;
   font-weight: 600;
 }
 .left-box .menu .item.active {
-  background: rgba(102, 126, 234, 0.4) !important;
-  color: #ffffff !important;
-  border-left: 3px solid #667eea !important;
-  padding-left: calc(1em - 3px) !important;
+  background: #f7f0e5 !important;
+  color: #4a3b2b !important;
+  border-left: none !important;
+  box-shadow: inset 1px 0 0 rgba(178, 131, 79, 0.75) !important;
+  padding-left: 1em !important;
 }
 .left-box .menu .item.active .icon {
-  color: #667eea !important;
+  color: #b2834f !important;
 }
 .left-box::-webkit-scrollbar {
   width: 4px;
@@ -239,28 +240,28 @@ body.expanded .right-box {
   font-weight: 600 !important;
 }
 .grid.counter-chart .column:nth-child(1) {
-  background: linear-gradient(135deg, #d4e5f9 0%, #c5d8f5 100%) !important;
+  background: #ffffff !important;
 }
 .grid.counter-chart .column:nth-child(2) {
-  background: linear-gradient(135deg, #e5d8f9 0%, #d8c8f5 100%) !important;
+  background: #ffffff !important;
 }
 .grid.counter-chart .column:nth-child(3) {
-  background: linear-gradient(135deg, #d8e8f9 0%, #ccd5f5 100%) !important;
+  background: #ffffff !important;
 }
 .grid.counter-chart .column:nth-child(4) {
-  background: linear-gradient(135deg, #f9e5ec 0%, #f5d8e3 100%) !important;
+  background: #ffffff !important;
 }
 .grid.counter-chart .column:nth-child(5) {
-  background: linear-gradient(135deg, #f0e5f9 0%, #e5d8f5 100%) !important;
+  background: #ffffff !important;
 }
 .grid.counter-chart .column:nth-child(6) {
-  background: linear-gradient(135deg, #d4f0f9 0%, #c5e8f5 100%) !important;
+  background: #ffffff !important;
 }
 .grid.counter-chart .column:nth-child(7) {
-  background: linear-gradient(135deg, #d4f9e5 0%, #c5f5d8 100%) !important;
+  background: #ffffff !important;
 }
 .grid.counter-chart .column:nth-child(n+8) {
-  background: linear-gradient(135deg, #e8e5f9 0%, #ddd5f5 100%) !important;
+  background: #ffffff !important;
 }
 .grid.counter-chart .column.with-border {
   border-right: none !important;
@@ -463,7 +464,7 @@ p.margin {
 }
 /** 主菜单 **/
 .main-menu {
-  width: 8em !important;
+  width: 10.8em !important;
 }
 .main-menu .ui.menu {
   width: 100% !important;
@@ -569,7 +570,7 @@ body .ui.menu .item:not(:hover) span.rotate {
   animation: rotation 3s infinite;
 }
 body {
-  background: linear-gradient(135deg, #f5f7ff 0%, #f0f5ff 100%) !important;
+  background: linear-gradient(135deg, #f7efe3 0%, #f4eadc 100%) !important;
   min-height: 100vh;
 }
 body.expanded .main-menu {
@@ -616,8 +617,9 @@ body.expanded .main {
 .top-nav.theme5,
 .top-nav.theme6,
 .top-nav.theme7 {
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%) !important;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2) !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04) !important;
 }
 .top-nav.theme1 .item,
 .top-nav.theme2 .item,
@@ -626,7 +628,7 @@ body.expanded .main {
 .top-nav.theme5 .item,
 .top-nav.theme6 .item,
 .top-nav.theme7 .item {
-  color: #ffffff !important;
+  color: #334155 !important;
   transition: all 0.3s ease !important;
 }
 .top-nav.theme1 .item:hover,
@@ -636,8 +638,8 @@ body.expanded .main {
 .top-nav.theme5 .item:hover,
 .top-nav.theme6 .item:hover,
 .top-nav.theme7 .item:hover {
-  background: rgba(255, 255, 255, 0.15) !important;
-  color: #ffffff !important;
+  background: #eef2ff !important;
+  color: #1e293b !important;
 }
 .top-nav.theme1 .item.active,
 .top-nav.theme2 .item.active,
@@ -646,9 +648,9 @@ body.expanded .main {
 .top-nav.theme5 .item.active,
 .top-nav.theme6 .item.active,
 .top-nav.theme7 .item.active {
-  background: rgba(102, 126, 234, 0.3) !important;
-  color: #ffffff !important;
-  border-bottom: 3px solid #667eea !important;
+  background: #e8edff !important;
+  color: #1e293b !important;
+  border-bottom: 3px solid #4f46e5 !important;
 }
 .top-nav::-webkit-scrollbar {
   height: 2px;
@@ -657,7 +659,7 @@ body.expanded .main {
 .top-secondary-menu {
   position: fixed;
   top: 2.6em;
-  left: 8.2em;
+  left: 11em;
   right: 0;
   z-index: 100;
   background: white;
@@ -697,7 +699,7 @@ body.expanded .main {
   }
 }
 .main.without-menu {
-  left: 9em;
+  left: 11.8em;
 }
 .main.without-secondary-menu {
   top: 2.9em;
@@ -785,7 +787,8 @@ body.expanded .main {
 .main-menu.theme5,
 .main-menu.theme6,
 .main-menu.theme7 {
-  background: linear-gradient(180deg, #c5d0f5 0%, #d8c8f0 100%) !important;
+  background: #ffffff !important;
+  border-right: 1px solid #e2e8f0 !important;
 }
 .main-menu.theme1 .menu,
 .main-menu.theme2 .menu,
@@ -821,7 +824,7 @@ body.expanded .main {
 .main-menu.theme5 .menu .item:hover,
 .main-menu.theme6 .menu .item:hover,
 .main-menu.theme7 .menu .item:hover {
-  background: rgba(255, 255, 255, 0.5) !important;
+  background: #eef2ff !important;
   color: #1a202c !important;
 }
 .main-menu.theme1 .menu .item.active,
@@ -831,7 +834,7 @@ body.expanded .main {
 .main-menu.theme5 .menu .item.active,
 .main-menu.theme6 .menu .item.active,
 .main-menu.theme7 .menu .item.active {
-  background: rgba(255, 255, 255, 0.7) !important;
+  background: #e8edff !important;
   color: #2b6cb0 !important;
 }
 .main-menu.theme1 .menu .item.active i.icon,

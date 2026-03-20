@@ -95,7 +95,12 @@ func (this *CheckUpdatesTask) Loop() error {
 	apiURL = strings.ReplaceAll(apiURL, "${os}", runtime.GOOS)
 	apiURL = strings.ReplaceAll(apiURL, "${arch}", runtime.GOARCH)
 	apiURL = strings.ReplaceAll(apiURL, "${version}", teaconst.Version)
-	resp, err := http.Get(apiURL)
+	client := &http.Client{Timeout: 8 * time.Second}
+	req, err := http.NewRequest(http.MethodGet, apiURL, nil)
+	if err != nil {
+		return fmt.Errorf("build request failed: %w", err)
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("read api failed: %w", err)
 	}
@@ -103,7 +108,10 @@ func (this *CheckUpdatesTask) Loop() error {
 	defer func() {
 		_ = resp.Body.Close()
 	}()
-	data, err := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("read api failed: invalid response code: %d", resp.StatusCode)
+	}
+	data, err := io.ReadAll(io.LimitReader(resp.Body, 1024*1024))
 	if err != nil {
 		return fmt.Errorf("read api failed: %w", err)
 	}

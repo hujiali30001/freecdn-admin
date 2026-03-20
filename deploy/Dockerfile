@@ -20,7 +20,7 @@
 FROM debian:bookworm-slim AS downloader
 
 ARG TARGETARCH=amd64
-ARG FREECDN_VERSION=v0.10.0
+ARG FREECDN_VERSION=v0.11.2
 ARG GITHUB_REPO=hujiali30001/freecdn-admin
 ARG APT_MIRROR=http://mirrors.aliyun.com/debian
 

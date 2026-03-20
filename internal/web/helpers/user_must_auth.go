@@ -12,6 +12,7 @@ import (
 	"github.com/hujiali30001/freecdn-admin/internal/goman"
 	"github.com/hujiali30001/freecdn-admin/internal/rpc"
 	"github.com/hujiali30001/freecdn-admin/internal/setup"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/index/loginutils"
 	"github.com/hujiali30001/freecdn-common/pkg/langs"
 	"github.com/hujiali30001/freecdn-common/pkg/nodeconfigs"
@@ -113,12 +114,7 @@ func NewUserMustAuth(module string) *userMustAuth {
 func (this *userMustAuth) BeforeAction(actionPtr actions.ActionWrapper, paramName string) (goNext bool) {
 	var action = actionPtr.Object()
 
-	// 注入安全响应头（ORA-13）
-	w := action.ResponseWriter
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("Referrer-Policy", "same-origin")
-	w.Header().Set("X-DNS-Prefetch-Control", "off")
-	w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+	actionutils.ApplySecurityHeaders(action.ResponseWriter.Header(), "")
 
 	// 检查请求是否合法
 	if isEvilRequest(action.Request) {
@@ -160,12 +156,9 @@ func (this *userMustAuth) BeforeAction(actionPtr actions.ActionWrapper, paramNam
 
 	// 安全相关
 	securityConfig, _ := configloaders.LoadSecurityConfig()
-	if securityConfig == nil {
-		action.AddHeader("X-Frame-Options", "SAMEORIGIN")
-	} else if len(securityConfig.Frame) > 0 {
-		action.AddHeader("X-Frame-Options", securityConfig.Frame)
+	if securityConfig != nil && len(securityConfig.Frame) > 0 {
+		actionutils.ApplySecurityHeaders(action.ResponseWriter.Header(), securityConfig.Frame)
 	}
-	action.AddHeader("Content-Security-Policy", "default-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'")
 
 	// 检查IP
 	if !checkIP(securityConfig, loginutils.RemoteIP(action)) {

@@ -21,7 +21,8 @@ func (this *ImageAction) Init() {
 func (this *ImageAction) RunGet(params struct {
 	FileId int64
 }) {
-	fileResp, err := this.RPC().FileRPC().FindEnabledFile(this.AdminContext(), &pb.FindEnabledFileRequest{FileId: params.FileId})
+	ctx := this.AdminContext()
+	fileResp, err := this.RPC().FileRPC().FindEnabledFile(ctx, &pb.FindEnabledFileRequest{FileId: params.FileId})
 	if err != nil {
 		this.ErrorPage(err)
 		return
@@ -37,7 +38,8 @@ func (this *ImageAction) RunGet(params struct {
 		return
 	}
 
-	chunkIdsResp, err := this.RPC().FileChunkRPC().FindAllFileChunkIds(this.AdminContext(), &pb.FindAllFileChunkIdsRequest{FileId: file.Id})
+	chunkRPC := this.RPC().FileChunkRPC()
+	chunkIdsResp, err := chunkRPC.FindAllFileChunkIds(ctx, &pb.FindAllFileChunkIdsRequest{FileId: file.Id})
 	if err != nil {
 		this.ErrorPage(err)
 		return
@@ -56,7 +58,7 @@ func (this *ImageAction) RunGet(params struct {
 	this.AddHeader("Content-Type", mimeType)
 	this.AddHeader("Content-Length", strconv.FormatInt(file.Size, 10))
 	for _, chunkId := range chunkIdsResp.FileChunkIds {
-		chunkResp, err := this.RPC().FileChunkRPC().DownloadFileChunk(this.AdminContext(), &pb.DownloadFileChunkRequest{FileChunkId: chunkId})
+		chunkResp, err := chunkRPC.DownloadFileChunk(ctx, &pb.DownloadFileChunkRequest{FileChunkId: chunkId})
 		if err != nil {
 			this.ErrorPage(err)
 			return
@@ -64,6 +66,9 @@ func (this *ImageAction) RunGet(params struct {
 		if chunkResp.FileChunk == nil {
 			continue
 		}
-		_, _ = this.Write(chunkResp.FileChunk.Data)
+		_, err = this.Write(chunkResp.FileChunk.Data)
+		if err != nil {
+			return
+		}
 	}
 }

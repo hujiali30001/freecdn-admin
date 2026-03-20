@@ -2,17 +2,11 @@ package origins
 
 import (
 	"encoding/json"
-	"net/url"
-	"regexp"
-	"strings"
 
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
-	"github.com/hujiali30001/freecdn-common/pkg/configutils"
 	"github.com/hujiali30001/freecdn-common/pkg/langs/codes"
 	"github.com/hujiali30001/freecdn-common/pkg/rpc/pb"
 	"github.com/hujiali30001/freecdn-common/pkg/serverconfigs"
-	"github.com/hujiali30001/freecdn-common/pkg/serverconfigs/shared"
-	"github.com/hujiali30001/freecdn-common/pkg/serverconfigs/sslconfigs"
 	"github.com/iwind/TeaGo/actions"
 	"github.com/iwind/TeaGo/maps"
 	"github.com/iwind/TeaGo/types"
@@ -168,6 +162,7 @@ func (this *UpdatePopupAction) RunPost(params struct {
 	var readTimeoutJSON []byte
 	var idleTimeoutJSON []byte
 	var certRefJSON []byte
+	var ok bool
 	var pbAddr = &pb.NetworkAddress{
 		Protocol: params.Protocol,
 	}
@@ -184,129 +179,17 @@ func (this *UpdatePopupAction) RunPost(params struct {
 			return
 		}
 	} else { // 普通源站
-		params.Must.
-			Field("addr", params.Addr).
-			Require("请输入源站地址")
-
-		var addr = params.Addr
-
-		// 是否是完整的地址
-		if (params.Protocol == "http" || params.Protocol == "https") && regexp.MustCompile(`^(http|https)://`).MatchString(addr) {
-			u, err := url.Parse(addr)
-			if err == nil {
-				addr = u.Host
-			}
-		}
-
-		addr = strings.ReplaceAll(addr, "：", ":")
-		addr = regexp.MustCompile(`\s+`).ReplaceAllString(addr, "")
-		portIndex := strings.LastIndex(addr, ":")
-		if portIndex < 0 {
-			if params.Protocol == "http" {
-				addr += ":80"
-			} else if params.Protocol == "https" {
-				addr += ":443"
-			} else {
-				this.FailField("addr", "源站地址中需要带有端口")
-			}
-			portIndex = strings.LastIndex(addr, ":")
-		}
-		var host = addr[:portIndex]
-		var port = addr[portIndex+1:]
-		// 检查端口号
-		if port == "0" {
-			this.FailField("addr", "源站端口号不能为0")
+		pbAddr, connTimeoutJSON, readTimeoutJSON, idleTimeoutJSON, certRefJSON, ok = buildOriginNetworkConfig(this.Parent(), params.Must, params.Protocol, params.Addr, params.ConnTimeout, params.ReadTimeout, params.IdleTimeout, params.CertIdsJSON)
+		if !ok {
 			return
-		}
-		if !configutils.HasVariables(port) {
-			// 必须是整数
-			if !regexp.MustCompile(`^\d+$`).MatchString(port) {
-				this.FailField("addr", "源站端口号只能为整数")
-				return
-			}
-			var portInt = types.Int(port)
-			if portInt == 0 {
-				this.FailField("addr", "源站端口号不能为0")
-				return
-			}
-			if portInt > 65535 {
-				this.FailField("addr", "源站端口号不能大于65535")
-				return
-			}
-		}
-
-		pbAddr = &pb.NetworkAddress{
-			Protocol:  params.Protocol,
-			Host:      host,
-			PortRange: port,
-		}
-
-		connTimeoutJSON, err = (&shared.TimeDuration{
-			Count: int64(params.ConnTimeout),
-			Unit:  shared.TimeDurationUnitSecond,
-		}).AsJSON()
-		if err != nil {
-			this.ErrorPage(err)
-			return
-		}
-
-		readTimeoutJSON, err = (&shared.TimeDuration{
-			Count: int64(params.ReadTimeout),
-			Unit:  shared.TimeDurationUnitSecond,
-		}).AsJSON()
-		if err != nil {
-			this.ErrorPage(err)
-			return
-		}
-
-		idleTimeoutJSON, err = (&shared.TimeDuration{
-			Count: int64(params.IdleTimeout),
-			Unit:  shared.TimeDurationUnitSecond,
-		}).AsJSON()
-		if err != nil {
-			this.ErrorPage(err)
-			return
-		}
-
-		// 证书
-		var certIds = []int64{}
-		if len(params.CertIdsJSON) > 0 {
-			err = json.Unmarshal(params.CertIdsJSON, &certIds)
-			if err != nil {
-				this.ErrorPage(err)
-				return
-			}
-		}
-
-		if len(certIds) > 0 {
-			var certId = certIds[0]
-			if certId > 0 {
-				var certRef = &sslconfigs.SSLCertRef{
-					IsOn:   true,
-					CertId: certId,
-				}
-				certRefJSON, err = json.Marshal(certRef)
-				if err != nil {
-					this.ErrorPage(err)
-					return
-				}
-			}
 		}
 	}
 
 	// 专属域名
-	var domains = []string{}
-	if len(params.DomainsJSON) > 0 {
-		err = json.Unmarshal(params.DomainsJSON, &domains)
-		if err != nil {
-			this.ErrorPage(err)
-			return
-		}
-
-		// 去除可能误加的斜杠
-		for index, domain := range domains {
-			domains[index] = strings.TrimSuffix(domain, "/")
-		}
+	domains, err := parseOriginDomains(params.DomainsJSON)
+	if err != nil {
+		this.ErrorPage(err)
+		return
 	}
 
 	_, err = this.RPC().OriginRPC().UpdateOrigin(this.AdminContext(), &pb.UpdateOriginRequest{

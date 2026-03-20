@@ -49,20 +49,25 @@ func (this *SelectCountriesPopupAction) RunPost(params struct {
 	Must *actions.Must
 	CSRF *actionutils.CSRF
 }) {
+	countriesResp, err := this.RPC().RegionCountryRPC().FindAllRegionCountries(this.AdminContext(), &pb.FindAllRegionCountriesRequest{})
+	if err != nil {
+		this.ErrorPage(err)
+		return
+	}
+	countryNames := map[int64]string{}
+	for _, country := range countriesResp.RegionCountries {
+		countryNames[country.Id] = country.DisplayName
+	}
+
 	var countryMaps = []maps.Map{}
 	for _, countryId := range params.CountryIds {
-		countryResp, err := this.RPC().RegionCountryRPC().FindRegionCountry(this.AdminContext(), &pb.FindRegionCountryRequest{RegionCountryId: countryId})
-		if err != nil {
-			this.ErrorPage(err)
-			return
-		}
-		country := countryResp.RegionCountry
-		if country == nil {
+		name, ok := countryNames[countryId]
+		if !ok {
 			continue
 		}
 		countryMaps = append(countryMaps, maps.Map{
-			"id":   country.Id,
-			"name": country.DisplayName,
+			"id":   countryId,
+			"name": name,
 		})
 	}
 	this.Data["countries"] = countryMaps

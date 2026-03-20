@@ -46,6 +46,7 @@ func (this *UpgradeAction) RunPost(params struct {
 
 	var manager = utils.NewUpgradeManager("admin", params.Url)
 	var ticker = time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
 	go func() {
 		for range ticker.C {
 			if manager.IsDownloading() {
@@ -70,7 +71,7 @@ func (this *UpgradeAction) RunPost(params struct {
 		atomic.StoreInt32(&isUpgradingDB, 1)
 		var before = time.Now()
 		var cmd = executils.NewCmd(exePath, "upgrade")
-		_ = cmd.Run()
+		err = cmd.Run()
 		var costSeconds = time.Since(before).Seconds()
 
 		// sleep to show upgrading status
@@ -78,15 +79,25 @@ func (this *UpgradeAction) RunPost(params struct {
 			time.Sleep(3 * time.Second)
 		}
 		atomic.StoreInt32(&isUpgradingDB, 0)
+		if err != nil {
+			this.Fail("升级数据库失败：" + err.Error())
+			return
+		}
 	}
 
 	// restart
-	exe, _ := os.Executable()
+	exe, err := os.Executable()
+	if err != nil {
+		this.Fail("读取可执行文件路径失败：" + err.Error())
+		return
+	}
 	if len(exe) > 0 {
-		go func() {
-			var cmd = exec.Command(exe, "restart")
-			_ = cmd.Run()
-		}()
+		var cmd = exec.Command(exe, "restart")
+		err = cmd.Run()
+		if err != nil {
+			this.Fail("重启失败：" + err.Error())
+			return
+		}
 	}
 
 	this.Success()

@@ -16,7 +16,7 @@
 FROM debian:bookworm-slim AS downloader
 
 ARG TARGETARCH=amd64
-ARG FREECDN_VERSION=v0.10.0
+ARG FREECDN_VERSION=v0.11.2
 ARG GITHUB_REPO=hujiali30001/freecdn-admin
 
 RUN apt-get update -qq && apt-get install -y -qq wget unzip ca-certificates tar && rm -rf /var/lib/apt/lists/*

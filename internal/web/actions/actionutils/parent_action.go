@@ -37,27 +37,7 @@ func (this *ParentAction) Parent() *ParentAction {
 // BeforeAction 注入安全响应头（ORA-13）
 // TeaGo 在每个 Action 执行前会调用父类或内嵌对象的 BeforeAction
 func (this *ParentAction) BeforeAction(actionPtr actions.ActionWrapper) (goNext bool) {
-	w := actionPtr.Object().ResponseWriter
-	// 防点击劫持
-	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
-	// 禁止 MIME 嗅探
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	// 只向同域发送 Referrer
-	w.Header().Set("Referrer-Policy", "same-origin")
-	// 禁 DNS 预取
-	w.Header().Set("X-DNS-Prefetch-Control", "off")
-	// HSTS（HTTP 模式下设置无害，HTTPS 模式下生效）
-	w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-	// CSP：管理后台含大量内联脚本/样式，使用宽松策略保持兼容
-	w.Header().Set("Content-Security-Policy",
-		"default-src 'self'; "+
-			"script-src 'self' 'unsafe-inline' 'unsafe-eval'; "+
-			"style-src 'self' 'unsafe-inline'; "+
-			"img-src 'self' data: blob:; "+
-			"font-src 'self' data:; "+
-			"connect-src 'self'; "+
-			"frame-ancestors 'self'",
-	)
+	ApplySecurityHeaders(actionPtr.Object().ResponseWriter.Header(), "")
 	return true
 }
 

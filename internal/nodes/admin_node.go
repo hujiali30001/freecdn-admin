@@ -98,7 +98,7 @@ func (this *AdminNode) Run() {
 	// 启动Web服务
 	sessionManager, err := NewSessionManager()
 	if err != nil {
-		log.Fatal("start session failed: " + err.Error())
+		logs.Println("[NODE]start session failed: " + err.Error())
 		return
 	}
 	TeaGo.NewServer(false).

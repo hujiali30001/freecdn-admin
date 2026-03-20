@@ -7,6 +7,7 @@ import (
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
 	"github.com/hujiali30001/freecdn-common/pkg/langs/codes"
 	"github.com/hujiali30001/freecdn-common/pkg/rpc/pb"
+	"github.com/hujiali30001/freecdn-common/pkg/serverconfigs/regionconfigs"
 	"github.com/hujiali30001/freecdn-common/pkg/serverconfigs/shared"
 	"github.com/iwind/TeaGo/actions"
 	"github.com/iwind/TeaGo/maps"
@@ -35,36 +36,44 @@ func (this *IndexAction) RunGet(params struct {
 	}
 
 	// 国家和地区
+	countriesResp, err := this.RPC().RegionCountryRPC().FindAllRegionCountries(this.AdminContext(), &pb.FindAllRegionCountriesRequest{})
+	if err != nil {
+		this.ErrorPage(err)
+		return
+	}
+	countryNames := map[int64]string{}
+	for _, country := range countriesResp.RegionCountries {
+		countryNames[country.Id] = country.DisplayName
+	}
 	var countryMaps = []maps.Map{}
 	for _, countryId := range config.AllowCountryIds {
-		countryResp, err := this.RPC().RegionCountryRPC().FindRegionCountry(this.AdminContext(), &pb.FindRegionCountryRequest{RegionCountryId: countryId})
-		if err != nil {
-			this.ErrorPage(err)
-			return
-		}
-		var country = countryResp.RegionCountry
-		if country != nil {
+		name, ok := countryNames[countryId]
+		if ok {
 			countryMaps = append(countryMaps, maps.Map{
-				"id":   country.Id,
-				"name": country.DisplayName,
+				"id":   countryId,
+				"name": name,
 			})
 		}
 	}
 	this.Data["countries"] = countryMaps
 
 	// 省份
+	provincesResp, err := this.RPC().RegionProvinceRPC().FindAllRegionProvincesWithRegionCountryId(this.AdminContext(), &pb.FindAllRegionProvincesWithRegionCountryIdRequest{RegionCountryId: regionconfigs.RegionChinaId})
+	if err != nil {
+		this.ErrorPage(err)
+		return
+	}
+	provinceNames := map[int64]string{}
+	for _, province := range provincesResp.RegionProvinces {
+		provinceNames[province.Id] = province.DisplayName
+	}
 	var provinceMaps = []maps.Map{}
 	for _, provinceId := range config.AllowProvinceIds {
-		provinceResp, err := this.RPC().RegionProvinceRPC().FindRegionProvince(this.AdminContext(), &pb.FindRegionProvinceRequest{RegionProvinceId: provinceId})
-		if err != nil {
-			this.ErrorPage(err)
-			return
-		}
-		var province = provinceResp.RegionProvince
-		if province != nil {
+		name, ok := provinceNames[provinceId]
+		if ok {
 			provinceMaps = append(provinceMaps, maps.Map{
-				"id":   province.Id,
-				"name": province.DisplayName,
+				"id":   provinceId,
+				"name": name,
 			})
 		}
 	}

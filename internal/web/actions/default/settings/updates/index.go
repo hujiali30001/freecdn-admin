@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
@@ -97,7 +98,17 @@ func (this *IndexAction) RunPost(params struct {
 	apiURL = strings.ReplaceAll(apiURL, "${os}", runtime.GOOS)
 	apiURL = strings.ReplaceAll(apiURL, "${arch}", runtime.GOARCH)
 	apiURL = strings.ReplaceAll(apiURL, "${version}", teaconst.Version)
-	resp, err := http.Get(apiURL)
+	client := &http.Client{Timeout: 8 * time.Second}
+	req, err := http.NewRequest(http.MethodGet, apiURL, nil)
+	if err != nil {
+		this.Data["result"] = maps.Map{
+			"isOk":    false,
+			"message": "构建更新请求失败：" + err.Error(),
+		}
+		this.Success()
+		return
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		this.Data["result"] = maps.Map{
 			"isOk":    false,
@@ -106,11 +117,18 @@ func (this *IndexAction) RunPost(params struct {
 		this.Success()
 		return
 	}
-
+	if resp.StatusCode != http.StatusOK {
+		this.Data["result"] = maps.Map{
+			"isOk":    false,
+			"message": "读取更新信息失败：返回状态码 " + fmt.Sprintf("%d", resp.StatusCode),
+		}
+		this.Success()
+		return
+	}
 	defer func() {
 		_ = resp.Body.Close()
 	}()
-	data, err := io.ReadAll(resp.Body)
+	data, err := io.ReadAll(io.LimitReader(resp.Body, 1024*1024))
 	if err != nil {
 		this.Data["result"] = maps.Map{
 			"isOk":    false,

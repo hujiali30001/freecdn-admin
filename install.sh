@@ -60,7 +60,7 @@ API_ENDPOINT=""                 # node 模式必填
 NODE_ID=""                      # node 模式必填
 NODE_SECRET=""                  # node 模式必填
 
-FREECDN_VERSION="v0.11.0"       # FreeCDN 自己的 Release 版本
+FREECDN_VERSION="v0.11.2"       # FreeCDN 自己的 Release 版本
 FORCE_REINSTALL="false"
 
 # ── 参数解析 ───────────────────────────────────────────────────────────────────
@@ -103,7 +103,7 @@ FreeCDN 一键安装脚本
   --mysql-host     MySQL 地址（默认 127.0.0.1）
   --mysql-pass     MySQL 密码（默认自动生成）
   --skip-mysql     跳过 MySQL 安装（自行管理数据库时使用）
-  --version        指定 FreeCDN Release 版本（默认 v0.2.0）
+  --version        指定 FreeCDN Release 版本（默认 v0.11.2）
   --freecdn-version 同 --version
   --reinstall      强制重新安装（覆盖现有安装）
 EOF
@@ -710,8 +710,16 @@ SQL
 if [ "$MODE" = "admin" ]; then
   step "初始化数据库"
 
-  # 生成管理员密码
-  ADMIN_PASSWORD="FreeCDN$(date +%Y)!"
+  set +o pipefail
+  ADMIN_PASSWORD=$(tr -dc 'A-Za-z0-9!@#$%^&*()-_=+' < /dev/urandom | head -c 24)
+  set -o pipefail
+  ADMIN_CREDENTIAL_FILE="${ADMIN_DIR}/.admin_credentials"
+  umask 177
+  cat > "${ADMIN_CREDENTIAL_FILE}" <<EOF
+username=admin
+password=${ADMIN_PASSWORD}
+EOF
+  chmod 600 "${ADMIN_CREDENTIAL_FILE}"
 
   # 获取服务器内网 IP（用于 accessAddrs）
   set +o pipefail
@@ -914,7 +922,8 @@ if [ "$MODE" = "admin" ]; then
   echo ""
   echo -e "  ${BOLD}管理员账号：${NC}"
   echo -e "    用户名: ${CYAN}admin${NC}"
-  echo -e "    密 码:  ${CYAN}${ADMIN_PASSWORD}${NC}"
+  echo -e "    初始密码文件: ${CYAN}${ADMIN_CREDENTIAL_FILE}${NC}"
+  echo -e "    建议登录后立即修改密码"
   echo ""
   if [ "${MYSQL_PASSWORD_GENERATED}" = "true" ]; then
     echo -e "  ${BOLD}数据库密码（自动生成，请记录）：${NC}"

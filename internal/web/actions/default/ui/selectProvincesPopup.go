@@ -47,20 +47,25 @@ func (this *SelectProvincesPopupAction) RunPost(params struct {
 	Must *actions.Must
 	CSRF *actionutils.CSRF
 }) {
+	provincesResp, err := this.RPC().RegionProvinceRPC().FindAllRegionProvincesWithRegionCountryId(this.AdminContext(), &pb.FindAllRegionProvincesWithRegionCountryIdRequest{RegionCountryId: regionconfigs.RegionChinaId})
+	if err != nil {
+		this.ErrorPage(err)
+		return
+	}
+	provinceNames := map[int64]string{}
+	for _, province := range provincesResp.RegionProvinces {
+		provinceNames[province.Id] = province.DisplayName
+	}
+
 	var provinceMaps = []maps.Map{}
 	for _, provinceId := range params.ProvinceIds {
-		provinceResp, err := this.RPC().RegionProvinceRPC().FindRegionProvince(this.AdminContext(), &pb.FindRegionProvinceRequest{RegionProvinceId: provinceId})
-		if err != nil {
-			this.ErrorPage(err)
-			return
-		}
-		province := provinceResp.RegionProvince
-		if province == nil {
+		name, ok := provinceNames[provinceId]
+		if !ok {
 			continue
 		}
 		provinceMaps = append(provinceMaps, maps.Map{
-			"id":   province.Id,
-			"name": province.DisplayName,
+			"id":   provinceId,
+			"name": name,
 		})
 	}
 	this.Data["provinces"] = provinceMaps

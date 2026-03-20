@@ -83,7 +83,7 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile
       args:
-        FREECDN_VERSION: ${FREECDN_VERSION:-v0.1.6}
+        FREECDN_VERSION: ${FREECDN_VERSION:-v0.11.2}
     image: freecdn/admin:latest
     container_name: freecdn-admin
     restart: always

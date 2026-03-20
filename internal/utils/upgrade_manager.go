@@ -132,7 +132,7 @@ func (this *UpgradeManager) Start() error {
 			return errors.New("read latest version failed: invalid response code '" + types.String(resp.StatusCode) + "'")
 		}
 
-		data, err := io.ReadAll(resp.Body)
+		data, err := io.ReadAll(io.LimitReader(resp.Body, 1024*1024))
 		if err != nil {
 			return fmt.Errorf("read latest version failed: %w", err)
 		}

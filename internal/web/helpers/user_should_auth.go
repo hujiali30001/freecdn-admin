@@ -6,6 +6,7 @@ import (
 	"github.com/hujiali30001/freecdn-admin/internal/configloaders"
 	teaconst "github.com/hujiali30001/freecdn-admin/internal/const"
 	"github.com/hujiali30001/freecdn-admin/internal/utils/numberutils"
+	"github.com/hujiali30001/freecdn-admin/internal/web/actions/actionutils"
 	"github.com/hujiali30001/freecdn-admin/internal/web/actions/default/index/loginutils"
 	"github.com/iwind/TeaGo/actions"
 )
@@ -15,11 +16,7 @@ type UserShouldAuth struct {
 }
 
 func (this *UserShouldAuth) BeforeAction(actionPtr actions.ActionWrapper, paramName string) (goNext bool) {
-	// 注入安全响应头（ORA-13）
-	w := actionPtr.Object().ResponseWriter
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("Referrer-Policy", "same-origin")
-	w.Header().Set("X-DNS-Prefetch-Control", "off")
+	actionutils.ApplySecurityHeaders(actionPtr.Object().ResponseWriter.Header(), "")
 
 	if teaconst.IsRecoverMode {
 		actionPtr.Object().RedirectURL("/recover")
@@ -44,12 +41,9 @@ func (this *UserShouldAuth) BeforeAction(actionPtr actions.ActionWrapper, paramN
 	// 安全相关
 	var action = this.action
 	securityConfig, _ := configloaders.LoadSecurityConfig()
-	if securityConfig == nil {
-		action.AddHeader("X-Frame-Options", "SAMEORIGIN")
-	} else if len(securityConfig.Frame) > 0 {
-		action.AddHeader("X-Frame-Options", securityConfig.Frame)
+	if securityConfig != nil && len(securityConfig.Frame) > 0 {
+		actionutils.ApplySecurityHeaders(action.ResponseWriter.Header(), securityConfig.Frame)
 	}
-	action.AddHeader("Content-Security-Policy", "default-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'")
 
 	// 检查IP
 	if !checkIP(securityConfig, loginutils.RemoteIP(action)) {
